@@ -131,11 +131,13 @@
               CommandParameter="1:1" 
               Style="{StaticResource MenuItemStyle}"/>
             </MenuItem>
+
+            <!-- 
             <MenuItem Header="缩放" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="50%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.5" Style="{StaticResource MenuItemStyle}"/>
                 <MenuItem Header="75%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.75" Style="{StaticResource MenuItemStyle}"/>
                 <MenuItem Header="100%" Command="{Binding ChangeScaleCommand}" CommandParameter="1.0" Style="{StaticResource MenuItemStyle}"/>
-            </MenuItem>
+            </MenuItem> -->
             <MenuItem Header="全屏" 
                       Command="{Binding ToggleFullScreenCommand}"
                       Style="{StaticResource MenuItemStyle}">

@@ -50,14 +50,10 @@ public class WindowSizeHandler
                 aspectWidth = videoWidth;
             }
         }
-
         
-
         // 获取屏幕缩放后的分辨率
         double scaledScreenWidth = SystemParameters.PrimaryScreenWidth;
         double scaledScreenHeight = SystemParameters.PrimaryScreenHeight;
-
-       
 
         // 获取屏幕实际分辨率
         int actualScreenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -68,8 +64,6 @@ public class WindowSizeHandler
         double dpiScaleY = scaledScreenHeight / actualScreenHeight;
 
         double scaleRatio = Math.Min(dpiScaleX, dpiScaleY);
-
-
 
         // 计算调整后的宽高
         double adjustedWidth = aspectWidth * scaleRatio;

@@ -94,6 +94,14 @@ namespace Echo.Handlers
         public void Dispose()
         {
             _timer.Stop();
+            //_timer.Tick -= CheckCurrentSubtitle;
+
+            _subtitles?.Clear();
+            _subtitles = null;
+
+            SubtitlesLoaded = null;
+            _updateSubtitleText(string.Empty);
+
         }
     }
 }

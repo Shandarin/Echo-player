@@ -72,10 +72,10 @@ namespace Echo.ViewModels
         private string _videoAreaContainerBackground = "Black"; //避免启动时背景为其他颜色
 
         [ObservableProperty]
-        private uint _videoViewHeight;
+        private string _videoViewHeight;
 
         [ObservableProperty]
-        private uint _videoViewWidth;
+        private string _videoViewWidth;
 
         [ObservableProperty]
         private uint _mainWindowLeft;
@@ -104,6 +104,8 @@ namespace Echo.ViewModels
 
             MenuBarVM.OnScreenshotRequested += HandleScreenshotRequested;
             MenuBarVM.OnAspectRatioChanged += HandleAspectRatioChanged;
+            MenuBarVM.OnFullScreenToggled += HandleOnFullScreenToggled;
+            MenuBarVM.OnSubtitleFileSelected += HandleSubtitleFileSelected;
 
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
@@ -124,11 +126,11 @@ namespace Echo.ViewModels
             };
         }
 
-
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
 
             HandleAspectRatioChanged(sender, "Default");
+            _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
 
         }
 
@@ -150,8 +152,12 @@ namespace Echo.ViewModels
             if (videoWidth == 0 || videoHeight == 0)
                 return;
 
-            (VideoViewWidth, VideoViewHeight, MainWindowLeft, MainWindowTop) =
+            (uint vvWidth, uint vvHeight, MainWindowLeft, MainWindowTop) =
                  _windowSizeHandler.CalculateWindowSize(MainWindowLeft, MainWindowTop, videoWidth, videoHeight, ratio);
+
+            VideoViewWidth = vvWidth.ToString();
+            VideoViewHeight = vvHeight.ToString();
+
         }
 
         private void HandleScreenshotRequested(object sender, EventArgs e)
@@ -164,6 +170,21 @@ namespace Echo.ViewModels
                 Directory.CreateDirectory(filePath);
             }
             _mediaPlayer.TakeSnapshot(0, filePath, 0, 0);
+        }
+
+        private void HandleOnFullScreenToggled(object? sender, EventArgs e)
+        {
+            ToggleFullScreen();
+        }
+
+        private void HandleSubtitleFileSelected(object? sender, string filepath)
+        {
+            if (_mediaPlayer.IsPlaying)
+            {
+                LoadSubtitle(filepath);
+                _subtitleHandler.Start();
+            }
+            //Debug.WriteLine($"file {filepath}");
         }
 
         #endregion
@@ -210,6 +231,7 @@ namespace Echo.ViewModels
                     _mediaPlayer.Play();
 
                     // 自动检查同名字幕
+                    _subtitleHandler.Dispose();
                     var srtPath = Path.ChangeExtension(filePath, ".srt");
                     var assPath = Path.ChangeExtension(filePath, ".ass");
                     if (File.Exists(srtPath))
@@ -224,7 +246,6 @@ namespace Echo.ViewModels
                         LoadSubtitle(assPath);
                         _subtitleHandler.Start();
                     }
-                    
                 }
                 VideoAreaContainerBackground = "Transparent";
             }
@@ -247,26 +268,6 @@ namespace Echo.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void OnCopyAllSubtitle()
-        {
-            // 假设有字幕内容在某个地方保存，此处仅演示
-            Clipboard.SetText("All subtitles here...");
-            MessageBox.Show("All subtitle text copied to clipboard!",
-                            "Success",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
-        }
-
-
-
-        [RelayCommand]
-        private void OnClearSubtitle()
-        {
-            // 假设清空字幕的逻辑
-            // ...
-            MessageBox.Show("Subtitle cleared!");
-        }
 
         [RelayCommand]
         private void HandleVideoAreaClick(Point clickPosition)
@@ -364,6 +365,7 @@ namespace Echo.ViewModels
             if (_mediaPlayer.IsPlaying)
             {
                 _mediaPlayer.Pause();
+                //_mediaPlayer.SetSpu(-1);
             }
             else
             {
@@ -409,6 +411,9 @@ namespace Echo.ViewModels
                 MainWindowStyle = WindowStyle.SingleBorderWindow;
                 MainWindowState = WindowState.Normal;
             }
+
+            VideoViewHeight = "Auto";
+            VideoViewWidth = "Auto";
 
             VideoControlVM.IsControlBarVisible = !_isFullScreen;
             MenuBarVM.IsMenuBarVisible = VideoControlVM.IsControlBarVisible;
