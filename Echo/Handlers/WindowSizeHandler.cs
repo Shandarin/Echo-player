@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using LibVLCSharp.Shared;
 
@@ -10,52 +12,86 @@ public class WindowSizeHandler
     private const double MAX_WINDOW_HEIGHT = 1080;
     private const double ASPECT_RATIO_TOLERANCE = 0.01;
 
-    public void AdjustWindowSize(Window window, MediaPlayer mediaPlayer)
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetrics(int nIndex);
+
+    private const int SM_CXSCREEN = 0; // 主屏幕宽度
+    private const int SM_CYSCREEN = 1; // 主屏幕高度
+
+    public (uint adjustedWidth, uint adjustedHeight, uint adjustedLeft, uint adjustedTop) CalculateWindowSize(
+        uint currentMainWindowLeft,
+        uint currentMainWindowTop,
+        uint videoWidth,
+        uint videoHeight,
+        string ratio)
     {
-        if (mediaPlayer?.Media == null) return;
+        double aspectWidth, aspectHeight;
 
-        // Get video dimensions
-        uint videoWidth = mediaPlayer.Media.Tracks[0].Data.Video.Width;
-        uint videoHeight = mediaPlayer.Media.Tracks[0].Data.Video.Height;
-
-        if (videoWidth == 0 || videoHeight == 0) return;
-
-        // Calculate target dimensions while maintaining aspect ratio
-        double targetWidth = videoWidth;
-        double targetHeight = videoHeight;
-
-        // Scale down if larger than max dimensions
-        if (targetWidth > MAX_WINDOW_WIDTH || targetHeight > MAX_WINDOW_HEIGHT)
+        // 判断是否为默认比例
+        if (string.Equals(ratio, "Default", StringComparison.OrdinalIgnoreCase))
         {
-            double widthScale = MAX_WINDOW_WIDTH / targetWidth;
-            double heightScale = MAX_WINDOW_HEIGHT / targetHeight;
-            double scale = Math.Min(widthScale, heightScale);
-
-            targetWidth *= scale;
-            targetHeight *= scale;
+            aspectWidth = videoWidth;
+            aspectHeight = videoHeight;
+        }
+        else
+        {
+            var aspectParts = ratio.Split(':');
+            if (aspectParts.Length != 2 ||
+                !double.TryParse(aspectParts[0], out aspectWidth) ||
+                !double.TryParse(aspectParts[1], out aspectHeight) ||
+                aspectWidth <= 0 || aspectHeight <= 0)
+            {
+                Debug.WriteLine("Invalid aspect ratio: " + ratio);
+                return CalculateWindowSize(videoWidth, videoHeight, currentMainWindowLeft, currentMainWindowTop,"default");
+            }
+            else
+            {
+                aspectHeight = videoHeight/(aspectWidth / aspectHeight);
+                aspectWidth = videoWidth;
+            }
         }
 
-        // Scale up if smaller than min dimensions
-        if (targetWidth < MIN_WINDOW_WIDTH || targetHeight < MIN_WINDOW_HEIGHT)
-        {
-            double widthScale = MIN_WINDOW_WIDTH / targetWidth;
-            double heightScale = MIN_WINDOW_HEIGHT / targetHeight;
-            double scale = Math.Max(widthScale, heightScale);
+        
 
-            targetWidth *= scale;
-            targetHeight *= scale;
+        // 获取屏幕缩放后的分辨率
+        double scaledScreenWidth = SystemParameters.PrimaryScreenWidth;
+        double scaledScreenHeight = SystemParameters.PrimaryScreenHeight;
+
+       
+
+        // 获取屏幕实际分辨率
+        int actualScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+        int actualScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+        // 计算屏幕的缩放比例
+        double dpiScaleX = scaledScreenWidth / actualScreenWidth;
+        double dpiScaleY = scaledScreenHeight / actualScreenHeight;
+
+        double scaleRatio = Math.Min(dpiScaleX, dpiScaleY);
+
+
+
+        // 计算调整后的宽高
+        double adjustedWidth = aspectWidth * scaleRatio;
+        double adjustedHeight = aspectHeight * scaleRatio;
+
+        //Debug.WriteLine($"adjustedWidth:{adjustedWidth}");
+
+        uint adjustedLeft = currentMainWindowLeft;
+        uint adjustedTop = currentMainWindowTop;
+
+        // 确保窗口不会超出屏幕边界
+        if (adjustedLeft + adjustedWidth > scaledScreenWidth)
+        {
+            adjustedLeft = (uint)(scaledScreenWidth - adjustedWidth);
         }
 
-        // Add space for menu bar and control bar
-        targetHeight += 80; // Approximate height for UI elements
+        if (adjustedTop + adjustedHeight > scaledScreenHeight)
+        {
+            adjustedTop = (uint)(scaledScreenHeight - adjustedHeight);
+        }
 
-        // Set new window size
-        window.Width = targetWidth;
-        window.Height = targetHeight;
-
-        // Center window on screen
-        window.Left = (SystemParameters.PrimaryScreenWidth - window.Width) / 2;
-        window.Top = (SystemParameters.PrimaryScreenHeight - window.Height) / 2;
+        return ((uint)adjustedWidth, (uint)adjustedHeight, adjustedLeft, adjustedTop);
     }
 
     public void ResetWindowSize(Window window)

@@ -22,6 +22,7 @@ namespace Echo.ViewModels
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
         private readonly SubtitleHandler _subtitleHandler;
         private readonly WordClickHandler _wordClickHandler;
+        private readonly WindowSizeHandler _windowSizeHandler = new();
         private TranslationService _translationService;
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
@@ -29,6 +30,8 @@ namespace Echo.ViewModels
         private ScrollingSubtitleHandler _scrollingSubtitleHandler;
         private TextBlock _prevSubtitleBlock;
         private TextBlock _nextSubtitleBlock;
+
+
 
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int nIndex);
@@ -69,7 +72,7 @@ namespace Echo.ViewModels
         private string _videoAreaContainerBackground = "Black"; //避免启动时背景为其他颜色
 
         [ObservableProperty]
-        private double _videoViewHeight;
+        private uint _videoViewHeight;
 
         [ObservableProperty]
         private uint _videoViewWidth;
@@ -100,6 +103,7 @@ namespace Echo.ViewModels
             MenuBarVM = new MenuBarViewModel();
 
             MenuBarVM.OnScreenshotRequested += HandleScreenshotRequested;
+            MenuBarVM.OnAspectRatioChanged += HandleAspectRatioChanged;
 
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
@@ -123,63 +127,9 @@ namespace Echo.ViewModels
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
-            
-            uint videoWidth = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Width;
-            uint videoHeight = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Height;
 
-            if (videoWidth == 0 || videoHeight == 0)
-                return;
+            HandleAspectRatioChanged(sender, "Default");
 
-            AdjustWindowSize(videoWidth, videoHeight);
-            //Application.Current.Dispatcher.Invoke(() =>
-            //{
-            //    AdjustWindowSize(videoWidth, videoHeight);
-            //});
-        }
-
-        private void AdjustWindowSize(uint videoWidth, uint videoHeight)
-        {
-            // 获取屏幕缩放后的分辨率
-            double scaledScreenWidth = SystemParameters.PrimaryScreenWidth;
-            double scaledScreenHeight = SystemParameters.PrimaryScreenHeight;
-
-            // 获取屏幕实际分辨率
-            int actualScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-            int actualScreenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-            // 计算屏幕的缩放比例
-            double dpiScaleX = scaledScreenWidth / actualScreenWidth;
-            double dpiScaleY = scaledScreenHeight / actualScreenHeight;
-
-            double scaleRatio = Math.Min(dpiScaleX, dpiScaleY);
-
-            // 计算视频宽高比
-            double videoAspectRatio = (double)videoWidth / videoHeight;
-
-            // 限制窗口大小，不超过屏幕实际分辨率
-            double maxWindowWidth = videoWidth * scaleRatio;
-            double maxWindowHeight = videoHeight * scaleRatio;
-
-            double adjustedWidth = Math.Min(maxWindowWidth, videoAspectRatio * maxWindowHeight);
-            double adjustedHeight = Math.Min(maxWindowHeight, adjustedWidth / videoAspectRatio);
-
-            uint CurrentMainWindowLeft = MainWindowLeft;
-            uint CurrentMainWindowTop = MainWindowTop;
-            Debug.WriteLine(CurrentMainWindowTop);
-
-            // 设置窗口大小
-            VideoViewWidth = (uint)adjustedWidth;
-             VideoViewHeight = (uint)adjustedHeight;
-
-            if (CurrentMainWindowLeft+ adjustedWidth > scaledScreenWidth)
-            {
-                MainWindowLeft = (uint)(scaledScreenWidth - adjustedWidth);
-            }
-
-            if (CurrentMainWindowTop + adjustedHeight > scaledScreenHeight)
-            {
-                MainWindowTop = (uint)(scaledScreenHeight - adjustedHeight);
-            }
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -189,6 +139,36 @@ namespace Echo.ViewModels
                 FullscreenChanged?.Invoke(this, IsFullScreen);
             }
         }
+
+        #region menubar
+        private void HandleAspectRatioChanged(object sender, string ratio)
+        {
+            if (!MediaPlayer.IsPlaying) return;
+            uint videoWidth = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Width;
+            uint videoHeight = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Height;
+
+            if (videoWidth == 0 || videoHeight == 0)
+                return;
+
+            (VideoViewWidth, VideoViewHeight, MainWindowLeft, MainWindowTop) =
+                 _windowSizeHandler.CalculateWindowSize(MainWindowLeft, MainWindowTop, videoWidth, videoHeight, ratio);
+        }
+
+        private void HandleScreenshotRequested(object sender, EventArgs e)
+        {
+            var filePath = Path.Combine(
+                  AppDomain.CurrentDomain.BaseDirectory,
+                  "Storage", "Snapshots");
+            if (!Directory.Exists(filePath))
+            {
+                Directory.CreateDirectory(filePath);
+            }
+            _mediaPlayer.TakeSnapshot(0, filePath, 0, 0);
+        }
+
+        #endregion
+
+
 
         #region commands
 
@@ -434,19 +414,6 @@ namespace Echo.ViewModels
             MenuBarVM.IsMenuBarVisible = VideoControlVM.IsControlBarVisible;
 
             OnPropertyChanged(nameof(IsFullScreen));
-        }
-
-
-        private void HandleScreenshotRequested(object sender, EventArgs e)
-        {
-            var filePath = Path.Combine(
-                  AppDomain.CurrentDomain.BaseDirectory,
-                  "Storage","Snapshots");
-            if (!Directory.Exists(filePath))
-            {
-                Directory.CreateDirectory(filePath);
-            }
-            _mediaPlayer.TakeSnapshot(0, filePath,0 ,0);
         }
 
 

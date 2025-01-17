@@ -43,7 +43,7 @@ namespace Echo.ViewModels
         private double currentScale = 1.0;
 
         [ObservableProperty]
-        private string currentAspectRatio = "16:9";
+        private string selectedAspectRatio = "Default";
 
         [ObservableProperty]
         private bool isMenuBarVisible = true;
@@ -69,6 +69,13 @@ namespace Echo.ViewModels
         }
 
         [RelayCommand]
+        private void ChangeAspectRatio(string ratio)
+        {
+            SelectedAspectRatio = ratio;
+            OnAspectRatioChanged?.Invoke(this, ratio);
+        }
+
+        [RelayCommand]
         private void Exit()
         {
             Application.Current.Shutdown();
@@ -79,12 +86,6 @@ namespace Echo.ViewModels
         private void Screenshot()
         {
             OnScreenshotRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        [RelayCommand]
-        private void ChangeAspectRatio(string ratio)
-        {
-            OnAspectRatioChanged?.Invoke(this, ratio);
         }
 
         [RelayCommand]

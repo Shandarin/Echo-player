@@ -17,6 +17,7 @@
 
     <UserControl.Resources>
         <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:AspectRatioConverter x:Key="AspectRatioConverter"/>
         <!-- MenuItem 基础样式 -->
         <Style x:Key="MenuItemStyle" TargetType="MenuItem">
             <Setter Property="Background" Value="#F5F5F5"/>
@@ -99,11 +100,36 @@
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem Header="宽高比" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="默认" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="Default" Style="{StaticResource MenuItemStyle}"/>
-                <MenuItem Header="16:10" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="16:10" Style="{StaticResource MenuItemStyle}"/>
-                <MenuItem Header="16:9" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="16:9" Style="{StaticResource MenuItemStyle}"/>
-                <MenuItem Header="4:3" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="4:3" Style="{StaticResource MenuItemStyle}"/>
-                <MenuItem Header="1:1" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="1:1" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="默认" 
+              IsCheckable="True" 
+              IsChecked="{Binding SelectedAspectRatio, Converter={StaticResource AspectRatioConverter}, ConverterParameter='Default'}"
+              Command="{Binding ChangeAspectRatioCommand}" 
+              CommandParameter="Default" 
+              Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="16:10" 
+              IsCheckable="True" 
+              IsChecked="{Binding SelectedAspectRatio, Converter={StaticResource AspectRatioConverter}, ConverterParameter='16:10'}"
+              Command="{Binding ChangeAspectRatioCommand}" 
+              CommandParameter="16:10" 
+              Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="16:9" 
+              IsCheckable="True" 
+              IsChecked="{Binding SelectedAspectRatio, Converter={StaticResource AspectRatioConverter}, ConverterParameter='16:9'}"
+              Command="{Binding ChangeAspectRatioCommand}" 
+              CommandParameter="16:9" 
+              Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="4:3" 
+              IsCheckable="True" 
+              IsChecked="{Binding SelectedAspectRatio, Converter={StaticResource AspectRatioConverter}, ConverterParameter='4:3'}"
+              Command="{Binding ChangeAspectRatioCommand}" 
+              CommandParameter="4:3" 
+              Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="1:1" 
+              IsCheckable="True" 
+              IsChecked="{Binding SelectedAspectRatio, Converter={StaticResource AspectRatioConverter}, ConverterParameter='1:1'}"
+              Command="{Binding ChangeAspectRatioCommand}" 
+              CommandParameter="1:1" 
+              Style="{StaticResource MenuItemStyle}"/>
             </MenuItem>
             <MenuItem Header="缩放" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="50%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.5" Style="{StaticResource MenuItemStyle}"/>
