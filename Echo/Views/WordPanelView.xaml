@@ -1,0 +1,109 @@
+﻿<UserControl x:Class="Echo.Views.WordPanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Echo.ViewModels"
+             mc:Ignorable="d"
+             Width="354" MinHeight="100" MaxHeight="400" Height="204">
+
+    <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" 
+            Background="White" >
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Word Header -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="{Binding HeadwordOP, Mode=OneWay}" 
+                         FontSize="24" 
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"/>
+
+                <Button Grid.Column="1"
+                        Command="{Binding ToggleFavoriteCommand}"
+                      >
+                    <TextBlock Text="★"
+                             FontSize="20"
+                            Height="24"/>
+                </Button>
+            </Grid>
+
+            <!-- Pronunciations -->
+            <StackPanel Grid.Row="1" Margin="0,10" Orientation="Horizontal">
+                <ItemsControl ItemsSource="{Binding Pronunciations, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,10,0">
+                                <TextBlock Text="{Binding Dialect, Mode=OneWay}" 
+                                         FontSize="14"
+                                         Foreground="#666666"
+                                         Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding PhoneticSpelling, Mode=OneWay}" 
+                                         FontSize="14"
+                                         Foreground="#666666"
+                                         Margin="0,0,10,0"/>
+                                <Button Command="{Binding DataContext.PlayPronunciationCommand, 
+                                         RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding AudioFile,Mode=OneWay}"
+                                        >
+                                    <TextBlock Text="🔊" FontSize="14"/>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- Definitions -->
+            <ScrollViewer Grid.Row="2" 
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,10,0,0">
+                <ItemsControl ItemsSource="{Binding Definitions,Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,5">
+                                <TextBlock>
+                                    <Run Text="{Binding Key,Mode=OneWay}" FontWeight="Bold"/>
+                                    <Run Text=". "/>
+                                    <Run Text="{Binding Value,Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+
+    <UserControl.Resources>
+        <Style x:Key="FavoriteButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="AudioButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+
+    </UserControl.Resources>
+</UserControl>

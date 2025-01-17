@@ -1,0 +1,206 @@
+﻿<Window x:Class="Echo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF" 
+        xmlns:views="clr-namespace:Echo.Views" 
+        xmlns:local="clr-namespace:Echo.ViewModels"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+        xmlns:i1="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:converters="clr-namespace:Echo.Converters"
+        Title="Echo Player" 
+        MinWidth="640"
+        MinHeight="480"
+        Background="Black"
+        WindowStyle="{Binding MainWindowStyle}"
+        WindowState="{Binding MainWindowState}"
+        ResizeMode="CanResizeWithGrip"
+        Focusable="True"
+        WindowStartupLocation="CenterScreen"
+        SizeToContent="WidthAndHeight"
+        Left="{Binding MainWindowLeft,Mode=TwoWay}"
+        Top="{Binding MainWindowTop,Mode=TwoWay}"
+        >
+    <Window.DataContext>
+        <local:MainWindowViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <!-- 通用按钮样式 -->
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF404040"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF505050"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 滑块样式 -->
+        <Style x:Key="CustomSliderStyle" TargetType="Slider">
+            <Setter Property="Background" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="Black">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 顶部控制栏 -->
+            <RowDefinition Height="*"/>
+            <!-- 视频区域 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 底部控制栏 -->
+        </Grid.RowDefinitions>
+
+        <!-- 顶部菜单栏-->
+        <views:MenuBarView Grid.Row="0" DataContext="{Binding MenuBarVM}" Focusable="True"/>
+        <!-- 视频区域 -->
+        <Grid Grid.Row="1">
+            <!-- 视频播放器 -->
+            <vlc:VideoView x:Name="VideoView" 
+                           Background="Black"
+                           Height="{Binding VideoViewHeight}"
+                           Width="{Binding VideoViewWidth}"
+                           >
+                <Grid x:Name="VideoAreaContainer" Background="{Binding VideoAreaContainerBackground}" >
+                    <!-- 鼠标检测层 -->
+                    <Grid x:Name="MouseDetectionLayer" 
+                                Background="#01000000"
+                                Panel.ZIndex="1" 
+                                MouseMove="OnMouseMove"
+                                MouseLeftButtonDown="OnMouseLeftButtonDown"
+                          PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"
+                     >
+                        
+                        <Grid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Play/Pause" Command="{Binding VideoControlVM.PlayOrPauseCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="⏯" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Skip Forward" Command="{Binding VideoControlVM.SkipForwardCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="⏭" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Skip Backward" Command="{Binding VideoControlVM.SkipBackwardCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="⏮" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Full Screen" Command="{Binding VideoControlVM.FullScreenCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="⛶" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Volume">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="🔊" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                    <MenuItem Header="Mute" Command="{Binding VideoControlVM.ToggleMuteCommand}"/>
+                                    <Slider Width="100" 
+                                    Value="{Binding VideoControlVM.Volume}" 
+                                    Maximum="100" 
+                                    Minimum="0"
+                                    Margin="10"/>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Open File" Command="{Binding OpenFileCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📂" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Open Subtitle" Command="{Binding OpenSubtitleCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📝" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Grid.ContextMenu>
+
+
+                        <!-- 字幕容器 -->
+                    <StackPanel x:Name="SubtitleBorder"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom">
+
+                            <!-- Previous subtitle -->
+                            <TextBlock x:Name="PreviousSubtitleBlock"
+                                          Foreground="White" 
+                                          FontSize="20"
+                                          Background="#80000000"
+                                          Padding="5"
+                                          TextWrapping="Wrap"
+                                          TextAlignment="Center"
+                                          MaxWidth="800"
+                                          Visibility="Collapsed"/>
+                            <!-- Current subtitle -->
+                            <TextBlock x:Name="SubtitleTextBlock"
+                                         Foreground="White" 
+                                         FontSize="20"
+                                         Background="#80000000"
+                                         Padding="8"
+                                         TextWrapping="Wrap"
+                                         TextAlignment="Center"
+                                         MaxWidth="800"
+                                         VerticalAlignment="Bottom"
+                                         Margin="0,0,0,10"     
+                                         Text="{Binding SubtitleText}"
+                                   />
+                            <!-- Next subtitle -->
+                            <TextBlock x:Name="NextSubtitleBlock"
+                                          Foreground="White" 
+                                          FontSize="20"
+                                          Background="#80000000"
+                                          Padding="5"
+                                          TextWrapping="Wrap"
+                                          TextAlignment="Center"
+                                          MaxWidth="800"
+                                          Visibility="Collapsed"/>
+
+                        </StackPanel>
+                        </Grid>
+                    <!-- 单词翻译面板容器 -->
+                    <Canvas x:Name="TranslationContainer" 
+                            IsHitTestVisible="True" 
+                            Panel.ZIndex="100"/>
+                    <!-- 句子解释面板容器 -->
+                    <Canvas x:Name="SentenceContainer" 
+                            IsHitTestVisible="True" 
+                            Panel.ZIndex="100"/>
+                    <!-- 提示信息 -->
+                    <TextBlock x:Name="MessageTextBlock">
+                    </TextBlock>
+                </Grid>
+            </vlc:VideoView>
+        </Grid>
+
+        <!-- 底部控制栏 -->
+        <views:VideoControlView DataContext="{Binding VideoControlVM}"  Grid.Row="2"/>
+
+    </Grid>
+</Window>

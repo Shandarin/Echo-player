@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="Echo.Views.VideoControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Echo.Converters" 
+             xmlns:sysconv="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
+             xmlns:viewmodels="clr-namespace:Echo.ViewModels" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Echo.ViewModels"
+             Height="50"
+             >
+<!--datacontext-->
+
+    
+    <UserControl.Resources>
+        <!-- 控制按钮样式 -->
+        <converters:SliderConverter x:Key="SliderConverter"/>
+        <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#404040"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#505050"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 进度条样式 -->
+        <Style x:Key="VideoSliderStyle" TargetType="Slider">
+            <Setter Property="Margin" Value="10,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid>
+                            <Border x:Name="PART_Track" 
+                                    Height="4" 
+                                    Background="#404040" 
+                                    CornerRadius="2"/>
+                            <Border Height="4" 
+                                    Background="#FFD700"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="2"
+                                    Width="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, 
+                                            Converter={StaticResource SliderConverter}}"/>
+                            <Thumb x:Name="PART_Thumb" 
+                                   Width="12" 
+                                   Height="12"
+                                   Background="White"
+                                   />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 滑块缩略图样式 -->
+        <ControlTemplate x:Key="SliderThumbTemplate" TargetType="Thumb">
+            <Border Background="White" 
+                    CornerRadius="6"
+                    Width="12" 
+                    Height="12"/>
+        </ControlTemplate>
+    </UserControl.Resources>
+
+    <UserControl.Visibility>
+        <Binding Path="IsControlBarVisible"
+                 Converter="{StaticResource BooleanToVisibilityConverter}" />
+    </UserControl.Visibility>
+
+    <Grid Background="#CC000000"
+          Visibility="{Binding IsControlBarVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="99*"/>
+            <ColumnDefinition Width="91*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 进度条 -->
+        <Grid Grid.Row="0" Height="4" Margin="0,0,0,5" Grid.ColumnSpan="2">
+            <Slider x:Name="ProgressSlider"
+                    Style="{StaticResource VideoSliderStyle}"
+                    Minimum="0"
+                    Maximum="100"
+                    Value="{Binding Progress}"
+                     Margin="9,10,11,0" VerticalAlignment="Top"/>
+        </Grid>
+
+        <!-- 控制按钮区域 -->
+        <Grid Grid.Row="1" Margin="10,5,10,5" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <!-- 左侧控制按钮 -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- 时间显示 -->
+                <ColumnDefinition Width="*"/>
+                <!-- 中间空白 -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- 音量控制 -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- 右侧按钮 -->
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧播放控制 -->
+            <StackPanel Grid.Column="0" 
+                        Orientation="Horizontal" 
+                        Margin="0,0,10,0">
+                <Button x:Name="PlayButton"
+                        Style="{StaticResource ControlButtonStyle}"
+                        Command="{Binding PlayOrPauseCommand}">
+                    <TextBlock x:Name="PlayButtonText" 
+                             Text="⏵" 
+                             FontSize="18"/>
+                </Button>
+                <Button Style="{StaticResource ControlButtonStyle}"
+                        Command="{Binding SkipForwardCommand}"
+                    >
+                    <TextBlock Text="⏮" FontSize="16"/>
+                </Button>
+
+                <Button Style="{StaticResource ControlButtonStyle}"
+                        Command="{Binding SkipBackwardCommand}">
+                    <TextBlock Text="⏭" FontSize="16"/>
+                </Button>
+                <Button Style="{StaticResource ControlButtonStyle}"
+                        Command="{Binding FullScreenCommand}">
+                    <TextBlock Text="⛶" FontSize="16"/>
+                </Button>
+            </StackPanel>
+
+            <!-- 时间显示 -->
+            <StackPanel Grid.Column="1" 
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <TextBlock x:Name="CurrentTimeText"
+                           Text="00:00"
+                           Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="0,0,5,0"/>
+                <TextBlock Text="/"
+                           Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="0,0,5,0"/>
+                <TextBlock x:Name="TotalTimeText"
+                           Text="00:00"
+                           Foreground="White"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- 音量控制 -->
+            <StackPanel Grid.Column="3" 
+                        Orientation="Horizontal"
+                        Margin="55,0,10,0">
+                <Button x:Name="VolumeButton"
+                        Style="{StaticResource ControlButtonStyle}"
+                       >
+                    <TextBlock x:Name="VolumeIcon" 
+                             Text="🔊" 
+                             FontSize="16"/>
+                </Button>
+                <Slider x:Name="VolumeSlider"
+                        Width="70"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="100"
+                        Style="{StaticResource VideoSliderStyle}"
+                        />
+            </StackPanel>
+
+            <!-- 右侧附加控制 -->
+            <StackPanel Grid.Column="4" 
+                        Orientation="Horizontal">
+
+            </StackPanel>
+
+        </Grid>
+
+    </Grid>
+</UserControl>

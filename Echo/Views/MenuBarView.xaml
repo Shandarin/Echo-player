@@ -1,0 +1,320 @@
+﻿<UserControl x:Class="Echo.Views.MenuBarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sysconv="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
+             xmlns:vm="clr-namespace:Echo.ViewModels"
+             xmlns:converters="clr-namespace:Echo.Converters" 
+             mc:Ignorable="d"
+             Height="30"
+             Background="#F5F5F5"
+             >
+
+    <UserControl.DataContext>
+        <vm:MenuBarViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <!-- MenuItem 基础样式 -->
+        <Style x:Key="MenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="Foreground" Value="#2D2D2D"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#A0A0A0"/>
+                </Trigger>
+                <Trigger Property="Role" Value="TopLevelHeader">
+                    <Setter Property="Padding" Value="10,5"/>
+                    <Setter Property="Margin" Value="2,0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 分隔线样式 -->
+        <Style x:Key="SeparatorStyle" TargetType="Separator">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Height" Value="1"/>
+        </Style>
+
+        <!-- 菜单样式 -->
+        <Style x:Key="MenuStyle" TargetType="Menu">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="Padding" Value="5,2"/>
+        </Style>
+
+        <!-- 子菜单面板样式 -->
+        <Style x:Key="ContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </UserControl.Resources>
+
+    <UserControl.Visibility>
+        <Binding Path="IsMenuBarVisible"
+                 Converter="{StaticResource BooleanToVisibilityConverter}" />
+    </UserControl.Visibility>
+
+    <Menu >
+        <!-- 文件菜单 -->
+        <MenuItem Header="文件" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="打开文件" 
+                      Command="{Binding OpenFileCommand}"
+                      Style="{StaticResource MenuItemStyle}">
+                <MenuItem.Icon>
+                    <TextBlock Text="📂" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="最近文件" 
+                      IsEnabled="False"
+                      Style="{StaticResource MenuItemStyle}">
+                <MenuItem.Icon>
+                    <TextBlock Text="📋" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator Style="{StaticResource SeparatorStyle}"/>
+            <MenuItem Header="退出" 
+                      Command="{Binding ExitCommand}"
+                      Style="{StaticResource MenuItemStyle}">
+                <MenuItem.Icon>
+                    <TextBlock Text="🚪" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </MenuItem>
+
+        <!-- 视频菜单 -->
+        <MenuItem Header="视频" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="截图" 
+                      Command="{Binding ScreenshotCommand}"
+                      Style="{StaticResource MenuItemStyle}">
+                <MenuItem.Icon>
+                    <TextBlock Text="📸" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="宽高比" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="默认" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="Default" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="16:10" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="16:10" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="16:9" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="16:9" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="4:3" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="4:3" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="1:1" Command="{Binding ChangeAspectRatioCommand}" CommandParameter="1:1" Style="{StaticResource MenuItemStyle}"/>
+            </MenuItem>
+            <MenuItem Header="缩放" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="50%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.5" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="75%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.75" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="100%" Command="{Binding ChangeScaleCommand}" CommandParameter="1.0" Style="{StaticResource MenuItemStyle}"/>
+            </MenuItem>
+            <MenuItem Header="全屏" 
+                      Command="{Binding ToggleFullScreenCommand}"
+                      Style="{StaticResource MenuItemStyle}">
+                <MenuItem.Icon>
+                    <TextBlock Text="⛶" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </MenuItem>
+
+        <!-- 字幕菜单 -->
+        <MenuItem Header="字幕" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="显示字幕" 
+                      IsCheckable="True"
+                      IsChecked="{Binding IsSubtitleVisible}"
+                      Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="打开字幕" 
+                      Command="{Binding OpenSubtitleCommand}"
+                      Style="{StaticResource MenuItemStyle}">
+                <MenuItem.Icon>
+                    <TextBlock Text="📝" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="选择字幕" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="选择字幕轨" 
+                          Command="{Binding SelectSubtitleTrackCommand}"
+                          Style="{StaticResource MenuItemStyle}"/>
+            </MenuItem>
+            <Separator Style="{StaticResource SeparatorStyle}"/>
+            <MenuItem Header="鼠标悬浮显示/隐藏" 
+                      IsCheckable="True"
+                      IsChecked="{Binding IsMouseHoverEnabled}"
+                      Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="整句分析" 
+                      IsCheckable="True"
+                      IsChecked="{Binding IsSentenceAnalysisEnabled}"
+                      Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="单词点击查询" 
+                      IsCheckable="True"
+                      IsChecked="{Binding IsWordQueryEnabled}"
+                      Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="字幕显示位置" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="顶部" 
+                          Command="{Binding ChangeSubtitlePositionCommand}"
+                          CommandParameter="Top"
+                          Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="底部" 
+                          Command="{Binding ChangeSubtitlePositionCommand}"
+                          CommandParameter="Bottom"
+                          Style="{StaticResource MenuItemStyle}"/>
+            </MenuItem>
+            <MenuItem Header="高级设置" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="字幕背景透明度" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="0%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="25%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0.25" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="50%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0.5" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="75%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0.75" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="100%" Command="{Binding ChangeOpacityCommand}" CommandParameter="1" Style="{StaticResource MenuItemStyle}"/>
+                </MenuItem>
+                <MenuItem Header="字幕样式" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="字体大小" Style="{StaticResource MenuItemStyle}">
+                        <MenuItem Header="小" Command="{Binding ChangeFontSizeCommand}" CommandParameter="16" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="中" Command="{Binding ChangeFontSizeCommand}" CommandParameter="20" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="大" Command="{Binding ChangeFontSizeCommand}" CommandParameter="24" Style="{StaticResource MenuItemStyle}"/>
+                    </MenuItem>
+                    <MenuItem Header="字体" Style="{StaticResource MenuItemStyle}">
+                        <MenuItem Header="微软雅黑" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="Microsoft YaHei" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="宋体" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="SimSun" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="黑体" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="SimHei" Style="{StaticResource MenuItemStyle}"/>
+                    </MenuItem>
+                </MenuItem>
+                <!-- 暂时废弃 
+                <MenuItem Header="滚动字幕" 
+                            IsCheckable="True"
+                            Command="{Binding ToggleScrollSubtitleCommand}"
+                            IsChecked="{Binding IsScrollSubtitleEnabled, Mode=OneWay}"
+                            Style="{StaticResource MenuItemStyle}"/>
+                -->
+            </MenuItem>
+            <Separator Style="{StaticResource SeparatorStyle}"/>
+            <MenuItem Header="第二字幕" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="选择字幕轨" 
+                          Command="{Binding SelectSecondarySubtitleTrackCommand}"
+                          Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="设置显示位置" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="顶部" Command="{Binding ChangeSecondarySubtitlePositionCommand}" CommandParameter="Top" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="底部" Command="{Binding ChangeSecondarySubtitlePositionCommand}" CommandParameter="Bottom" Style="{StaticResource MenuItemStyle}"/>
+                </MenuItem>
+                <MenuItem Header="自动翻译视频" 
+                          Command="{Binding AutoTranslateVideoCommand}"
+                          Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="字幕同步调整" 
+                          Command="{Binding AdjustSubtitleSyncCommand}"
+                          Style="{StaticResource MenuItemStyle}"/>
+            </MenuItem>
+        </MenuItem>
+
+        <!-- 词典菜单 -->
+        <MenuItem Header="词典" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="语言" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="你的语言" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="简体中文" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="zh-CN" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="English" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="en" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="日本語" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ja" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="한국어" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ko" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Français" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="fr" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Deutsch" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="de" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Español" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="es" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="العربية" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ar" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Русский" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ru" Style="{StaticResource MenuItemStyle}"/>
+                </MenuItem>
+                <MenuItem Header="学习语言" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="自动检测" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="auto" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="简体中文" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="zh-CN" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="English" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="en" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="日本語" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="ja" Style="{StaticResource MenuItemStyle}"/>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="API" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="单词API" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="牛津词典" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="配置Token" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                </MenuItem>
+                <MenuItem Header="整句分析API" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="OpenAI" Command="{Binding SelectSentenceAPICommand}" CommandParameter="openai" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="配置Token" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                </MenuItem>
+                <MenuItem Header="自动翻译API">
+                    <MenuItem Header="OpenAI" Command="{Binding TranslationAPIChangeCommand}" Tag="openai"/>
+                    <MenuItem Header="配置Token" Command="{Binding SetTranslationAPICommand}"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Echo All-in-one Token">
+                    <MenuItem Header="输入" Command="{Binding InputEchoAPICommand}"/>
+                    <MenuItem Header="购买" Command="{Binding ButEchoAPICommand}"/>
+                </MenuItem>
+            </MenuItem>
+        </MenuItem>
+
+        <!-- 单词本菜单 -->
+        <MenuItem Header="单词本">
+            <MenuItem Header="打开" Command="{Binding OpenNoteCommand}">
+
+            </MenuItem>
+            <MenuItem Header="自动收藏查词结果" Command="{Binding ToggleAutoSaveVocabularyCommand}" Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="按视频收藏" Command="{Binding SaveVocabularyByVideoCommand}"/>
+            <MenuItem Header="导出">
+                <MenuItem Header="导出为Markdown" Command="{Binding ExportMarkdownCommand}"/>
+            </MenuItem>
+        </MenuItem>
+
+        <!-- 控制菜单 -->
+        <MenuItem Header="控制">
+            <MenuItem Header="后退时间">
+                <MenuItem Header="固定时间" Command="{Binding BackwardByTimeCommand}"/>
+                <MenuItem Header="上一句" Command="{Binding BackwardBySentenceCommand}"/>
+            </MenuItem>
+            <MenuItem Header="前进时间">
+                <MenuItem Header="固定时间" Command="{Binding ForkwardByTimeCommand}"/>
+                <MenuItem Header="下一句" Command="{Binding BackwardBySentenceCommand}"/>
+            </MenuItem>
+            <MenuItem Header="全屏锁定" IsCheckable="True"/>
+
+        </MenuItem>
+
+        <!-- 系统菜单 -->
+        <MenuItem Header="系统">
+            <MenuItem Header="软件语言">
+                <MenuItem Header="简体中文" IsChecked="True" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-CN"/>
+                <MenuItem Header="繁体中文" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-TW"/>
+                <MenuItem Header="English" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="en"/>
+                <MenuItem Header="日本語" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ja"/>
+                <MenuItem Header="한국어" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ko"/>
+                <MenuItem Header="Français" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="fr"/>
+                <MenuItem Header="Deutsch" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="de"/>
+                <MenuItem Header="Español" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="es"/>
+                <MenuItem Header="العربية" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ar"/>
+                <MenuItem Header="Русский" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ru"/>
+            </MenuItem>
+            <MenuItem Header="截图文件夹" Command="{Binding SetScreenShotDirCommand}"/>
+            <MenuItem Header="快捷键">
+                <MenuItem Header="后退" Command="{Binding ShortcutBackwardCommand}"/>
+                <MenuItem Header="前进" Command="{Binding ShortcutForwardCommand}"/>
+                <MenuItem Header="音量" Command="{Binding ShortcutVolumeCommand}" />
+                <MenuItem Header="截图" Command="{Binding ShortcutScreenshotCommand}" />
+            </MenuItem>
+        </MenuItem>
+
+        <!-- 帮助菜单 -->
+        <MenuItem Header="帮助">
+            <MenuItem Header="用户反馈" Command="{Binding FeedbackCommand}">
+                <MenuItem.Icon>
+                    <TextBlock Text="💬" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="检查更新" Command="{Binding CheckUpdatesCommand}">
+                <MenuItem.Icon>
+                    <TextBlock Text="🔄" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator/>
+            <MenuItem Header="关于" Command="{Binding AboutCommand}">
+                <MenuItem.Icon>
+                    <TextBlock Text="ℹ" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </MenuItem>
+    </Menu>
+</UserControl>

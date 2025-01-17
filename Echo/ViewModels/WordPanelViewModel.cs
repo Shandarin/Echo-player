@@ -1,0 +1,162 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Echo.Models;
+using Echo.Services;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Text.Json;
+
+namespace Echo.ViewModels
+{
+    public partial class WordPanelViewModel : ObservableObject
+    {
+        private readonly OxfordDictService _oxfordService;
+        private readonly DatabaseService _databaseService;
+
+        [ObservableProperty]
+        private string word;
+
+        [ObservableProperty]
+        private List<PronunciationModel>? _pronunciations = new();
+
+        [ObservableProperty]
+        private Dictionary<string, string>  _definitions = new();
+
+        [ObservableProperty]
+        private string _headwordOP;
+
+        [ObservableProperty]
+        private bool isFavorite;
+
+        [ObservableProperty]
+        private string _currentWord;
+
+        [ObservableProperty]
+        private string _translation;
+
+        [ObservableProperty]
+        private bool _isLoading;
+
+        [ObservableProperty]
+        private string _errorMessage;
+
+        [ObservableProperty]
+        private bool _isVisible;
+
+        [ObservableProperty]
+        private bool isAutoSaveWord;
+
+        public WordPanelViewModel(OxfordDictService oxfordService, DatabaseService databaseService)
+        {
+            _oxfordService = oxfordService;
+            _databaseService = databaseService;
+        }
+
+        public void UpdateFromWordModel(WordModel model)
+        {
+            if (model == null) return;
+
+            Word = model.Word;
+
+            //Definitions = model.Definitions;
+        }
+
+        [RelayCommand]
+        private void ToggleFavorite()
+        {
+            IsFavorite = !IsFavorite;
+            // TODO: Implement favorite functionality
+        }
+
+        [RelayCommand]
+        private async Task PlayPronunciation(string audioUrl)
+        {
+            if (string.IsNullOrEmpty(audioUrl)) return;
+            // TODO: Implement audio playback
+        }
+
+        [RelayCommand]
+        private async Task TranslateWordAsync(string word)
+        {
+            try
+            {
+                IsLoading = true;
+                ErrorMessage = null;
+                CurrentWord = word;
+
+                // First API call to get head word and other details
+                var (headword, details) = await _oxfordService.GetWordDetailsAsync(word);
+                if (string.IsNullOrEmpty(headword))
+                {
+                    ErrorMessage = "Word not found";
+                    return;
+                }
+                //_wordDetails = details;
+
+                // Second API call to get translations
+                var wordModel = await _oxfordService.GetTranslationsAsync(headword);
+
+                if (wordModel?.Definitions == null || !wordModel.Definitions.Any())
+                {
+                    ErrorMessage = "Translation not found";
+                   
+                    return;
+                }
+
+                string json = JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
+                {
+                    WriteIndented = true   // 缩进美化输出
+                });
+
+                // 调试输出
+                Debug.WriteLine(json);
+
+
+                HeadwordOP = wordModel.Word;
+
+                //Translation = wordModel.Translation;
+
+
+                //if (IsAutoSaveWord)
+                //{
+                //    // Save to database
+                //    await SaveToDatabase();
+                //}
+
+                // Update observable collections
+                Pronunciations.Clear();
+                if (wordModel.Pronounciations != null)
+                {
+                    Pronunciations = wordModel.Pronounciations;
+                }
+
+                Definitions.Clear();
+                if (wordModel.Definitions != null)
+                {
+                    foreach (var def in wordModel.Definitions)
+                    {
+                        Definitions = wordModel.Definitions; ;
+                    }
+                }
+                IsVisible = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("NO");
+                ErrorMessage = ex.Message;
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+
+        }
+
+        [RelayCommand]
+        private void Close()
+        {
+            IsVisible = false;
+        }
+    }
+}

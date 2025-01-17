@@ -1,0 +1,64 @@
++ EBML head
+|+ EBML version: 1
+|+ EBML read version: 1
+|+ Maximum EBML ID length: 4
+|+ Maximum EBML size length: 8
+|+ Document type: matroska
+|+ Document type version: 4
+|+ Document type read version: 2
++ Segment: size 3116847523
+|+ Seek head (subentries will be skipped)
+|+ EBML void: size 4027
+|+ Segment information
+| + Timestamp scale: 1000000
+| + Multiplexing application: libebml v1.4.5 + libmatroska v1.7.1
+| + Writing application: mkvmerge v87.0 ('Black as the Sky') 64-bit
+| + Duration: 01:04:23.758000000
+| + Segment UID: 0xb1 0xa3 0x21 0x1d 0x83 0x96 0x5d 0x37 0xcf 0x0a 0x90 0x80 0x9b 0x3c 0x01 0x2f
+|+ Tracks
+| + Track
+|  + Track number: 1 (track ID for mkvmerge & mkvextract: 0)
+|  + Track UID: 5909526644544128972
+|  + Track type: video
+|  + "Lacing" flag: 0
+|  + Language: und
+|  + Codec ID: V_MPEG4/ISO/AVC
+|  + Codec's private data: size 56 (H.264 profile: High @L3.1)
+|  + Default duration: 00:00:00.033366666 (29.970 frames/fields per second for a video track)
+|  + Language (IETF BCP 47): und
+|  + Video track
+|   + Pixel width: 1280
+|   + Pixel height: 720
+|   + Display width: 1280
+|   + Display height: 720
+| + Track
+|  + Track number: 2 (track ID for mkvmerge & mkvextract: 1)
+|  + Track UID: 14711208196327689210
+|  + Track type: audio
+|  + Codec ID: A_EAC3
+|  + Default duration: 00:00:00.032000000 (31.250 frames/fields per second for a video track)
+|  + Language (IETF BCP 47): en
+|  + Audio track
+|   + Sampling frequency: 48000
+|   + Channels: 6
+| + Track
+|  + Track number: 3 (track ID for mkvmerge & mkvextract: 2)
+|  + Track UID: 2451827602459380966
+|  + Track type: subtitles
+|  + "Default track" flag: 0
+|  + "Lacing" flag: 0
+|  + Codec ID: S_TEXT/UTF8
+|  + Language (IETF BCP 47): en-US
+| + Track
+|  + Track number: 4 (track ID for mkvmerge & mkvextract: 3)
+|  + Track UID: 14404049428522990018
+|  + Track type: subtitles
+|  + "Default track" flag: 0
+|  + "Lacing" flag: 0
+|  + Codec ID: S_TEXT/UTF8
+|  + Language (IETF BCP 47): en-US
+|  + Name: SDH
+|  + "Hearing impaired" flag: 1
+|  + "Original language" flag: 1
+|+ EBML void: size 1168
+|+ Cluster
