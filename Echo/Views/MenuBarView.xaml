@@ -178,6 +178,7 @@
                       IsCheckable="True"
                       IsChecked="{Binding IsWordQueryEnabled}"
                       Style="{StaticResource MenuItemStyle}"/>
+            <!-- todo 
             <MenuItem Header="字幕显示位置" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="顶部" 
                           Command="{Binding ChangeSubtitlePositionCommand}"
@@ -188,6 +189,7 @@
                           CommandParameter="Bottom"
                           Style="{StaticResource MenuItemStyle}"/>
             </MenuItem>
+            -->
             <MenuItem Header="高级设置" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="字幕背景透明度" Style="{StaticResource MenuItemStyle}">
                     <MenuItem Header="0%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0" Style="{StaticResource MenuItemStyle}"/>
@@ -208,7 +210,7 @@
                         <MenuItem Header="黑体" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="SimHei" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
                 </MenuItem>
-                <!-- 暂时废弃 
+                <!-- todo 
                 <MenuItem Header="滚动字幕" 
                             IsCheckable="True"
                             Command="{Binding ToggleScrollSubtitleCommand}"
@@ -217,6 +219,7 @@
                 -->
             </MenuItem>
             <Separator Style="{StaticResource SeparatorStyle}"/>
+            <!-- todo 
             <MenuItem Header="第二字幕" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="选择字幕轨" 
                           Command="{Binding SelectSecondarySubtitleTrackCommand}"
@@ -225,17 +228,24 @@
                     <MenuItem Header="顶部" Command="{Binding ChangeSecondarySubtitlePositionCommand}" CommandParameter="Top" Style="{StaticResource MenuItemStyle}"/>
                     <MenuItem Header="底部" Command="{Binding ChangeSecondarySubtitlePositionCommand}" CommandParameter="Bottom" Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
-                <MenuItem Header="自动翻译视频" 
+            </MenuItem>
+            -->
+            <!-- todo 
+            <MenuItem Header="自动翻译" 
                           Command="{Binding AutoTranslateVideoCommand}"
                           Style="{StaticResource MenuItemStyle}"/>
-                <MenuItem Header="字幕同步调整" 
+            -->
+            <!-- todo 
+            <MenuItem Header="字幕同步调整" 
                           Command="{Binding AdjustSubtitleSyncCommand}"
-                          Style="{StaticResource MenuItemStyle}"/>
-            </MenuItem>
+                          Style="{StaticResource MenuItemStyle}">
+                
+             </MenuItem>
+             -->
         </MenuItem>
 
         <!-- 词典菜单 -->
-        <MenuItem Header="词典" Style="{StaticResource MenuItemStyle}">
+        <MenuItem Header="学习" Style="{StaticResource MenuItemStyle}">
             <MenuItem Header="语言" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="你的语言" Style="{StaticResource MenuItemStyle}">
                     <MenuItem Header="简体中文" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="zh-CN" Style="{StaticResource MenuItemStyle}"/>
@@ -254,20 +264,37 @@
                     <MenuItem Header="English" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="en" Style="{StaticResource MenuItemStyle}"/>
                     <MenuItem Header="日本語" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="ja" Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
+                <MenuItem Header="软件语言">
+                    <MenuItem Header="简体中文" IsChecked="True" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-CN"/>
+                    <MenuItem Header="繁体中文" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-TW"/>
+                    <MenuItem Header="English" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="en"/>
+                    <MenuItem Header="日本語" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ja"/>
+                    <MenuItem Header="한국어" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ko"/>
+                    <MenuItem Header="Français" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="fr"/>
+                    <MenuItem Header="Deutsch" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="de"/>
+                    <MenuItem Header="Español" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="es"/>
+                    <MenuItem Header="العربية" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ar"/>
+                    <MenuItem Header="Русский" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ru"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="API" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="单词API" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="牛津词典" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="配置Token" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="牛津词典" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}">
+                        <MenuItem Header="配置Token" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="整句分析API" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="OpenAI" Command="{Binding SelectSentenceAPICommand}" CommandParameter="openai" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="配置Token" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="OpenAI" Command="{Binding SelectSentenceAPICommand}" CommandParameter="openai" Style="{StaticResource MenuItemStyle}">
+                        <MenuItem Header="配置Token" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                    </MenuItem>
                 </MenuItem>
+                <!-- todo 
                 <MenuItem Header="自动翻译API">
-                    <MenuItem Header="OpenAI" Command="{Binding TranslationAPIChangeCommand}" Tag="openai"/>
-                    <MenuItem Header="配置Token" Command="{Binding SetTranslationAPICommand}"/>
+                    <MenuItem Header="OpenAI" Command="{Binding TranslationAPIChangeCommand}" Tag="openai">
+                        <MenuItem Header="配置Token" Command="{Binding SetTranslationAPICommand}"/>
+                    </MenuItem>
                 </MenuItem>
+                 -->
                 <Separator/>
                 <MenuItem Header="Echo All-in-one Token">
                     <MenuItem Header="输入" Command="{Binding InputEchoAPICommand}"/>
@@ -281,10 +308,11 @@
             <MenuItem Header="打开" Command="{Binding OpenNoteCommand}">
 
             </MenuItem>
-            <MenuItem Header="自动收藏查词结果" Command="{Binding ToggleAutoSaveVocabularyCommand}" Style="{StaticResource MenuItemStyle}"/>
-            <MenuItem Header="按视频收藏" Command="{Binding SaveVocabularyByVideoCommand}"/>
+            <MenuItem Header="自动收藏查询结果" Command="{Binding ToggleAutoSaveVocabularyCommand}" Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="自动按视频分类" Command="{Binding SaveVocabularyByVideoCommand}"/>
             <MenuItem Header="导出">
                 <MenuItem Header="导出为Markdown" Command="{Binding ExportMarkdownCommand}"/>
+                <MenuItem Header="导出为SQLite文件" Command="{Binding ExportMarkdownCommand}"/>
             </MenuItem>
         </MenuItem>
 

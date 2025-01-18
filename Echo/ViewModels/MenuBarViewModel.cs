@@ -176,6 +176,20 @@ namespace Echo.ViewModels
             //window.WindowStyle = WindowStyle.None;
             window.Show();
         }
+        partial void OnIsMouseHoverEnabledChanged(bool value)
+        {
+            OnIsMouseHoverEnabledChangedEvent?.Invoke(this,value);
+        }
+
+        partial void OnIsSubtitleVisibleChanged(bool Value)
+        {
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow?.DataContext is MainWindowViewModel vm)
+            {
+                vm.IsSubtitleVisible = IsSubtitleVisible;
+            }
+        }
+
 
 
         // Events
@@ -189,6 +203,7 @@ namespace Echo.ViewModels
         public event EventHandler<double> OnFontSizeChanged;
         public event EventHandler<string> OnFontFamilyChanged;
         public event EventHandler<string> OnSystemLanguageChanged;
+        public event EventHandler<bool> OnIsMouseHoverEnabledChangedEvent;
 
 
         // Additional commands can be added for other menu items

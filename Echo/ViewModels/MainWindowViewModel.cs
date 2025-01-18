@@ -31,6 +31,7 @@ namespace Echo.ViewModels
         private TextBlock _prevSubtitleBlock;
         private TextBlock _nextSubtitleBlock;
 
+        private bool _hasAdjustedAspectRatio = false;
 
 
         [DllImport("user32.dll")]
@@ -46,6 +47,8 @@ namespace Echo.ViewModels
         public FrameworkElement SubtitleTextElement { get; set; }
 
         public event EventHandler<bool> FullscreenChanged;
+
+
 
         [ObservableProperty]
         private bool _isFullScreen = false;
@@ -83,6 +86,15 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private uint _mainWindowTop;
 
+        [ObservableProperty]
+        private SizeToContent _windowSizeToContent = SizeToContent.WidthAndHeight;
+
+        [ObservableProperty]
+        private bool _isMouseHoverEnabled = true;
+
+        [ObservableProperty]
+        private bool _isSubtitleVisible = true;
+
         public LibVLCSharp.Shared.MediaPlayer MediaPlayer => _mediaPlayer;
 
         // Bindable property for subtitle text
@@ -106,6 +118,9 @@ namespace Echo.ViewModels
             MenuBarVM.OnAspectRatioChanged += HandleAspectRatioChanged;
             MenuBarVM.OnFullScreenToggled += HandleOnFullScreenToggled;
             MenuBarVM.OnSubtitleFileSelected += HandleSubtitleFileSelected;
+            MenuBarVM.OnIsMouseHoverEnabledChangedEvent += HandleIsMouseHoverEnabledChanged;
+
+            FullscreenChanged += HandleFullscreenChanged;
 
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
@@ -124,22 +139,30 @@ namespace Echo.ViewModels
                 _subtitleHandler.UpdateTime(e.Time);
                 _scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
             };
+
         }
+
+        partial void OnIsFullScreenChanged(bool value)
+        {
+            FullscreenChanged?.Invoke(this, value);
+        }
+
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
-
-            HandleAspectRatioChanged(sender, "Default");
+            if (!_hasAdjustedAspectRatio)
+            {
+                HandleAspectRatioChanged(sender, "Default");
+                _hasAdjustedAspectRatio = true;
+            }
+            
             _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
 
         }
 
-        private void OnPropertyChanged(string propertyName)
+        private void HandleFullscreenChanged(object? sender, bool www)
         {
-            if (propertyName == nameof(IsFullScreen))
-            {
-                FullscreenChanged?.Invoke(this, IsFullScreen);
-            }
+            Debug.WriteLine($"fuul{www}");
         }
 
         #region menubar
@@ -187,6 +210,30 @@ namespace Echo.ViewModels
             //Debug.WriteLine($"file {filepath}");
         }
 
+        private void HandleIsMouseHoverEnabledChanged(object? sender, bool value)
+        {
+            IsMouseHoverEnabled = value;
+
+            if (!value)
+            {
+                // When hover is disabled, always show subtitles
+                if (_subtitleTextBlock != null)
+                {
+                    ShowTextBlock();
+                }
+                _subtitleHandler?.Start();
+            }
+            else
+            {
+                // When hover is enabled, initially hide subtitles
+                if (_subtitleTextBlock != null)
+                {
+                    HideTextBlock();
+                }
+                _subtitleHandler?.Stop();
+            }
+        }
+
         #endregion
 
 
@@ -225,6 +272,7 @@ namespace Echo.ViewModels
                 }
                 else
                 {
+                    _hasAdjustedAspectRatio = false;
                     // 打开视频文件
                     _mediaPlayer.Media?.Dispose();
                     _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
@@ -272,8 +320,6 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void HandleVideoAreaClick(Point clickPosition)
         {
-            
-
             if (_translationService != null && !_translationService.IsClickInsidePanel(clickPosition))
             {
                 _translationService.CloseTranslation();
@@ -298,16 +344,21 @@ namespace Echo.ViewModels
 
         public void OnSubtitleAreaMouseEnter()
         {
-             ShowTextBlock();
-            _subtitleHandler.Start();
+            if (IsMouseHoverEnabled)
+            {
+                ShowTextBlock();
+                _subtitleHandler?.Start();
+            }
         }
 
         public void OnSubtitleAreaMouseLeave()
         {
-            HideTextBlock();
-            _subtitleHandler.Stop();
+            if (IsMouseHoverEnabled)
+            {
+                HideTextBlock();
+                _subtitleHandler?.Stop();
+            }
         }
-
         public void OnSubtitleAreaMouseLeftButtonDown(System.Windows.Input.MouseEventArgs e)
         {
 
@@ -362,10 +413,10 @@ namespace Echo.ViewModels
 
         private void ToggleMediaPlay()
         {
+            //Debug.WriteLine();
             if (_mediaPlayer.IsPlaying)
             {
                 _mediaPlayer.Pause();
-                //_mediaPlayer.SetSpu(-1);
             }
             else
             {
@@ -403,17 +454,22 @@ namespace Echo.ViewModels
 
             if (_isFullScreen)
             {
+                WindowSizeToContent = SizeToContent.Manual;
                 MainWindowStyle = WindowStyle.None;
                 MainWindowState = WindowState.Maximized;
+                //_mediaPlayer.ToggleFullscreen();
             }
             else
             {
+                WindowSizeToContent = SizeToContent.WidthAndHeight;
                 MainWindowStyle = WindowStyle.SingleBorderWindow;
                 MainWindowState = WindowState.Normal;
+                //_mediaPlayer.ToggleFullscreen();
             }
 
             VideoViewHeight = "Auto";
             VideoViewWidth = "Auto";
+
 
             VideoControlVM.IsControlBarVisible = !_isFullScreen;
             MenuBarVM.IsMenuBarVisible = VideoControlVM.IsControlBarVisible;
@@ -424,15 +480,52 @@ namespace Echo.ViewModels
 
         private void HideTextBlock()
         {
-            _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x01, 0x00, 0x00, 0x00));
+            if (_subtitleTextBlock != null)
+            {
+                if (!IsSubtitleVisible)
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x01, 0x00, 0x00, 0x00));
+                }
+            }
         }
 
         private void ShowTextBlock()
         {
-            _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x80, 0x00, 0x00, 0x00));
+            if (_subtitleTextBlock != null && IsSubtitleVisible)
+            {
+                _subtitleTextBlock.Visibility = Visibility.Visible;
+                _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x80, 0x00, 0x00, 0x00));
+            }
         }
 
-       
+        partial void OnIsSubtitleVisibleChanged(bool value)
+        {
+            if (!IsSubtitleVisible)
+            {
+                // 字幕不可见时
+                if (_subtitleTextBlock != null)
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
+                    _subtitleHandler?.Stop();
+                }
+            }
+            else
+            {
+                // 字幕可见时
+                if (_subtitleTextBlock != null)
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Visible;
+                    if (!IsMouseHoverEnabled)
+                    {
+                        _subtitleHandler?.Start();
+                    }
+                }
+            }
+        }
 
         public void DisposeMedia()
         {

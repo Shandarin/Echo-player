@@ -16,7 +16,7 @@
         ResizeMode="CanResizeWithGrip"
         Focusable="True"
         WindowStartupLocation="CenterScreen"
-        SizeToContent="WidthAndHeight"
+        SizeToContent="{Binding WindowSizetoContent}"
         Left="{Binding MainWindowLeft,Mode=TwoWay}"
         Top="{Binding MainWindowTop,Mode=TwoWay}"
         >
@@ -82,6 +82,8 @@
                            Background="Black"
                            Height="{Binding VideoViewHeight}"
                            Width="{Binding VideoViewWidth}"
+                                       HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
                            >
                 <Grid x:Name="VideoAreaContainer" Background="{Binding VideoAreaContainerBackground}" >
                     <!-- 鼠标检测层 -->

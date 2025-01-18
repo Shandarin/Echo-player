@@ -175,6 +175,7 @@ namespace Echo
                 if(!IsInSubtitleArea(clickPosition))
                 {
                     vm.HandleVideoAreaClickCommand.Execute(clickPosition);
+                    e.Handled = true;
                 }
                    
             }
