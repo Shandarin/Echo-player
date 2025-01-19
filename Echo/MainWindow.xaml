@@ -163,10 +163,10 @@
                             <!-- Current subtitle -->
                             <TextBlock x:Name="SubtitleTextBlock"
                                          Foreground="White" 
-                                         FontSize="20"
-                                         Background="#80000000"
+                                         FontSize="{Binding SubtitleFontSize}"
+                                         Background="{Binding SubtitleBackgroud, Mode=TwoWay}"
                                          Padding="8"
-                                         TextWrapping="Wrap"
+                                         TextWrapping="WrapWithOverflow"
                                          TextAlignment="Center"
                                          MaxWidth="800"
                                          VerticalAlignment="Bottom"

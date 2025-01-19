@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Echo.Views;
 using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Windows;
 
@@ -50,6 +51,15 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private double textBlockMarginBottom = 10;
+
+        [ObservableProperty]
+        private string _selectedSoftwareLanguage;
+
+        [ObservableProperty]
+        private string _selectedYourLanguage;
+
+        [ObservableProperty]
+        private string _selectedLearningLanguage;
 
         public MenuBarViewModel() 
 
@@ -122,8 +132,15 @@ namespace Echo.ViewModels
         }
 
         [RelayCommand]
-        private void ChangeFontSize(double size)
+        private void ChangeOpacity(string opacity)
         {
+            OnChangeOpacity?.Invoke(this, opacity);
+        }
+
+        [RelayCommand]
+        private void ChangeFontSize(string size)
+        {
+            //Debug.WriteLine(size);
             OnFontSizeChanged?.Invoke(this, size);
         }
 
@@ -176,18 +193,36 @@ namespace Echo.ViewModels
             //window.WindowStyle = WindowStyle.None;
             window.Show();
         }
-        partial void OnIsMouseHoverEnabledChanged(bool value)
+
+        [RelayCommand]
+        private void SoftwareLanguageChange(string lang)
         {
-            OnIsMouseHoverEnabledChangedEvent?.Invoke(this,value);
+            string selectedLanguage = lang; 
+            ((App)Application.Current).ChangeLanguage(selectedLanguage);
+            SelectedSoftwareLanguage = selectedLanguage;
         }
 
-        partial void OnIsSubtitleVisibleChanged(bool Value)
+        [RelayCommand]
+        private void ChangeYourLanguage(string lang)
         {
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow?.DataContext is MainWindowViewModel vm)
-            {
-                vm.IsSubtitleVisible = IsSubtitleVisible;
-            }
+            SelectedYourLanguage = lang;
+            MessageBox.Show(lang);
+        }
+
+        [RelayCommand]
+        private void ChangeLearningLanguage(string lang)
+        {
+            SelectedLearningLanguage = lang;
+        }
+
+        partial void OnIsMouseHoverEnabledChanged(bool value)
+        {
+            MouseHoverEnabledChanged?.Invoke(this,value);
+        }
+
+        partial void OnIsSubtitleVisibleChanged(bool value)
+        {
+            MouseHoverEnabledChanged?.Invoke(this, value);
         }
 
 
@@ -200,11 +235,14 @@ namespace Echo.ViewModels
         public event EventHandler OnFullScreenToggled;
         public event EventHandler<string> OnSubtitleFileSelected;
         public event EventHandler<string> OnSubtitleTrackSelected;
-        public event EventHandler<double> OnFontSizeChanged;
+        public event EventHandler<string> OnFontSizeChanged;
         public event EventHandler<string> OnFontFamilyChanged;
         public event EventHandler<string> OnSystemLanguageChanged;
-        public event EventHandler<bool> OnIsMouseHoverEnabledChangedEvent;
+        public event EventHandler<string> OnChangeOpacity;
 
+        public event EventHandler<bool> SubtitleVisibleChanged;
+        public event EventHandler<bool> MouseHoverEnabledChanged;
+ 
 
         // Additional commands can be added for other menu items
     }

@@ -1,18 +1,23 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Echo.Handlers;
-using Echo.Services;
-using Echo.Views;
-using LibVLCSharp.Shared;
-using Microsoft.Win32;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Runtime.InteropServices;
 
+using Microsoft.Win32;
+
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+using LibVLCSharp.Shared;
+
+using Echo.Handlers;
+using Echo.Services;
+using Echo.Views;
 
 namespace Echo.ViewModels
 {
@@ -23,33 +28,35 @@ namespace Echo.ViewModels
         private readonly SubtitleHandler _subtitleHandler;
         private readonly WordClickHandler _wordClickHandler;
         private readonly WindowSizeHandler _windowSizeHandler = new();
-        private TranslationService _translationService;
+        private readonly TranslationService _translationService;
+        private readonly ScrollingSubtitleHandler _scrollingSubtitleHandler;
+        private bool _hasAdjustedAspectRatio = false;
+        
+
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
         private SentencePanelView _sentencePanelView;
-        private ScrollingSubtitleHandler _scrollingSubtitleHandler;
+        
         private TextBlock _prevSubtitleBlock;
         private TextBlock _nextSubtitleBlock;
 
-        private bool _hasAdjustedAspectRatio = false;
+        //for double click detect
+        private DateTime lastClickTime = DateTime.MinValue;
+        private const double DOUBLE_CLICK_INTERVAL = 300; // 300ms for double click detection
 
-
+        //for obtain actual screen resolution
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int nIndex);
 
         private const int SM_CXSCREEN = 0; // 主屏幕宽度
         private const int SM_CYSCREEN = 1; // 主屏幕高度
 
-        private DateTime lastClickTime = DateTime.MinValue;
-        private const double DOUBLE_CLICK_INTERVAL = 300; // 300ms for double click detection
 
-        public FrameworkElement VideoViewElement { get; set; }
-        public FrameworkElement SubtitleTextElement { get; set; }
-
+        #region Events
         public event EventHandler<bool> FullscreenChanged;
+        #endregion
 
-
-
+        #region Observable Properties
         [ObservableProperty]
         private bool _isFullScreen = false;
 
@@ -95,12 +102,27 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private bool _isSubtitleVisible = true;
 
-        public LibVLCSharp.Shared.MediaPlayer MediaPlayer => _mediaPlayer;
-
-        // Bindable property for subtitle text
-        //自动更新subtitleTextBlock字幕
         [ObservableProperty]
         private string subtitleText;
+
+        [ObservableProperty]
+        private string _subtitleOpacity = "0.5";
+
+        [ObservableProperty]
+        private string _subtitleBackgroud;
+
+        [ObservableProperty]
+        private string _subtitleFontSize = "20";
+        #endregion
+
+        #region Properties
+
+        public FrameworkElement VideoViewElement { get; set; }
+        public FrameworkElement SubtitleTextElement { get; set; }
+
+        public LibVLCSharp.Shared.MediaPlayer MediaPlayer => _mediaPlayer;
+
+        #endregion
 
         public MainWindowViewModel( )
         {
@@ -110,43 +132,102 @@ namespace Echo.ViewModels
             _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
             _mediaPlayer.EnableHardwareDecoding = true;
             
-
             VideoControlVM = new VideoControlViewModel(_mediaPlayer);
             MenuBarVM = new MenuBarViewModel();
 
+            // Subscribe to events
             MenuBarVM.OnScreenshotRequested += HandleScreenshotRequested;
             MenuBarVM.OnAspectRatioChanged += HandleAspectRatioChanged;
             MenuBarVM.OnFullScreenToggled += HandleOnFullScreenToggled;
             MenuBarVM.OnSubtitleFileSelected += HandleSubtitleFileSelected;
-            MenuBarVM.OnIsMouseHoverEnabledChangedEvent += HandleIsMouseHoverEnabledChanged;
-
+            MenuBarVM.MouseHoverEnabledChanged += HandleMouseHoverEnabledChanged;
+            MenuBarVM.SubtitleVisibleChanged += HandleSubtitleVisibleChanged;
+            MenuBarVM.OnChangeOpacity += HandleOnChangeOpacity;
+            MenuBarVM.OnFontSizeChanged += HandleOnFontSizeChanged;
             FullscreenChanged += HandleFullscreenChanged;
+            MediaPlayer.Playing += OnMediaPlaying;
 
+            // Initialize services and handlers
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
             _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer);
             _scrollingSubtitleHandler = new ScrollingSubtitleHandler();
-
-            MediaPlayer.Playing += OnMediaPlaying;
 
             _subtitleHandler.SubtitlesLoaded += subtitles =>
             {
                 _scrollingSubtitleHandler?.SetSubtitles(subtitles);
             };
 
+            //_mediaPlayer.Playing += (sender, e) =>
+            //{
+            //    _subtitleHandler?.Start();
+            //};
+
+            //_mediaPlayer.Paused += (sender, e) =>
+            //{
+            //    _subtitleHandler?.Stop();
+            //};
+
+            //_mediaPlayer.Stopped += (sender, e) =>
+            //{
+            //    _subtitleHandler?.Stop();
+            //};
+
             _mediaPlayer.TimeChanged += (sender, e) =>
             {
-                _subtitleHandler.UpdateTime(e.Time);
-                _scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
-            };
+                if (_mediaPlayer.IsPlaying)
+                {
+                    _subtitleHandler.UpdateTime(e.Time);
+                    _scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
+                }
 
+            };
+            //string text = Resources.LangResx.File;
+            //MessageBox.Show(text);
         }
+
+        #region Callbacks 
 
         partial void OnIsFullScreenChanged(bool value)
         {
             FullscreenChanged?.Invoke(this, value);
         }
 
+        partial void OnIsSubtitleVisibleChanged(bool value)
+        {
+            if (!IsSubtitleVisible)
+            {
+                // 字幕不可见时
+                if (_subtitleTextBlock != null)
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
+                    _subtitleHandler?.Stop();
+                }
+            }
+            else
+            {
+                // 字幕可见时
+                if (_subtitleTextBlock != null)
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Visible;
+                    if (!IsMouseHoverEnabled)
+                    {
+                        _subtitleHandler?.Start();
+                    }
+                }
+            }
+        }
+
+        partial void OnSubtitleOpacityChanged(string op)
+        {
+            Debug.WriteLine(SubtitleOpacity);
+            SetSubtitleBackground();
+        }
+
+        #endregion
+
+
+        #region Event Handlers
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
@@ -165,7 +246,10 @@ namespace Echo.ViewModels
             Debug.WriteLine($"fuul{www}");
         }
 
-        #region menubar
+        #endregion
+
+        #region Menubar
+
         private void HandleAspectRatioChanged(object sender, string ratio)
         {
             if (!MediaPlayer.IsPlaying) return;
@@ -210,7 +294,7 @@ namespace Echo.ViewModels
             //Debug.WriteLine($"file {filepath}");
         }
 
-        private void HandleIsMouseHoverEnabledChanged(object? sender, bool value)
+        private void HandleMouseHoverEnabledChanged(object? sender, bool value)
         {
             IsMouseHoverEnabled = value;
 
@@ -234,6 +318,20 @@ namespace Echo.ViewModels
             }
         }
 
+        private void HandleSubtitleVisibleChanged(object? sender, bool value)
+        {
+            IsSubtitleVisible = value;
+        }
+
+        private void HandleOnChangeOpacity(object? sender, string opacity)
+        {
+            SubtitleOpacity = opacity;
+        }
+
+        private void HandleOnFontSizeChanged(object? sender, string size)
+        {
+            SubtitleFontSize = size;
+        }
         #endregion
 
 
@@ -342,6 +440,17 @@ namespace Echo.ViewModels
             lastClickTime = DateTime.Now;
         }
 
+        [RelayCommand]
+        private void ToggleScrollingSubtitles(bool isEnabled)
+        {
+            IsScrollingEnabled = isEnabled;
+            _scrollingSubtitleHandler?.EnableScrolling(isEnabled);
+        }
+
+        #endregion
+
+        #region Public Methods 
+
         public void OnSubtitleAreaMouseEnter()
         {
             if (IsMouseHoverEnabled)
@@ -382,12 +491,7 @@ namespace Echo.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void ToggleScrollingSubtitles(bool isEnabled)
-        {
-            IsScrollingEnabled = isEnabled;
-            _scrollingSubtitleHandler?.EnableScrolling(isEnabled);
-        }
+
 
         public void SetSubtitleBlocks(TextBlock mainBlock, TextBlock prevBlock, TextBlock nextBlock)
         {
@@ -398,31 +502,7 @@ namespace Echo.ViewModels
             _wordClickHandler.SetTextBlock(mainBlock);
             _scrollingSubtitleHandler.Initialize(mainBlock, prevBlock, nextBlock);
         }
-        #endregion
 
-        private void StartSubtitle()
-        {
-            _subtitleHandler.Start();
-        }
-
-
-        private void StopSubtitle()
-        {
-            _subtitleHandler.Stop();
-        }
-
-        private void ToggleMediaPlay()
-        {
-            //Debug.WriteLine();
-            if (_mediaPlayer.IsPlaying)
-            {
-                _mediaPlayer.Pause();
-            }
-            else
-            {
-                _mediaPlayer.Play();
-            }
-        }
 
         public void SetTranslationContainer(Canvas translationContainer)
         {
@@ -447,6 +527,29 @@ namespace Echo.ViewModels
             _subtitleTextBlock = textBlock;
             _wordClickHandler.SetTextBlock(textBlock);
         }
+
+        private void ToggleMediaPlay()
+        {
+            //Debug.WriteLine();
+            if (_mediaPlayer.IsPlaying)
+            {
+                _mediaPlayer.Pause();
+            }
+            else
+            {
+                _mediaPlayer.Play();
+            }
+        }
+
+        public void DisposeMedia()
+        {
+            _mediaPlayer?.Dispose();
+            _libVLC?.Dispose();
+        }
+
+        #endregion
+
+        #region  Private Helpers
 
         public void ToggleFullScreen()
         {
@@ -498,40 +601,37 @@ namespace Echo.ViewModels
             if (_subtitleTextBlock != null && IsSubtitleVisible)
             {
                 _subtitleTextBlock.Visibility = Visibility.Visible;
-                _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x80, 0x00, 0x00, 0x00));
+                SetSubtitleBackground();
+
             }
         }
-
-        partial void OnIsSubtitleVisibleChanged(bool value)
+        private void SetSubtitleBackground()
         {
-            if (!IsSubtitleVisible)
+            string argbValue = "#80000000"; 
+            switch (SubtitleOpacity)
             {
-                // 字幕不可见时
-                if (_subtitleTextBlock != null)
-                {
-                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
-                    _subtitleHandler?.Stop();
-                }
+                case "0":
+                    argbValue = "#00000000";
+                    break;
+                case "0.25":
+                    argbValue = "#40000000";
+                    break;
+                case "0.5":
+                    argbValue = "#80000000"; ;
+                    break;
+                case "0.75":
+                    argbValue = "#C0000000";
+                    break;
+                case "1":
+                    argbValue = "#FF000000";
+                    break;
             }
-            else
-            {
-                // 字幕可见时
-                if (_subtitleTextBlock != null)
-                {
-                    _subtitleTextBlock.Visibility = Visibility.Visible;
-                    if (!IsMouseHoverEnabled)
-                    {
-                        _subtitleHandler?.Start();
-                    }
-                }
-            }
+            SubtitleBackgroud = argbValue;
+            //Debug.WriteLine(argbValue);
         }
 
-        public void DisposeMedia()
-        {
-            _mediaPlayer?.Dispose();
-            _libVLC?.Dispose();
-        }
 
+
+        #endregion
     }
 }

@@ -6,6 +6,7 @@
              xmlns:sysconv="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
              xmlns:vm="clr-namespace:Echo.ViewModels"
              xmlns:converters="clr-namespace:Echo.Converters" 
+             xmlns:resx="clr-namespace:Echo.Resources"
              mc:Ignorable="d"
              Height="30"
              Background="#F5F5F5"
@@ -18,6 +19,7 @@
     <UserControl.Resources>
         <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:AspectRatioConverter x:Key="AspectRatioConverter"/>
+        <converters:AspectRatioConverter x:Key="LanguageConverter"/>
         <!-- MenuItem 基础样式 -->
         <Style x:Key="MenuItemStyle" TargetType="MenuItem">
             <Setter Property="Background" Value="#F5F5F5"/>
@@ -65,15 +67,15 @@
 
     <Menu >
         <!-- 文件菜单 -->
-        <MenuItem Header="文件" Style="{StaticResource MenuItemStyle}">
-            <MenuItem Header="打开文件" 
+        <MenuItem Header="{x:Static resx:LangResx.File}" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="{x:Static resx:LangResx.Open_File}" 
                       Command="{Binding OpenFileCommand}"
                       Style="{StaticResource MenuItemStyle}">
                 <MenuItem.Icon>
                     <TextBlock Text="📂" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="最近文件" 
+            <MenuItem Header="{x:Static resx:LangResx.Recent_Files}" 
                       IsEnabled="False"
                       Style="{StaticResource MenuItemStyle}">
                 <MenuItem.Icon>
@@ -81,7 +83,7 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator Style="{StaticResource SeparatorStyle}"/>
-            <MenuItem Header="退出" 
+            <MenuItem Header="{x:Static resx:LangResx.Exit}" 
                       Command="{Binding ExitCommand}"
                       Style="{StaticResource MenuItemStyle}">
                 <MenuItem.Icon>
@@ -91,16 +93,16 @@
         </MenuItem>
 
         <!-- 视频菜单 -->
-        <MenuItem Header="视频" Style="{StaticResource MenuItemStyle}">
-            <MenuItem Header="截图" 
+        <MenuItem Header="{x:Static resx:LangResx.Video}" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="{x:Static resx:LangResx.Snapshot}" 
                       Command="{Binding ScreenshotCommand}"
                       Style="{StaticResource MenuItemStyle}">
                 <MenuItem.Icon>
                     <TextBlock Text="📸" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="宽高比" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="默认" 
+            <MenuItem Header="{x:Static resx:LangResx.Aspect_Ratio}" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="{x:Static resx:LangResx.Default}" 
               IsCheckable="True" 
               IsChecked="{Binding SelectedAspectRatio, Converter={StaticResource AspectRatioConverter}, ConverterParameter='Default'}"
               Command="{Binding ChangeAspectRatioCommand}" 
@@ -138,7 +140,7 @@
                 <MenuItem Header="75%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.75" Style="{StaticResource MenuItemStyle}"/>
                 <MenuItem Header="100%" Command="{Binding ChangeScaleCommand}" CommandParameter="1.0" Style="{StaticResource MenuItemStyle}"/>
             </MenuItem> -->
-            <MenuItem Header="全屏" 
+            <MenuItem Header="{x:Static resx:LangResx.Fullscreen}" 
                       Command="{Binding ToggleFullScreenCommand}"
                       Style="{StaticResource MenuItemStyle}">
                 <MenuItem.Icon>
@@ -148,33 +150,33 @@
         </MenuItem>
 
         <!-- 字幕菜单 -->
-        <MenuItem Header="字幕" Style="{StaticResource MenuItemStyle}">
-            <MenuItem Header="显示字幕" 
+        <MenuItem Header="{x:Static resx:LangResx.Subtitles}" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="{x:Static resx:LangResx.Show_Subtitles}" 
                       IsCheckable="True"
                       IsChecked="{Binding IsSubtitleVisible}"
                       Style="{StaticResource MenuItemStyle}"/>
-            <MenuItem Header="打开字幕" 
+            <MenuItem Header="{x:Static resx:LangResx.Open_Subtitles}" 
                       Command="{Binding OpenSubtitleCommand}"
                       Style="{StaticResource MenuItemStyle}">
                 <MenuItem.Icon>
                     <TextBlock Text="📝" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="选择字幕" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="{x:Static resx:LangResx.Select_Subtitles}" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="选择字幕轨" 
                           Command="{Binding SelectSubtitleTrackCommand}"
                           Style="{StaticResource MenuItemStyle}"/>
             </MenuItem>
             <Separator Style="{StaticResource SeparatorStyle}"/>
-            <MenuItem Header="鼠标悬浮显示/隐藏" 
+            <MenuItem Header="{x:Static resx:LangResx.Show_Subtitles_on_Mouse_Hover}" 
                       IsCheckable="True"
                       IsChecked="{Binding IsMouseHoverEnabled}"
                       Style="{StaticResource MenuItemStyle}"/>
-            <MenuItem Header="整句分析" 
+            <MenuItem Header="{x:Static resx:LangResx.Sentence_Analysis}" 
                       IsCheckable="True"
                       IsChecked="{Binding IsSentenceAnalysisEnabled}"
                       Style="{StaticResource MenuItemStyle}"/>
-            <MenuItem Header="单词点击查询" 
+            <MenuItem Header="{x:Static resx:LangResx.Word_Click}" 
                       IsCheckable="True"
                       IsChecked="{Binding IsWordQueryEnabled}"
                       Style="{StaticResource MenuItemStyle}"/>
@@ -190,25 +192,27 @@
                           Style="{StaticResource MenuItemStyle}"/>
             </MenuItem>
             -->
-            <MenuItem Header="高级设置" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="字幕背景透明度" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="{x:Static resx:LangResx.Advanced_Settings}" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="{x:Static resx:LangResx.Subtitle_Opacity}" Style="{StaticResource MenuItemStyle}">
                     <MenuItem Header="0%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0" Style="{StaticResource MenuItemStyle}"/>
                     <MenuItem Header="25%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0.25" Style="{StaticResource MenuItemStyle}"/>
                     <MenuItem Header="50%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0.5" Style="{StaticResource MenuItemStyle}"/>
                     <MenuItem Header="75%" Command="{Binding ChangeOpacityCommand}" CommandParameter="0.75" Style="{StaticResource MenuItemStyle}"/>
                     <MenuItem Header="100%" Command="{Binding ChangeOpacityCommand}" CommandParameter="1" Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
-                <MenuItem Header="字幕样式" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="字体大小" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="小" Command="{Binding ChangeFontSizeCommand}" CommandParameter="16" Style="{StaticResource MenuItemStyle}"/>
-                        <MenuItem Header="中" Command="{Binding ChangeFontSizeCommand}" CommandParameter="20" Style="{StaticResource MenuItemStyle}"/>
-                        <MenuItem Header="大" Command="{Binding ChangeFontSizeCommand}" CommandParameter="24" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Subtitle_Style}" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="{x:Static resx:LangResx.Subtitle_Font_Size}" Style="{StaticResource MenuItemStyle}">
+                        <MenuItem Header="{x:Static resx:LangResx.Small}" Command="{Binding ChangeFontSizeCommand}" CommandParameter="16" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="{x:Static resx:LangResx.Medium}" Command="{Binding ChangeFontSizeCommand}" CommandParameter="20" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="{x:Static resx:LangResx.Large}" Command="{Binding ChangeFontSizeCommand}" CommandParameter="24" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
+                    <!-- todo 
                     <MenuItem Header="字体" Style="{StaticResource MenuItemStyle}">
                         <MenuItem Header="微软雅黑" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="Microsoft YaHei" Style="{StaticResource MenuItemStyle}"/>
                         <MenuItem Header="宋体" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="SimSun" Style="{StaticResource MenuItemStyle}"/>
                         <MenuItem Header="黑体" Command="{Binding ChangeFontFamilyCommand}" CommandParameter="SimHei" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
+                    -->
                 </MenuItem>
                 <!-- todo 
                 <MenuItem Header="滚动字幕" 
@@ -245,47 +249,209 @@
         </MenuItem>
 
         <!-- 词典菜单 -->
-        <MenuItem Header="学习" Style="{StaticResource MenuItemStyle}">
-            <MenuItem Header="语言" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="你的语言" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="简体中文" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="zh-CN" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="English" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="en" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="日本語" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ja" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="한국어" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ko" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="Français" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="fr" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="Deutsch" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="de" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="Español" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="es" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="العربية" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ar" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="Русский" Command="{Binding ChangeYourLanguageCommand}" CommandParameter="ru" Style="{StaticResource MenuItemStyle}"/>
+        <MenuItem Header="{x:Static resx:LangResx.Learn}" Style="{StaticResource MenuItemStyle}">
+            <MenuItem Header="{x:Static resx:LangResx.Language}" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="{x:Static resx:LangResx.Your_Language}" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="简体中文" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hans'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="zh-Hans" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="繁体中文" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hant'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="zh-Hant" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="English" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='en'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="en" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="日本語" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ja'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="ja" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="한국어" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ko'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="ko" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Français" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="fr" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Deutsch" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='de'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="de" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Español" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='es'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="es" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="العربية" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ar'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="ar" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Русский" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ru'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="ru" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Українська" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="uk" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Português" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="pt" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Italiano" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='it'}" 
+                              Command="{Binding ChangeYourLanguageCommand}" 
+                              CommandParameter="it" 
+                              Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
-                <MenuItem Header="学习语言" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="自动检测" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="auto" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="简体中文" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="zh-CN" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="English" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="en" Style="{StaticResource MenuItemStyle}"/>
-                    <MenuItem Header="日本語" Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="ja" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Learning_Language}" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="{x:Static resx:LangResx.Auto_Detect}" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='Auto'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="Auto" Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="简体中文" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hans'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="zh-Hans" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="繁体中文" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hant'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="zh-Hant" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="English" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='en'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="en" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="日本語" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ja'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="ja" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="한국어" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ko'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="ko" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Français" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="fr" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Deutsch" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='de'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="de" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Español" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='es'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="es" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="العربية" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ar'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="ar" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Русский" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ru'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="ru" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Українська" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="uk" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Português" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="pt" 
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <MenuItem Header="Italiano" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='it'}" 
+                              Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="it" 
+                              Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
-                <MenuItem Header="软件语言">
-                    <MenuItem Header="简体中文" IsChecked="True" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-CN"/>
-                    <MenuItem Header="繁体中文" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-TW"/>
-                    <MenuItem Header="English" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="en"/>
-                    <MenuItem Header="日本語" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ja"/>
-                    <MenuItem Header="한국어" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ko"/>
-                    <MenuItem Header="Français" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="fr"/>
-                    <MenuItem Header="Deutsch" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="de"/>
-                    <MenuItem Header="Español" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="es"/>
-                    <MenuItem Header="العربية" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ar"/>
-                    <MenuItem Header="Русский" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ru"/>
+                <MenuItem Header="{x:Static resx:LangResx.Software_Language}">
+                    <MenuItem Header="简体中文" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hans'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="zh-Hans" />
+                    <MenuItem Header="繁体中文" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hant'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="zh-Hant" />
+                    <MenuItem Header="English" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='en-US'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="en-US" />
+                    <MenuItem Header="日本語" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ja-JP'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="ja-JP" />
+                    <MenuItem Header="한국어" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ko-KR'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="ko-KR" />
+                    <MenuItem Header="Français" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="fr" />
+                    <MenuItem Header="Deutsch" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='de-DE'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="de-DE" />
+                    <MenuItem Header="Español" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='es'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="es" />
+                    <MenuItem Header="العربية" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ar'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="ar" />
+                    <MenuItem Header="Русский" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ru'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="ru" />
+                    <MenuItem Header="Українська" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk-UA'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="uk-UA" />
+                    <MenuItem Header="Português" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="pt" />
+                    <MenuItem Header="Italiano" 
+                              IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='it-IT'}"
+                              Command="{Binding SoftwareLanguageChangeCommand}" 
+                              CommandParameter="it-IT" />
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="API" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="单词API" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="牛津词典" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="配置Token" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Dictionary_API}" Style="{StaticResource MenuItemStyle}">
+                    <MenuItem Header="{x:Static resx:LangResx.Oxford_Dictionary}" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}">
+                        <MenuItem Header="{x:Static resx:LangResx.Configure_Token}" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
                 </MenuItem>
-                <MenuItem Header="整句分析API" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="{x:Static resx:LangResx.Sentence_Analysis_API}" Style="{StaticResource MenuItemStyle}">
                     <MenuItem Header="OpenAI" Command="{Binding SelectSentenceAPICommand}" CommandParameter="openai" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="配置Token" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="{x:Static resx:LangResx.Configure_Token}" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
                 </MenuItem>
                 <!-- todo 
@@ -296,77 +462,119 @@
                 </MenuItem>
                  -->
                 <Separator/>
-                <MenuItem Header="Echo All-in-one Token">
-                    <MenuItem Header="输入" Command="{Binding InputEchoAPICommand}"/>
-                    <MenuItem Header="购买" Command="{Binding ButEchoAPICommand}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Echo_Token}">
+                    <MenuItem Header="{x:Static resx:LangResx.Input}" Command="{Binding InputEchoAPICommand}"/>
+                    <MenuItem Header="{x:Static resx:LangResx.Purchase}" Command="{Binding ButEchoAPICommand}"/>
                 </MenuItem>
             </MenuItem>
         </MenuItem>
 
         <!-- 单词本菜单 -->
-        <MenuItem Header="单词本">
-            <MenuItem Header="打开" Command="{Binding OpenNoteCommand}">
+        <MenuItem Header="{x:Static resx:LangResx.Vocabulary_Book}">
+            <MenuItem Header="{x:Static resx:LangResx.Open}" Command="{Binding OpenNoteCommand}">
 
             </MenuItem>
-            <MenuItem Header="自动收藏查询结果" Command="{Binding ToggleAutoSaveVocabularyCommand}" Style="{StaticResource MenuItemStyle}"/>
-            <MenuItem Header="自动按视频分类" Command="{Binding SaveVocabularyByVideoCommand}"/>
-            <MenuItem Header="导出">
-                <MenuItem Header="导出为Markdown" Command="{Binding ExportMarkdownCommand}"/>
-                <MenuItem Header="导出为SQLite文件" Command="{Binding ExportMarkdownCommand}"/>
+            <MenuItem Header="{x:Static resx:LangResx.Auto_Save_Vocabulary}" Command="{Binding ToggleAutoSaveVocabularyCommand}" Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="{x:Static resx:LangResx.Save_Vocabulary_by_Video}" Command="{Binding SaveVocabularyByVideoCommand}"/>
+            <MenuItem Header="{x:Static resx:LangResx.Export}">
+                <MenuItem Header="{x:Static resx:LangResx.Export_as_Markdown}" Command="{Binding ExportMarkdownCommand}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Export_as_SQLite_File}" Command="{Binding ExportMarkdownCommand}"/>
             </MenuItem>
         </MenuItem>
 
         <!-- 控制菜单 -->
-        <MenuItem Header="控制">
-            <MenuItem Header="后退时间">
-                <MenuItem Header="固定时间" Command="{Binding BackwardByTimeCommand}"/>
-                <MenuItem Header="上一句" Command="{Binding BackwardBySentenceCommand}"/>
+        <MenuItem Header="{x:Static resx:LangResx.Control}">
+            <MenuItem Header="{x:Static resx:LangResx.Backward_Time}">
+                <MenuItem Header="{x:Static resx:LangResx.Fixed_Time}" Command="{Binding BackwardByTimeCommand}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Previous_Sentence}" Command="{Binding BackwardBySentenceCommand}"/>
             </MenuItem>
-            <MenuItem Header="前进时间">
-                <MenuItem Header="固定时间" Command="{Binding ForkwardByTimeCommand}"/>
-                <MenuItem Header="下一句" Command="{Binding BackwardBySentenceCommand}"/>
+            <MenuItem Header="{x:Static resx:LangResx.Forward_Time}">
+                <MenuItem Header="{x:Static resx:LangResx.Fixed_Time}" Command="{Binding ForkwardByTimeCommand}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Medium}" Command="{Binding BackwardBySentenceCommand}"/>
             </MenuItem>
-            <MenuItem Header="全屏锁定" IsCheckable="True"/>
+            <MenuItem Header="{x:Static resx:LangResx.Fullscreen_Lock}" IsCheckable="True"/>
 
         </MenuItem>
 
         <!-- 系统菜单 -->
-        <MenuItem Header="系统">
-            <MenuItem Header="软件语言">
-                <MenuItem Header="简体中文" IsChecked="True" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-CN"/>
-                <MenuItem Header="繁体中文" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="zh-TW"/>
-                <MenuItem Header="English" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="en"/>
-                <MenuItem Header="日本語" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ja"/>
-                <MenuItem Header="한국어" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ko"/>
-                <MenuItem Header="Français" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="fr"/>
-                <MenuItem Header="Deutsch" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="de"/>
-                <MenuItem Header="Español" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="es"/>
-                <MenuItem Header="العربية" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ar"/>
-                <MenuItem Header="Русский" Command="{Binding SystemLanguageChangeCommand}" CommandParameter="ru"/>
+        <MenuItem Header="{x:Static resx:LangResx.System}">
+            <MenuItem Header="{x:Static resx:LangResx.Software_Language}">
+                <MenuItem Header="简体中文" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hans'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="zh-Hans" />
+                <MenuItem Header="繁体中文" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hant'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="zh-Hant" />
+                <MenuItem Header="English" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='en-US'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="en-US" />
+                <MenuItem Header="日本語" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ja-JP'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="ja-JP" />
+                <MenuItem Header="한국어" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ko-KR'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="ko-KR" />
+                <MenuItem Header="Français" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="fr" />
+                <MenuItem Header="Deutsch" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='de-DE'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="de-DE" />
+                <MenuItem Header="Español" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='es'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="es" />
+                <MenuItem Header="العربية" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ar'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="ar" />
+                <MenuItem Header="Русский" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ru'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="ru" />
+                <MenuItem Header="Українська" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk-UA'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="uk-UA" />
+                <MenuItem Header="Português" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="pt" />
+                <MenuItem Header="Italiano" 
+                          IsChecked="{Binding SelectedSoftwareLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='it-IT'}"
+                          Command="{Binding SoftwareLanguageChangeCommand}" 
+                          CommandParameter="it-IT" />
             </MenuItem>
-            <MenuItem Header="截图文件夹" Command="{Binding SetScreenShotDirCommand}"/>
-            <MenuItem Header="快捷键">
-                <MenuItem Header="后退" Command="{Binding ShortcutBackwardCommand}"/>
-                <MenuItem Header="前进" Command="{Binding ShortcutForwardCommand}"/>
-                <MenuItem Header="音量" Command="{Binding ShortcutVolumeCommand}" />
-                <MenuItem Header="截图" Command="{Binding ShortcutScreenshotCommand}" />
+            <MenuItem Header="{x:Static resx:LangResx.Snapshot_Folder}" Command="{Binding SetScreenShotDirCommand}"/>
+            <MenuItem Header="{x:Static resx:LangResx.Shortcuts}">
+                <MenuItem Header="{x:Static resx:LangResx.Backward_Shortcut}" Command="{Binding ShortcutBackwardCommand}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Forward_Shortcut}" Command="{Binding ShortcutForwardCommand}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Volume_Shortcut}" Command="{Binding ShortcutVolumeCommand}" />
+                <MenuItem Header="{x:Static resx:LangResx.Snapshot_Shortcut}" Command="{Binding ShortcutScreenshotCommand}" />
             </MenuItem>
         </MenuItem>
 
         <!-- 帮助菜单 -->
-        <MenuItem Header="帮助">
-            <MenuItem Header="用户反馈" Command="{Binding FeedbackCommand}">
+        <MenuItem Header="{x:Static resx:LangResx.Help}">
+            <MenuItem Header="{x:Static resx:LangResx.Feedback}" Command="{Binding FeedbackCommand}">
                 <MenuItem.Icon>
                     <TextBlock Text="💬" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="检查更新" Command="{Binding CheckUpdatesCommand}">
+            <MenuItem Header="{x:Static resx:LangResx.Check_for_Updates}" Command="{Binding CheckUpdatesCommand}">
                 <MenuItem.Icon>
                     <TextBlock Text="🔄" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
-            <MenuItem Header="关于" Command="{Binding AboutCommand}">
+            <MenuItem Header="{x:Static resx:LangResx.About}" Command="{Binding AboutCommand}">
                 <MenuItem.Icon>
                     <TextBlock Text="ℹ" FontSize="14"/>
                 </MenuItem.Icon>

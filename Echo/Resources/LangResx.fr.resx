@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Aspect_Ratio" xml:space="preserve">
+    <value>Rapport d'aspect</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Sortie</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>fichier</value>
+  </data>
+  <data name="Fullscreen" xml:space="preserve">
+    <value>Plein écran</value>
+  </data>
+  <data name="Open_File" xml:space="preserve">
+    <value>Ouvrir le fichier</value>
+  </data>
+  <data name="Open_Subtitles" xml:space="preserve">
+    <value>Ouvrir les sous-titres</value>
+  </data>
+  <data name="Recent_Files" xml:space="preserve">
+    <value>Fichiers récents</value>
+  </data>
+  <data name="Select_Subtitles" xml:space="preserve">
+    <value>Sélectionner les sous-titres</value>
+  </data>
+  <data name="Show_Subtitles_on_Mouse_Hover" xml:space="preserve">
+    <value>Afficher les sous-titres au survol de la souris</value>
+  </data>
+  <data name="Show_Subtitles" xml:space="preserve">
+    <value>Afficher les sous-titres</value>
+  </data>
+  <data name="Snapshot" xml:space="preserve">
+    <value>Capture d'écran</value>
+  </data>
+  <data name="Subtitles" xml:space="preserve">
+    <value>Sous-titres</value>
+  </data>
+  <data name="Sentence_Analysis" xml:space="preserve">
+    <value>Analyse de phrases</value>
+  </data>
+  <data name="Word_Click" xml:space="preserve">
+    <value>Mot Clic</value>
+  </data>
+  <data name="Advanced_Settings" xml:space="preserve">
+    <value>Paramètres avancés</value>
+  </data>
+  <data name="Learn" xml:space="preserve">
+    <value>Apprendre</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>Vidéo</value>
+  </data>
+  <data name="Subtitle_Opacity" xml:space="preserve">
+    <value>Opacité des sous-titres</value>
+  </data>
+  <data name="Subtitle_Style" xml:space="preserve">
+    <value>Style de sous-titres</value>
+  </data>
+  <data name="Small" xml:space="preserve">
+    <value>Petit</value>
+  </data>
+  <data name="Medium" xml:space="preserve">
+    <value>Moyen</value>
+  </data>
+  <data name="Large" xml:space="preserve">
+    <value>Grand</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Langue</value>
+  </data>
+  <data name="Your_Language" xml:space="preserve">
+    <value>Votre langue</value>
+  </data>
+  <data name="Learning_Language" xml:space="preserve">
+    <value>Apprentissage des langues</value>
+  </data>
+  <data name="Software_Language" xml:space="preserve">
+    <value>Langage logiciel</value>
+  </data>
+  <data name="Dictionary_API" xml:space="preserve">
+    <value>API de dictionnaire</value>
+  </data>
+  <data name="Configure_Token" xml:space="preserve">
+    <value>Configurer le jeton</value>
+  </data>
+  <data name="Echo_Token" xml:space="preserve">
+    <value>Jeton Écho</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Entrée</value>
+  </data>
+  <data name="Purchase" xml:space="preserve">
+    <value>Achat</value>
+  </data>
+  <data name="Vocabulary_Book" xml:space="preserve">
+    <value>Vocabulaire</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="Auto_Save_Vocabulary" xml:space="preserve">
+    <value>Sauvegarde automatique du vocabulaire</value>
+  </data>
+  <data name="Save_Vocabulary_by_Video" xml:space="preserve">
+    <value>Enregistrer le vocabulaire par vidéo</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
+  <data name="Export_as_Markdown" xml:space="preserve">
+    <value>Exporter en tant que Markdown</value>
+  </data>
+  <data name="Export_as_SQLite_File" xml:space="preserve">
+    <value>Exporter en tant que fichier SQLite</value>
+  </data>
+  <data name="Control" xml:space="preserve">
+    <value>Contrôle</value>
+  </data>
+  <data name="Backward_Time" xml:space="preserve">
+    <value>Temps à rebours</value>
+  </data>
+  <data name="Fixed_Time" xml:space="preserve">
+    <value>Temps Fixe</value>
+  </data>
+  <data name="Previous_Sentence" xml:space="preserve">
+    <value>Phrase précédente</value>
+  </data>
+  <data name="Forward_Time" xml:space="preserve">
+    <value>Temps en avant</value>
+  </data>
+  <data name="Next_Sentence" xml:space="preserve">
+    <value>Phrase suivante</value>
+  </data>
+  <data name="Fullscreen_Lock" xml:space="preserve">
+    <value>Verrouillage en plein écran</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="Snapshot_Folder" xml:space="preserve">
+    <value>Dossier de captures d'écran</value>
+  </data>
+  <data name="Shortcuts" xml:space="preserve">
+    <value>Raccourcis</value>
+  </data>
+  <data name="Backward_Shortcut" xml:space="preserve">
+    <value>Raccourci arrière</value>
+  </data>
+  <data name="Forward_Shortcut" xml:space="preserve">
+    <value>Raccourci pour Avancer</value>
+  </data>
+  <data name="Volume_Shortcut" xml:space="preserve">
+    <value>Raccourci de volume</value>
+  </data>
+  <data name="Snapshot_Shortcut" xml:space="preserve">
+    <value>Raccourci de capture d'écran</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Aide</value>
+  </data>
+  <data name="Feedback" xml:space="preserve">
+    <value>Retour d'information</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>À propos</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>À propos de</value>
+  </data>
+  <data name="Subtitle_Font_Size" xml:space="preserve">
+    <value>Taille de la police des sous-titres</value>
+  </data>
+  <data name="Auto_Detect" xml:space="preserve">
+    <value>Détection automatique</value>
+  </data>
+  <data name="Oxford_Dictionary" xml:space="preserve">
+    <value>Dictionnaire Oxford</value>
+  </data>
+  <data name="Sentence_Analysis_API" xml:space="preserve">
+    <value>API d'analyse de phrases</value>
+  </data>
+</root>
