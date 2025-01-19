@@ -6,7 +6,7 @@
         xmlns:vm="clr-namespace:Echo.ViewModels"
         mc:Ignorable="d"
         Title="Vocabulary" 
-        Height="700" Width="600"
+        Height="600" Width="600"
         WindowStartupLocation="CenterScreen"
         Background="White"
         BorderBrush="#DDDDDD"

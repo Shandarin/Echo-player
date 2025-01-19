@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Windows;
 
 namespace Echo.ViewModels
 {
@@ -47,6 +48,10 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private bool isAutoSaveWord;
 
+        [ObservableProperty]
+        private WordModel currentWordModel = new();
+
+
         public WordPanelViewModel(OxfordDictService oxfordService, DatabaseService databaseService)
         {
             _oxfordService = oxfordService;
@@ -63,10 +68,28 @@ namespace Echo.ViewModels
         }
 
         [RelayCommand]
-        private void ToggleFavorite()
+        private async Task ToggleFavoriteAsync()
         {
-            IsFavorite = !IsFavorite;
-            // TODO: Implement favorite functionality
+            if (string.IsNullOrWhiteSpace(CurrentWordModel.Word))
+            {
+                MessageBox.Show("No word selected to toggle favorite status.");
+                return;
+            }
+
+            try
+            {
+                // Toggle favorite status
+                CurrentWordModel.IsFavorite = !CurrentWordModel.IsFavorite;
+
+                // Save to database
+                await _databaseService.SaveOrUpdateWordAsync(CurrentWordModel);
+
+                MessageBox.Show($"Word '{CurrentWordModel.Word}' has been {(CurrentWordModel.IsFavorite ? "added to" : "removed from")} favorites.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error toggling favorite: {ex.Message}");
+            }
         }
 
         [RelayCommand]
@@ -83,13 +106,14 @@ namespace Echo.ViewModels
             {
                 IsLoading = true;
                 ErrorMessage = null;
-                CurrentWord = word;
+                //CurrentWord = word;
 
                 // First API call to get head word and other details
                 var (headword, details) = await _oxfordService.GetWordDetailsAsync(word);
                 if (string.IsNullOrEmpty(headword))
                 {
                     ErrorMessage = "Word not found";
+                    
                     return;
                 }
                 //_wordDetails = details;
@@ -109,10 +133,6 @@ namespace Echo.ViewModels
                     WriteIndented = true   // 缩进美化输出
                 });
 
-                // 调试输出
-                Debug.WriteLine(json);
-
-
                 HeadwordOP = wordModel.Word;
 
                 //Translation = wordModel.Translation;
@@ -125,6 +145,7 @@ namespace Echo.ViewModels
                 //}
 
                 // Update observable collections
+
                 Pronunciations.Clear();
                 if (wordModel.Pronounciations != null)
                 {
@@ -139,6 +160,8 @@ namespace Echo.ViewModels
                         Definitions = wordModel.Definitions; ;
                     }
                 }
+
+                CurrentWordModel = wordModel;
                 IsVisible = true;
             }
             catch (Exception ex)

@@ -1,4 +1,6 @@
-﻿using System.Data.SQLite;
+﻿using Echo.Models;
+using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 
 namespace Echo.Services
@@ -12,7 +14,7 @@ namespace Echo.Services
         {
             var dbPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Echo","Data",
+                "Echo", "Userdata",
                 "note.db");
 
             var dbFolder = Path.GetDirectoryName(dbPath);
@@ -30,11 +32,45 @@ namespace Echo.Services
             }
         }
 
+        public static void CreateDatabaseFile()
+        {
+            // 构造数据库文件的完整路径
+            string dbPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Echo", "Userdata", "DataBase", "note.db");
+
+            // 获取数据库文件夹路径
+            string dbDirectory = Path.GetDirectoryName(dbPath);
+
+            if (dbDirectory == null)
+            {
+                throw new Exception("Invalid database directory path.");
+            }
+
+            // 检查文件夹是否存在，如果不存在则创建
+            if (!Directory.Exists(dbDirectory))
+            {
+                Directory.CreateDirectory(dbDirectory);
+            }
+
+            // 检查数据库文件是否已经存在，如果不存在则创建
+            if (!File.Exists(dbPath))
+            {
+                SQLiteConnection.CreateFile(dbPath);
+                Console.WriteLine($"Database file created at: {dbPath}");
+            }
+            else
+            {
+                Console.WriteLine($"Database file already exists at: {dbPath}");
+            }
+        }
+
         private void InitializeDatabase()
         {
+            CreateDatabaseFile();
             SQLiteConnection.CreateFile(Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Echo","Data",
+                "Echo","Userdata","DataBase",
                 "note.db"));
 
             using (var connection = new SQLiteConnection(_connectionString))
@@ -256,6 +292,147 @@ namespace Echo.Services
                 _connection.Open();
             }
             return _connection;
+        }
+
+        public async Task SaveOrUpdateWordAsync(WordModel word)
+        {
+            if (word == null || string.IsNullOrWhiteSpace(word.Word))
+                throw new ArgumentException("Invalid word model provided.");
+
+            try
+            {
+                using var connection = GetConnection();
+                using var transaction = connection.BeginTransaction();
+
+                // 保存或更新 Words 表
+                var wordId = await InsertOrUpdateWordAsync(connection, word);
+
+                // 保存或更新 Definitions 表
+                if (word.Definitions != null && word.Definitions.Any())
+                {
+                    await InsertOrUpdateDefinitionsAsync(connection, wordId, word.Definitions);
+                }
+
+                // 保存或更新 Phonetics 表
+                if (word.Pronounciations != null && word.Pronounciations.Any())
+                {
+                    await InsertOrUpdatePhoneticsAsync(connection, wordId, word.Pronounciations);
+                }
+
+                // 保存或更新 Examples 表
+                if (word.Senses != null && word.Senses.Any())
+                {
+                    await InsertOrUpdateExamplesAsync(connection, wordId, word.Senses);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving word: {ex.Message}");
+                throw;
+            }
+        }
+
+        private async Task<int> InsertOrUpdateWordAsync(SQLiteConnection connection, WordModel word)
+        {
+            var command = new SQLiteCommand(@"
+        INSERT INTO Words (Word, Status, IsDeleted, CreateTime, UpdateTime)
+        VALUES (@Word, @Status, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(Word, LanguageCode)
+        DO UPDATE SET 
+            Status = @Status,
+            UpdateTime = CURRENT_TIMESTAMP;
+
+        SELECT Id FROM Words WHERE Word = @Word;
+    ", connection);
+
+            command.Parameters.AddWithValue("@Word", word.Word);
+            command.Parameters.AddWithValue("@Status", word.IsFavorite ? 1 : 0);
+
+            var result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result); // 返回 WordId
+        }
+
+        private async Task InsertOrUpdateDefinitionsAsync(
+            SQLiteConnection connection,
+            int wordId,
+            Dictionary<string, string> definitions)
+        {
+            foreach (var definition in definitions)
+            {
+                var command = new SQLiteCommand(@"
+            INSERT INTO Definitions (WordId, Definition, PartOfSpeech, IsDeleted, CreateTime, UpdateTime)
+            VALUES (@WordId, @Definition, @PartOfSpeech, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT(WordId, Definition)
+            DO UPDATE SET 
+                PartOfSpeech = @PartOfSpeech,
+                UpdateTime = CURRENT_TIMESTAMP;
+        ", connection);
+
+                command.Parameters.AddWithValue("@WordId", wordId);
+                command.Parameters.AddWithValue("@Definition", definition.Value);
+                command.Parameters.AddWithValue("@PartOfSpeech", definition.Key);
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        private async Task InsertOrUpdatePhoneticsAsync(
+            SQLiteConnection connection,
+            int wordId,
+            List<PronunciationModel> pronunciations)
+        {
+            foreach (var pronunciation in pronunciations)
+            {
+                var command = new SQLiteCommand(@"
+            INSERT INTO Phonetics (WordId, Phonetic, Accent, AudioFilePath, IsDeleted, CreateTime, UpdateTime)
+            VALUES (@WordId, @Phonetic, @Accent, @AudioFilePath, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT(WordId, Phonetic)
+            DO UPDATE SET 
+                Accent = @Accent,
+                AudioFilePath = @AudioFilePath,
+                UpdateTime = CURRENT_TIMESTAMP;
+        ", connection);
+
+                command.Parameters.AddWithValue("@WordId", wordId);
+                command.Parameters.AddWithValue("@Phonetic", pronunciation.PhoneticSpelling);
+                command.Parameters.AddWithValue("@Accent", pronunciation.Dialect);
+                command.Parameters.AddWithValue("@AudioFilePath", pronunciation.AudioFile);
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        private async Task InsertOrUpdateExamplesAsync(
+            SQLiteConnection connection,
+            int wordId,
+            List<SenseModel> senses)
+        {
+            foreach (var sense in senses)
+            {
+                if (sense.Examples == null || !sense.Examples.Any())
+                {
+                    continue; // 跳过没有例句的 sense
+                }
+                foreach (var example in sense.Examples)
+                {
+                    var command = new SQLiteCommand(@"
+                INSERT INTO Examples (WordId, ExampleText, Translation, CreateTime, UpdateTime)
+                VALUES (@WordId, @ExampleText, @Translation, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ON CONFLICT(WordId, ExampleText)
+                DO UPDATE SET 
+                    Translation = @Translation,
+                    UpdateTime = CURRENT_TIMESTAMP;
+            ", connection);
+
+                    command.Parameters.AddWithValue("@WordId", wordId);
+                    command.Parameters.AddWithValue("@ExampleText", example.Key);
+                    command.Parameters.AddWithValue("@Translation", example.Value);
+
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
         }
 
         public void Dispose()
