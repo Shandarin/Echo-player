@@ -18,6 +18,7 @@ using LibVLCSharp.Shared;
 using Echo.Handlers;
 using Echo.Services;
 using Echo.Views;
+using Echo.Managers;
 
 namespace Echo.ViewModels
 {
@@ -54,6 +55,7 @@ namespace Echo.ViewModels
 
         #region Events
         public event EventHandler<bool> FullscreenChanged;
+        public event EventHandler<string> VideoFilePathChanged;
         #endregion
 
         #region Observable Properties
@@ -113,7 +115,12 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private string _subtitleFontSize = "20";
+
+        [ObservableProperty]
+        private string _videoFilePath;
         #endregion
+
+        private MessageManager _messageManager;
 
         #region Properties
 
@@ -184,6 +191,8 @@ namespace Echo.ViewModels
             };
             //string text = Resources.LangResx.File;
             //MessageBox.Show(text);
+
+            
         }
 
         #region Callbacks 
@@ -224,11 +233,10 @@ namespace Echo.ViewModels
             SetSubtitleBackground();
         }
 
-        #endregion
-
-
-        #region Event Handlers
-
+        partial void OnVideoFilePathChanged(string value)
+        {
+            VideoFilePathChanged?.Invoke(this, value);
+        }
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
             if (!_hasAdjustedAspectRatio)
@@ -239,7 +247,18 @@ namespace Echo.ViewModels
             
             _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
 
+
+
+
+            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Timeout, 100);
+            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Size, 10);
+            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Position, 4);
+            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Color, (int)4);
+            //MediaPlayer.SetMarqueeString(VideoMarqueeOption.Text, "dfadfsadfs");
+            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Enable, 1);
+
         }
+
 
         private void HandleFullscreenChanged(object? sender, bool www)
         {
@@ -270,8 +289,8 @@ namespace Echo.ViewModels
         private void HandleScreenshotRequested(object sender, EventArgs e)
         {
             var filePath = Path.Combine(
-                  AppDomain.CurrentDomain.BaseDirectory,
-                  "Storage", "Snapshots");
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Echo", "Data", "Snapshots");
             if (!Directory.Exists(filePath))
             {
                 Directory.CreateDirectory(filePath);
@@ -376,6 +395,9 @@ namespace Echo.ViewModels
                     _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
                     _mediaPlayer.Play();
 
+                    VideoFilePath = filePath;
+                    VideoAreaContainerBackground = "Transparent";
+
                     // 自动检查同名字幕
                     _subtitleHandler.Dispose();
                     var srtPath = Path.ChangeExtension(filePath, ".srt");
@@ -393,7 +415,7 @@ namespace Echo.ViewModels
                         _subtitleHandler.Start();
                     }
                 }
-                VideoAreaContainerBackground = "Transparent";
+                
             }
         }
 

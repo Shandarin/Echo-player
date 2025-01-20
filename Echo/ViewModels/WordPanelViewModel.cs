@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Echo.Managers;
 using Echo.Models;
 using Echo.Services;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace Echo.ViewModels
     {
         private readonly OxfordDictService _oxfordService;
         private readonly DatabaseService _databaseService;
+
+        //private MessageManager _messageManager = new();
 
         [ObservableProperty]
         private string word;
@@ -51,6 +54,7 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private WordModel currentWordModel = new();
 
+        MainWindowViewModel MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
 
         public WordPanelViewModel(OxfordDictService oxfordService, DatabaseService databaseService)
         {
@@ -76,6 +80,8 @@ namespace Echo.ViewModels
                 return;
             }
 
+            AddInfo();
+
             try
             {
                 // Toggle favorite status
@@ -84,7 +90,10 @@ namespace Echo.ViewModels
                 // Save to database
                 await _databaseService.SaveOrUpdateWordAsync(CurrentWordModel);
 
-                MessageBox.Show($"Word '{CurrentWordModel.Word}' has been {(CurrentWordModel.IsFavorite ? "added to" : "removed from")} favorites.");
+                //MainWindowVM.MediaPlayer.Show();
+
+                //MessageBox.Show($"Word '{CurrentWordModel.Word}' has been {(CurrentWordModel.IsFavorite ? "added to" : "removed from")} favorites.");
+
             }
             catch (Exception ex)
             {
@@ -161,6 +170,8 @@ namespace Echo.ViewModels
                     }
                 }
 
+                
+
                 CurrentWordModel = wordModel;
                 IsVisible = true;
             }
@@ -174,6 +185,15 @@ namespace Echo.ViewModels
                 IsLoading = false;
             }
 
+        }
+
+        private void AddInfo()
+        {
+            CurrentWordModel.SourceFileName = MainWindowVM.VideoFilePath;
+            CurrentWordModel.LanguageCode = "en";
+            //CurrentWordModel.LanguageCode = MainWindowVM.SourceLanguage;
+            //CurrentWordModel.SourceStartTime = MainWindowVM.CurrentSubtitle.StartTime;
+            //CurrentWordModel.SourceEndTime = MainWindowVM.CurrentSubtitle.EndTime;
         }
 
         [RelayCommand]

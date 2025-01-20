@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Echo.Models;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Echo.Services
 {
@@ -46,8 +47,20 @@ namespace Echo.Services
                 var response = await _httpClient.GetStringAsync(url);
                 var json = JObject.Parse(response);
 
-
+                
                 var headword = json["results"]?[0]?["id"]?.ToString();
+                var wordModel = new WordModel
+                {
+                    Word = headword,
+                    Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["inflections"]
+                    ?.Select(inflection =>
+                    {
+                        return inflection["inflectedForm"]?.ToString();
+                    })
+                    .Where(inflectedForm => !string.IsNullOrEmpty(inflectedForm))
+                    .ToList()
+                    ?? new List<string>()
+                };
 
 
                 if (string.IsNullOrEmpty(headword))
@@ -86,9 +99,10 @@ namespace Echo.Services
                 var json = JObject.Parse(response);
 
                 // Create WordModel instance
-                var wordModel = new WordModel
-                {
-                    Word = headword,
+                //var wordModel = new WordModel
+                /
+                
+                    //Word = headword,
                     Pronounciations = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["pronunciations"]
                     ?.Select(pronunciation =>
                     {
@@ -130,11 +144,11 @@ namespace Echo.Services
                                 )
                             ) ?? string.Empty
                         ) ?? new Dictionary<string, string>(),
-                    Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["grammaticalFeatures"]
-                        ?.ToDictionary(
-                            feature => feature["id"]?.ToString() ?? "Unknown",
-                            feature => feature["text"]?.ToString() ?? string.Empty
-                        ),
+                    //Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["grammaticalFeatures"]
+                    //    ?.ToDictionary(
+                    //        feature => feature["id"]?.ToString() ?? "Unknown",
+                    //        feature => feature["text"]?.ToString() ?? string.Empty
+                    //    ),
                     Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
                         ?.SelectMany(sense => sense["synonyms"]?
                             .Select(synonym => synonym["text"]?.ToString())
@@ -155,6 +169,10 @@ namespace Echo.Services
                         }).ToList() ?? new List<SenseModel>()
                 };
 
+
+                JObject jsonOut = JObject.FromObject(wordModel);
+
+                Debug.WriteLine(jsonOut.ToString(Formatting.Indented));
                 return wordModel;
             }
             catch (Exception ex)
