@@ -13,7 +13,7 @@ namespace Echo.Services
     public partial class OxfordDictService : ObservableObject
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "https://od-api-sandbox.oxforddictionaries.com/api/v2";
+        private readonly string _baseUrl = "https://od-api.oxforddictionaries.com/api/v2";
 
         [ObservableProperty]
         private bool _isLoading;
@@ -46,20 +46,44 @@ namespace Echo.Services
                 var url = $"{_baseUrl}/words/{sourceLang}?q={word}";
                 var response = await _httpClient.GetStringAsync(url);
                 var json = JObject.Parse(response);
-
+                Debug.WriteLine(json);
                 
                 var headword = json["results"]?[0]?["id"]?.ToString();
-                var wordModel = new WordModel
+                wordModel = new WordModel
                 {
                     Word = headword,
+                    LanguageCode = "sourceLang",
+
+                    // Inflections
                     Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["inflections"]
-                    ?.Select(inflection =>
-                    {
-                        return inflection["inflectedForm"]?.ToString();
-                    })
-                    .Where(inflectedForm => !string.IsNullOrEmpty(inflectedForm))
-                    .ToList()
-                    ?? new List<string>()
+                        ?.Select(inflection =>
+                        {
+                            return inflection["inflectedForm"]?.ToString();
+                        })
+                        .Where(inflectedForm => !string.IsNullOrEmpty(inflectedForm))
+                        .ToList() ?? new List<string>(),
+
+                    // OriginalSenses
+                    OriginalSenses = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
+                        ?.Select(sense => new SenseModel
+                        {
+                            // Category
+                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
+
+                            // Definition
+                            Definition = sense["definitions"]?.FirstOrDefault()?.ToString() ?? null,
+
+                            // Description
+                            Description = sense["notes"]?.FirstOrDefault()?["text"]?.ToString() ?? null,
+
+                            // Examples
+                            Examples = sense["examples"]
+                                ?.ToDictionary(
+                                    example => example["text"]?.ToString() ?? "Unknown",
+                                    example => example["translations"]?.FirstOrDefault()?["text"]?.ToString() ?? null
+                                ) ?? new Dictionary<string, string>()
+                        })
+                        .ToList() ?? new List<SenseModel>()
                 };
 
 
@@ -100,10 +124,10 @@ namespace Echo.Services
 
                 // Create WordModel instance
                 //var wordModel = new WordModel
-                /
-                
+               
+
                     //Word = headword,
-                    Pronounciations = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["pronunciations"]
+                    wordModel.Pronounciations = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["pronunciations"]
                     ?.Select(pronunciation =>
                     {
                         // 获取原始 dialect
@@ -132,9 +156,10 @@ namespace Echo.Services
                         };
                     })
                     .ToList()
-                    ?? new List<PronunciationModel>(),
+                    ?? new List<PronunciationModel>();
+            
 
-                    Definitions = json["results"]?[0]?["lexicalEntries"]?
+                    wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
                         .ToDictionary(
                             lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
                             lexicalEntry => string.Join("；", lexicalEntry["entries"]?
@@ -143,18 +168,18 @@ namespace Echo.Services
                                     .Where(translation => !string.IsNullOrEmpty(translation)) ?? Enumerable.Empty<string>()
                                 )
                             ) ?? string.Empty
-                        ) ?? new Dictionary<string, string>(),
+                        ) ?? new Dictionary<string, string>();
                     //Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["grammaticalFeatures"]
                     //    ?.ToDictionary(
                     //        feature => feature["id"]?.ToString() ?? "Unknown",
                     //        feature => feature["text"]?.ToString() ?? string.Empty
                     //    ),
-                    Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
+                    wordModel.Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
                         ?.SelectMany(sense => sense["synonyms"]?
                             .Select(synonym => synonym["text"]?.ToString())
                             .Where(synonym => !string.IsNullOrEmpty(synonym)) ?? Enumerable.Empty<string>()
-                        ).ToList(),
-                    Senses = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
+                        ).ToList();
+                    wordModel.Senses = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
                         ?.Select(sense => new SenseModel
                         {
                             //Word = headword,
@@ -166,13 +191,9 @@ namespace Echo.Services
                                     example => example["text"]?.ToString() ?? "Unknown",
                                     example => example["translations"]?[0]?["text"]?.ToString() ?? "No translation available"
                                 )
-                        }).ToList() ?? new List<SenseModel>()
-                };
+                        }).ToList() ?? new List<SenseModel>();
+        
 
-
-                JObject jsonOut = JObject.FromObject(wordModel);
-
-                Debug.WriteLine(jsonOut.ToString(Formatting.Indented));
                 return wordModel;
             }
             catch (Exception ex)

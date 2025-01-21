@@ -3,6 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using Echo.Managers;
 using Echo.Models;
 using Echo.Services;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SubtitlesParser.Classes;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -113,6 +116,10 @@ namespace Echo.ViewModels
         {
             try
             {
+                var subtitleItem = MainWindowVM.CurrentSubtitleItem;//先获取当前字幕时间，以免延迟导致时间不准确
+                //CurrentWordModel.SourceStartTime = subtitleItem.StartTime;
+                //CurrentWordModel.SourceEndTime = subtitleItem.EndTime;
+
                 IsLoading = true;
                 ErrorMessage = null;
                 //CurrentWord = word;
@@ -137,7 +144,7 @@ namespace Echo.ViewModels
                     return;
                 }
 
-                string json = JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
+                string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
                 {
                     WriteIndented = true   // 缩进美化输出
                 });
@@ -173,6 +180,13 @@ namespace Echo.ViewModels
                 
 
                 CurrentWordModel = wordModel;
+
+                CurrentWordModel.SourceStartTime = subtitleItem.StartTime;
+                CurrentWordModel.SourceEndTime = subtitleItem.EndTime;
+
+                JObject jsonOut = JObject.FromObject(CurrentWordModel);
+                Debug.WriteLine(jsonOut.ToString(Formatting.Indented));
+
                 IsVisible = true;
             }
             catch (Exception ex)

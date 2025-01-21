@@ -19,6 +19,7 @@ using Echo.Handlers;
 using Echo.Services;
 using Echo.Views;
 using Echo.Managers;
+using SubtitlesParser.Classes;
 
 namespace Echo.ViewModels
 {
@@ -118,6 +119,8 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private string _videoFilePath;
+
+        public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
         private MessageManager _messageManager;
@@ -152,7 +155,10 @@ namespace Echo.ViewModels
             MenuBarVM.OnChangeOpacity += HandleOnChangeOpacity;
             MenuBarVM.OnFontSizeChanged += HandleOnFontSizeChanged;
             FullscreenChanged += HandleFullscreenChanged;
+
             MediaPlayer.Playing += OnMediaPlaying;
+
+
 
             // Initialize services and handlers
             _translationService = new TranslationService();
@@ -165,20 +171,19 @@ namespace Echo.ViewModels
                 _scrollingSubtitleHandler?.SetSubtitles(subtitles);
             };
 
-            //_mediaPlayer.Playing += (sender, e) =>
-            //{
-            //    _subtitleHandler?.Start();
-            //};
+            _mediaPlayer.Playing += (sender, e) =>
+            {
+                _subtitleHandler?.Start();
+            };
+            _mediaPlayer.Paused += (sender, e) =>
+            {
+                _subtitleHandler?.Pause();
+            };
 
-            //_mediaPlayer.Paused += (sender, e) =>
-            //{
-            //    _subtitleHandler?.Stop();
-            //};
-
-            //_mediaPlayer.Stopped += (sender, e) =>
-            //{
-            //    _subtitleHandler?.Stop();
-            //};
+            _mediaPlayer.Stopped += (sender, e) =>
+            {
+                _subtitleHandler?.Stop();
+            };
 
             _mediaPlayer.TimeChanged += (sender, e) =>
             {
@@ -237,6 +242,12 @@ namespace Echo.ViewModels
         {
             VideoFilePathChanged?.Invoke(this, value);
         }
+
+        //partial void OnVideoFilePathChanged(string value)
+        //{
+        //    VideoFilePathChanged?.Invoke(this, value);
+        //}
+
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
             if (!_hasAdjustedAspectRatio)

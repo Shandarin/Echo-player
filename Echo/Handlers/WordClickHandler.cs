@@ -1,5 +1,6 @@
 ﻿
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using Echo.Services;
@@ -36,8 +37,16 @@ namespace Echo.Handlers
 
         private void OnWordClick(string word, Point position)
         {
+            word = TrimAllCharacters(word);
+            Debug.WriteLine($"work clicked!: {word}");
             _translationService?.ShowTranslation(word, position);
-           
+            
+        }
+
+        private static string TrimAllCharacters(string word)
+        {
+            //移除尾部所有符号空格数字
+            return Regex.Replace(word, @"[\p{N}\p{P}\p{S}\s]+$", string.Empty);
         }
 
         public void SetTextBlock(TextBlock textBlock)

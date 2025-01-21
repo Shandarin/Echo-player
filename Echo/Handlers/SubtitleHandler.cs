@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Threading;
 using LibVLCSharp.Shared;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Echo.Handlers
 {
@@ -14,6 +15,8 @@ namespace Echo.Handlers
         private readonly Action<string> _updateSubtitleText;
         private long _currentTime;
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
+
+        public SubtitleItem CurrentSubtitleItem;
 
         public event Action<List<SubtitleItem>> SubtitlesLoaded;
 
@@ -47,6 +50,12 @@ namespace Echo.Handlers
             _timer.Start();
         }
 
+        public void Pause()
+        {
+            _timer.Stop();
+            //_updateSubtitleText(string.Empty);
+        }
+
         public void Stop()
         {
             _timer.Stop();
@@ -58,10 +67,10 @@ namespace Echo.Handlers
         //    {
         //        _subtitleHandler.UpdateTime(e.Time);
         //    };
-    public void UpdateTime(long currentTimeMs)
-        {
-            _currentTime = currentTimeMs;
-        }
+        public void UpdateTime(long currentTimeMs)
+            {
+                _currentTime = currentTimeMs;
+            }
 
 
         private void CheckCurrentSubtitle(object sender, EventArgs e)
@@ -79,16 +88,28 @@ namespace Echo.Handlers
 
             if (currentSubtitle != null)
             {
-                var text = string.Join("\n", currentSubtitle.Lines);
-                // 处理字幕样式标签
-                text = text.Replace("\\N", "\n"); // 处理换行符
-                text = text.Replace("\\n", "\n");
-                _updateSubtitleText(text);
+                if (!ReferenceEquals(CurrentSubtitleItem, currentSubtitle))
+                {
+                    CurrentSubtitleItem = currentSubtitle;
+                    var text = string.Join("\n", currentSubtitle.Lines)
+                                     .Replace("\\N", "\n")
+                                     .Replace("\\n", "\n");
+                    _updateSubtitleText(text);
+                }
             }
             else
             {
-                _updateSubtitleText(string.Empty);
+                if (CurrentSubtitleItem != null)
+                {
+                    CurrentSubtitleItem = null;
+                    _updateSubtitleText(string.Empty);
+                }
             }
+        }
+
+        private void GCurrentSubtitle(object sender, EventArgs e)
+        {
+
         }
 
         public void Dispose()
