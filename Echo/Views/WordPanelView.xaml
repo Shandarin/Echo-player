@@ -28,12 +28,39 @@
                          FontWeight="Bold"
                          VerticalAlignment="Center"/>
 
-                <Button Grid.Column="1"
-                        Command="{Binding ToggleFavoriteCommand}"
-                      >
-                    <TextBlock Text="★"
-                             FontSize="20"
-                            Height="24"/>
+                <Button Grid.Column="1" BorderThickness="0"
+                    Command="{Binding ToggleFavoriteCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="0" Opacity="0"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Image Source="{Binding FavoriteIcon}" Width="28"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <!-- 鼠标悬浮触发器 -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="Gray" Opacity="0.5"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Background" Value="#FFECECEC"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                 </Button>
             </Grid>
 

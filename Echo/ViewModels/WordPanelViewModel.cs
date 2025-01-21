@@ -58,12 +58,17 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private WordModel currentWordModel = new();
 
+        [ObservableProperty]
+        private string _favoriteIcon;
+
         MainWindowViewModel MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
 
         public WordPanelViewModel(OxfordDictService oxfordService, DatabaseService databaseService)
         {
             _oxfordService = oxfordService;
             _databaseService = databaseService;
+
+            FavoriteIcon = "/Assets/images/collect.png";
         }
 
         public void UpdateFromWordModel(WordModel model)
@@ -78,6 +83,9 @@ namespace Echo.ViewModels
         [RelayCommand]
         private async Task ToggleFavoriteAsync()
         {
+            isFavorite = !isFavorite;
+            FavoriteIcon = isFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
+
             if (string.IsNullOrWhiteSpace(CurrentWordModel.Word))
             {
                 MessageBox.Show("No word selected to toggle favorite status.");
@@ -178,7 +186,6 @@ namespace Echo.ViewModels
                     }
                 }
 
-                
 
                 CurrentWordModel = wordModel;
 
@@ -189,6 +196,8 @@ namespace Echo.ViewModels
                 Debug.WriteLine(jsonOut.ToString(Formatting.Indented));
 
                 IsVisible = true;
+
+                CheckWord();
             }
             catch (Exception ex)
             {
@@ -210,6 +219,20 @@ namespace Echo.ViewModels
             //CurrentWordModel.LanguageCode = MainWindowVM.SourceLanguage;
             //CurrentWordModel.SourceStartTime = MainWindowVM.CurrentSubtitle.StartTime;
             //CurrentWordModel.SourceEndTime = MainWindowVM.CurrentSubtitle.EndTime;
+        }
+
+        private async Task CheckWord()
+        {
+            if (await _databaseService.WordExistsAsync(CurrentWordModel))
+            {
+                isFavorite = true;
+                FavoriteIcon = "/Assets/images/collect-active.png";
+            }
+            else
+            {
+                isFavorite = false;
+                FavoriteIcon = "/Assets/images/collect.png";
+            }
         }
 
         [RelayCommand]

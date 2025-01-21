@@ -16,6 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Assets\images\collect-active.png" />
+    <None Remove="Assets\images\collect.png" />
     <None Remove="Config.json" />
   </ItemGroup>
 
@@ -45,6 +47,13 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Language.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\images\collect-active.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\images\collect.png" />
   </ItemGroup>
 
 </Project>

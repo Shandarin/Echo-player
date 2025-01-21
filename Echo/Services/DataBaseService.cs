@@ -430,7 +430,6 @@ namespace Echo.Services
 
         }
 
-
         private async Task<int> InsertOrUpdateWordAsync(SQLiteConnection connection, WordModel word)
         {
             var command = new SQLiteCommand(@"
@@ -599,6 +598,28 @@ namespace Echo.Services
 
             var result = await command.ExecuteScalarAsync();
             //return Convert.ToInt32(result);
+        }
+
+        public async Task<bool> WordExistsAsync(WordModel word)
+        {
+            var connection = GetConnection();
+            if (word == null || string.IsNullOrWhiteSpace(word.Word) || string.IsNullOrWhiteSpace(word.SourceLanguageCode))
+                throw new ArgumentException("Invalid WordModel: Word and SourceLanguageCode cannot be null or empty.");
+
+            var command = new SQLiteCommand(@"
+                SELECT EXISTS(
+                    SELECT 1 
+                    FROM Words 
+                    WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode
+                );
+                ", connection);
+
+            command.Parameters.AddWithValue("@Word", word.Word);
+            command.Parameters.AddWithValue("@SourceLanguageCode", word.SourceLanguageCode);
+
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1; // Returns true if the word exists, otherwise false
         }
 
         public void Dispose()
