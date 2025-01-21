@@ -4,7 +4,8 @@ namespace Echo.Models
     public class WordModel
     {
         public string Word { get; set; }//or phrase
-        public string LanguageCode { get; set; }
+        public string SourceLanguageCode { get; set; }//原语言
+        public string TargetLanguageCode { get; set; }//翻译的语言
         //public string TranslatedText { get; set; }
         public List<PronunciationModel>? Pronounciations { get; set; }
         public  Dictionary<string, string>? Definitions { get; set; }//按照词性分类的所有释义, v:def1,def2
@@ -16,6 +17,7 @@ namespace Echo.Models
         public Dictionary<string, string>? Phrases { get; set; }//短语+翻译
         public bool IsFavorite { get; set; }
         public bool IsSuccess { get; set; }//是否成功获取到数据
+        public string SourceFilePath { get; set; }
         public string SourceFileName { get; set; }
         public long SourceStartTime { get; set; }
         public long SourceEndTime { get; set; }

@@ -52,8 +52,7 @@ namespace Echo.Services
                 wordModel = new WordModel
                 {
                     Word = headword,
-                    LanguageCode = "sourceLang",
-
+                    
                     // Inflections
                     Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["inflections"]
                         ?.Select(inflection =>
@@ -124,8 +123,9 @@ namespace Echo.Services
 
                 // Create WordModel instance
                 //var wordModel = new WordModel
-               
 
+                wordModel.SourceLanguageCode = sourceLang;
+                wordModel.TargetLanguageCode = targetLang;
                     //Word = headword,
                     wordModel.Pronounciations = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["pronunciations"]
                     ?.Select(pronunciation =>

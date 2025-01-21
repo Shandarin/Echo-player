@@ -9,6 +9,7 @@ using SubtitlesParser.Classes;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using System.Windows;
 
@@ -203,8 +204,9 @@ namespace Echo.ViewModels
 
         private void AddInfo()
         {
-            CurrentWordModel.SourceFileName = MainWindowVM.VideoFilePath;
-            CurrentWordModel.LanguageCode = "en";
+            CurrentWordModel.SourceFilePath = MainWindowVM.VideoFilePath; 
+            CurrentWordModel.SourceFileName = Path.GetFileName(MainWindowVM.VideoFilePath);
+            //CurrentWordModel.LanguageCode = "en";
             //CurrentWordModel.LanguageCode = MainWindowVM.SourceLanguage;
             //CurrentWordModel.SourceStartTime = MainWindowVM.CurrentSubtitle.StartTime;
             //CurrentWordModel.SourceEndTime = MainWindowVM.CurrentSubtitle.EndTime;
