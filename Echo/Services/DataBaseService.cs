@@ -290,21 +290,20 @@ namespace Echo.Services
 
         private SQLiteConnection GetConnection()
         {
-            if (_connection == null || _connection.State != System.Data.ConnectionState.Open)
-            {
-                _connection = new SQLiteConnection(_connectionString);
-                _connection.Open();
-            }
-            return _connection;
+
+            var connection = new SQLiteConnection(_connectionString);
+             connection.Open();
+
+            return connection;
         }
 
-        public async Task SaveOrUpdateWordAsync(WordModel word)
+        public async Task<int> SaveOrUpdateWordAsync(WordModel word)
         {
             if (word == null || string.IsNullOrWhiteSpace(word.Word))
             //throw new ArgumentException("Invalid word model provided.");
             {
                 MessageBox.Show("Invalid word");
-                return;
+                return 0;
             }
             try
             {
@@ -320,7 +319,7 @@ namespace Echo.Services
                 // 保存或更新 SourceWordSentenceLink 表
                 await InsertOrUpdateSourceWordSentenceLink(connection, wordId, sourceId);
 
-                Debug.WriteLine($"wordId:{wordId}");
+                //Debug.WriteLine($"wordId:{wordId}");
                 // 保存或更新 Definitions 表
                 if (word.Definitions != null && word.Definitions.Any())
                 {
@@ -340,16 +339,17 @@ namespace Echo.Services
                 //    await InsertOrUpdateExamplesAsync(connection, wordId, word.Senses);
                 //}
 
-                // 保存或更新 WordSentenceCollectionLink 表
-                var collectionId = await GetOrCreateCollectionIdAsync(connection, word);
-                InsertOrUpdateWordSentenceCollectionLinkAsync(connection, collectionId, wordId);
+                //// 保存或更新 WordSentenceCollectionLink 表
+                //var collectionId = await GetOrCreateCollectionIdAsync(connection, word);
+                //InsertOrUpdateWordSentenceCollectionLinkAsync(connection, collectionId, wordId);
 
 
                 transaction.Commit();
+                return wordId;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error saving word: {ex.Message}");
+                MessageBox.Show($"Error saving word: {ex.Message}");
                 throw;
             }
         }
@@ -541,9 +541,9 @@ namespace Echo.Services
         //    }
         //}
 
-        private async Task<int> GetOrCreateCollectionIdAsync(SQLiteConnection connection, WordModel word)
+        private async Task<int> GetOrCreateCollectionIdAsync(SQLiteConnection connection, string collectionName)
         {
-            if (string.IsNullOrWhiteSpace(word.SourceFileName))
+            if (string.IsNullOrWhiteSpace(collectionName))
                 throw new ArgumentException("SourceFileName cannot be null or empty.");
 
             // 查询是否存在相同的 Name
@@ -551,7 +551,7 @@ namespace Echo.Services
                 SELECT Id FROM Collections WHERE SourceFileName = @SourceFileName;
                  ", connection);
 
-            selectCommand.Parameters.AddWithValue("@SourceFileName", word.SourceFileName);
+            selectCommand.Parameters.AddWithValue("@SourceFileName", collectionName);
 
             var result = await selectCommand.ExecuteScalarAsync();
 
@@ -566,8 +566,8 @@ namespace Echo.Services
                 INSERT INTO Collections (Name,SourceFileName)
                 VALUES (@Name, @SourceFileName);
                 ", connection);
-            insertCommand.Parameters.AddWithValue("@Name", word.SourceFileName);
-            insertCommand.Parameters.AddWithValue("@SourceFileName", word.SourceFileName);
+            insertCommand.Parameters.AddWithValue("@Name", collectionName);
+            insertCommand.Parameters.AddWithValue("@SourceFileName", collectionName);
             await insertCommand.ExecuteNonQueryAsync();
 
             // 再次查询并返回新插入行的 Id
@@ -575,7 +575,7 @@ namespace Echo.Services
                 SELECT Id FROM Collections WHERE Name = @SourceFileName;
                 ", connection);
 
-            fetchCommand.Parameters.AddWithValue("@SourceFileName", word.SourceFileName);
+            fetchCommand.Parameters.AddWithValue("@SourceFileName", collectionName);
             result = await fetchCommand.ExecuteScalarAsync();
 
             if (result != null && int.TryParse(result.ToString(), out collectionId))
@@ -600,15 +600,17 @@ namespace Echo.Services
             //return Convert.ToInt32(result);
         }
 
-        public async Task<bool> WordExistsAsync(WordModel word)
+        public async Task<int> WordExistsAsync(SQLiteConnection connection,WordModel word)
         {
-            var connection = GetConnection();
+            
             if (word == null || string.IsNullOrWhiteSpace(word.Word) || string.IsNullOrWhiteSpace(word.SourceLanguageCode))
                 throw new ArgumentException("Invalid WordModel: Word and SourceLanguageCode cannot be null or empty.");
 
+            //var connection = GetConnection();
+
             var command = new SQLiteCommand(@"
                 SELECT EXISTS(
-                    SELECT 1 
+                    SELECT Id 
                     FROM Words 
                     WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode
                 );
@@ -619,8 +621,160 @@ namespace Echo.Services
 
             var result = await command.ExecuteScalarAsync();
 
-            return Convert.ToInt32(result) == 1; // Returns true if the word exists, otherwise false
+            return Convert.ToInt32(result); // Returns true if the word exists, otherwise false
         }
+
+        public async Task<int> CheckAndSaveAsync(WordModel word)
+        {
+
+            using var connection = GetConnection();
+
+            var wordIdResult = await WordExistsAsync(connection,word);
+            
+            int wordId ;
+            if ( wordIdResult == 0) // Word does not exist, call the storage function
+            {
+                // Call the storage function (implementation not shown here)
+                wordId = await SaveOrUpdateWordAsync(word); // stores the word and returns its Id
+            }
+            else
+            {
+                wordId = Convert.ToInt32(wordIdResult);
+            }
+            MessageBox.Show($"wordId:{wordId}");
+
+            return wordId;
+
+            //// Step 2: Check if the WordId exists in the WordSentenceCollectionLink table
+            //var checkLinkCommand = new SQLiteCommand(@"
+            //    SELECT EXISTS(
+            //        SELECT 1
+            //        FROM WordSentenceCollectionLink
+            //        WHERE WordId = @WordId
+            //    );
+            //    ", connection);
+
+            //checkLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+
+            //var linkExistsResult = await checkLinkCommand.ExecuteScalarAsync();
+
+            //return Convert.ToInt32(linkExistsResult) == 1; // Returns true if the WordId exists in the link table
+        }
+
+        public async Task<bool> CheckCollectionLinkExistAsync(WordModel word)
+        {
+            
+            if (word == null || string.IsNullOrWhiteSpace(word.Word) || string.IsNullOrWhiteSpace(word.SourceLanguageCode) )
+                throw new ArgumentException("Invalid input: Word, SourceLanguageCode, and CollectionName cannot be null or empty.");
+
+            using var connection = GetConnection();
+
+            try
+            {
+                // Step 1: Check if the word exists in the Words table
+                var selectWordCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Words 
+                    WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode;
+                ", connection);
+
+                selectWordCommand.Parameters.AddWithValue("@Word", word.Word);
+                selectWordCommand.Parameters.AddWithValue("@SourceLanguageCode", word.SourceLanguageCode);
+
+                var wordIdResult = await selectWordCommand.ExecuteScalarAsync();
+                MessageBox.Show(Convert.ToString(wordIdResult));
+                if (wordIdResult == null)
+                {
+                    // Word does not exist, so it cannot be linked to the collection
+                    return false;
+                }
+
+                int wordId = Convert.ToInt32(wordIdResult);
+
+                // Step 3: Check if the link exists in the WordSentenceCollectionLink table
+                var selectLinkCommand = new SQLiteCommand(@"
+                    SELECT EXISTS(
+                        SELECT 1 
+                        FROM WordSentenceCollectionLink 
+                        WHERE WordId = @WordId
+                    );
+                ", connection);
+
+                selectLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+
+                var linkExistsResult = await selectLinkCommand.ExecuteScalarAsync();
+
+                //Debug.WriteLine($"Convert.ToInt32(linkExistsResult):{linkExistsResult}");
+                return Convert.ToInt32(linkExistsResult) == 1; // Returns true if the link exists
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error checking collection link: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task CollectionLinkAsync(WordModel word, string collectionName)
+        {
+            if (word == null)
+                throw new ArgumentException("Word, SourceLanguageCode, and CollectionName cannot be null or empty.");
+
+            var connection = GetConnection();
+
+            var wordId = await CheckAndSaveAsync(word);
+
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                //  Check if the collection exists, otherwise create it
+                var collectionId = await GetOrCreateCollectionIdAsync(connection, collectionName);
+
+                //  Check if the Word and Collection link already exists
+                var selectLinkCommand = new SQLiteCommand(@"
+                SELECT EXISTS(
+                    SELECT 1 
+                    FROM WordSentenceCollectionLink 
+                    WHERE WordId = @WordId AND CollectionId = @CollectionId
+                );
+            ", connection);
+                selectLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+                selectLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                var linkExists = Convert.ToInt32(await selectLinkCommand.ExecuteScalarAsync()) == 1;
+
+                if (!linkExists)
+                {
+                    // Step 4: Insert the link into WordSentenceCollectionLink
+                    var insertLinkCommand = new SQLiteCommand(@"
+                INSERT INTO WordSentenceCollectionLink (WordId, CollectionId) 
+                VALUES (@WordId, @CollectionId);
+            ", connection);
+                    insertLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+                    insertLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                    await insertLinkCommand.ExecuteNonQueryAsync();
+                }
+
+                // Commit the transaction
+                transaction.Commit();
+
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception("Error while saving to collection: " + ex.Message, ex);
+            }
+            finally
+            {
+                connection.Dispose();
+            }
+        }
+
+        //MoveOutFromCollection()
+        //{
+        //    //移出收藏夹
+        //}
 
         public void Dispose()
         {

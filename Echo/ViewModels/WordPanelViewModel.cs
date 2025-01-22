@@ -35,7 +35,7 @@ namespace Echo.ViewModels
         private string _headwordOP;
 
         [ObservableProperty]
-        private bool isFavorite;
+        private bool _isFavorite;
 
         [ObservableProperty]
         private string _currentWord;
@@ -68,7 +68,9 @@ namespace Echo.ViewModels
             _oxfordService = oxfordService;
             _databaseService = databaseService;
 
-            FavoriteIcon = "/Assets/images/collect.png";
+            FavoriteIcon = "/Assets/images/collect.png";//要有预设值否则会出错
+            //_ = CheckIfCollected();
+            //Debug.WriteLine($"IsFavorite: {IsFavorite}");
         }
 
         public void UpdateFromWordModel(WordModel model)
@@ -83,8 +85,8 @@ namespace Echo.ViewModels
         [RelayCommand]
         private async Task ToggleFavoriteAsync()
         {
-            isFavorite = !isFavorite;
-            FavoriteIcon = isFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
+            IsFavorite = !IsFavorite;
+            FavoriteIcon = IsFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
 
             if (string.IsNullOrWhiteSpace(CurrentWordModel.Word))
             {
@@ -92,15 +94,15 @@ namespace Echo.ViewModels
                 return;
             }
 
-            AddInfo();
+            //AddInfo();
 
             try
             {
                 // Toggle favorite status
-                CurrentWordModel.IsFavorite = !CurrentWordModel.IsFavorite;
+                //CurrentWordModel.IsFavorite = !CurrentWordModel.IsFavorite;
 
                 // Save to database
-                await _databaseService.SaveOrUpdateWordAsync(CurrentWordModel);
+                await _databaseService.CollectionLinkAsync(CurrentWordModel, CurrentWordModel.SourceFileName);
 
                 //MainWindowVM.MediaPlayer.Show();
 
@@ -123,6 +125,7 @@ namespace Echo.ViewModels
         [RelayCommand]
         private async Task TranslateWordAsync(string word)
         {
+            
             try
             {
                 var subtitleItem = MainWindowVM.CurrentSubtitleItem;//先获取当前字幕时间，以免延迟导致时间不准确
@@ -159,6 +162,8 @@ namespace Echo.ViewModels
                 });
 
                 HeadwordOP = wordModel.Word;
+
+                await CheckIfCollected(wordModel);
 
                 //Translation = wordModel.Translation;
 
@@ -197,7 +202,8 @@ namespace Echo.ViewModels
 
                 IsVisible = true;
 
-                CheckWord();
+                AddInfo();
+                await _databaseService.CheckAndSaveAsync(CurrentWordModel);
             }
             catch (Exception ex)
             {
@@ -221,16 +227,17 @@ namespace Echo.ViewModels
             //CurrentWordModel.SourceEndTime = MainWindowVM.CurrentSubtitle.EndTime;
         }
 
-        private async Task CheckWord()
+
+        private async Task CheckIfCollected(WordModel wordM)
         {
-            if (await _databaseService.WordExistsAsync(CurrentWordModel))
+            if (await _databaseService.CheckCollectionLinkExistAsync(wordM))
             {
-                isFavorite = true;
+                IsFavorite = true;
                 FavoriteIcon = "/Assets/images/collect-active.png";
             }
             else
             {
-                isFavorite = false;
+                IsFavorite = false;
                 FavoriteIcon = "/Assets/images/collect.png";
             }
         }
