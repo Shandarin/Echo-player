@@ -108,8 +108,7 @@ namespace Echo.Services
                         IsDeleted       BOOLEAN DEFAULT 0,
                         CreateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
                         UpdateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY(WordId) REFERENCES Words(Id),
-                        UNIQUE(WordId, Definition)
+                        FOREIGN KEY(WordId) REFERENCES Words(Id)
                     );
 
                     CREATE TABLE IF NOT EXISTS Phonetics (
@@ -121,8 +120,7 @@ namespace Echo.Services
                         IsDeleted       BOOLEAN DEFAULT 0,
                         CreateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
                         UpdateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY(WordId) REFERENCES Words(Id),
-                        UNIQUE(WordId, Phonetic)
+                        FOREIGN KEY(WordId) REFERENCES Words(Id)
                     );
 
                     CREATE TABLE IF NOT EXISTS Examples (
@@ -315,6 +313,7 @@ namespace Echo.Services
 
                 // 保存或更新 Words 表
                 var wordId = await InsertOrUpdateWordAsync(connection, word);
+                //MessageBox.Show($"wordId:{wordId}");
 
                 // 保存或更新 SourceWordSentenceLink 表
                 await InsertOrUpdateSourceWordSentenceLink(connection, wordId, sourceId);
@@ -600,20 +599,15 @@ namespace Echo.Services
             //return Convert.ToInt32(result);
         }
 
-        public async Task<int> WordExistsAsync(SQLiteConnection connection,WordModel word)
+        public async Task<int> WordExistsAsync(SQLiteConnection connection, WordModel word)
         {
-            
             if (word == null || string.IsNullOrWhiteSpace(word.Word) || string.IsNullOrWhiteSpace(word.SourceLanguageCode))
                 throw new ArgumentException("Invalid WordModel: Word and SourceLanguageCode cannot be null or empty.");
 
-            //var connection = GetConnection();
-
             var command = new SQLiteCommand(@"
-                SELECT EXISTS(
-                    SELECT Id 
-                    FROM Words 
-                    WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode
-                );
+                    SELECT Id
+                    FROM Words
+                    WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode;
                 ", connection);
 
             command.Parameters.AddWithValue("@Word", word.Word);
@@ -621,7 +615,7 @@ namespace Echo.Services
 
             var result = await command.ExecuteScalarAsync();
 
-            return Convert.ToInt32(result); // Returns true if the word exists, otherwise false
+            return result != null ? Convert.ToInt32(result) : 0; // Return Id if exists, 0 if not
         }
 
         public async Task<int> CheckAndSaveAsync(WordModel word)
@@ -641,7 +635,7 @@ namespace Echo.Services
             {
                 wordId = Convert.ToInt32(wordIdResult);
             }
-            MessageBox.Show($"wordId:{wordId}");
+            //MessageBox.Show($"wordId:{wordId}");
 
             return wordId;
 
@@ -682,7 +676,7 @@ namespace Echo.Services
                 selectWordCommand.Parameters.AddWithValue("@SourceLanguageCode", word.SourceLanguageCode);
 
                 var wordIdResult = await selectWordCommand.ExecuteScalarAsync();
-                MessageBox.Show(Convert.ToString(wordIdResult));
+                //MessageBox.Show(Convert.ToString(wordIdResult));
                 if (wordIdResult == null)
                 {
                     // Word does not exist, so it cannot be linked to the collection
@@ -771,10 +765,69 @@ namespace Echo.Services
             }
         }
 
-        //MoveOutFromCollection()
-        //{
-        //    //移出收藏夹
-        //}
+        public async Task RemoveCollectionLinkAsync(WordModel word, string collectionName)
+        {
+            if (word == null || string.IsNullOrWhiteSpace(word.Word) || string.IsNullOrWhiteSpace(word.SourceLanguageCode) || string.IsNullOrWhiteSpace(collectionName))
+                throw new ArgumentException("Invalid input: Word, SourceLanguageCode, and CollectionName cannot be null or empty.");
+
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // Step 1: Check if the word exists in the Words table
+
+
+                var wordIdResult = await WordExistsAsync(connection,word);
+                
+                if (wordIdResult == 0)
+                {
+                    // Word does not exist, so it cannot have any links
+                    return;
+                }
+
+                int wordId = Convert.ToInt32(wordIdResult);
+                //MessageBox.Show($"wordId {wordId}");
+                // Step 2: Check if the collection exists in the Collections table
+                var selectCollectionCommand = new SQLiteCommand(@"
+                        SELECT Id 
+                        FROM Collections 
+                        WHERE Name = @CollectionName;
+                    ", connection);
+
+                selectCollectionCommand.Parameters.AddWithValue("@CollectionName", collectionName);
+
+                var collectionIdResult = await selectCollectionCommand.ExecuteScalarAsync();
+
+                if (collectionIdResult == null)
+                {
+                    // Collection does not exist, so the link cannot exist
+                    return;
+                }
+
+                int collectionId = Convert.ToInt32(collectionIdResult);
+
+                // Step 3: Delete the link from the WordSentenceCollectionLink table
+                var deleteLinkCommand = new SQLiteCommand(@"
+            DELETE FROM WordSentenceCollectionLink 
+            WHERE WordId = @WordId AND CollectionId = @CollectionId;
+        ", connection);
+
+                deleteLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+                deleteLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                int rowsAffected = await deleteLinkCommand.ExecuteNonQueryAsync();
+
+                // Commit the transaction
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                Console.WriteLine($"Error removing word from collection: {ex.Message}");
+                throw;
+            }
+        }
 
         public void Dispose()
         {

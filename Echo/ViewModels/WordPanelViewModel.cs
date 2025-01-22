@@ -85,8 +85,6 @@ namespace Echo.ViewModels
         [RelayCommand]
         private async Task ToggleFavoriteAsync()
         {
-            IsFavorite = !IsFavorite;
-            FavoriteIcon = IsFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
 
             if (string.IsNullOrWhiteSpace(CurrentWordModel.Word))
             {
@@ -94,19 +92,23 @@ namespace Echo.ViewModels
                 return;
             }
 
-            //AddInfo();
-
             try
             {
+                IsFavorite = !IsFavorite;
+                FavoriteIcon = IsFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
                 // Toggle favorite status
                 //CurrentWordModel.IsFavorite = !CurrentWordModel.IsFavorite;
 
                 // Save to database
-                await _databaseService.CollectionLinkAsync(CurrentWordModel, CurrentWordModel.SourceFileName);
-
-                //MainWindowVM.MediaPlayer.Show();
-
-                //MessageBox.Show($"Word '{CurrentWordModel.Word}' has been {(CurrentWordModel.IsFavorite ? "added to" : "removed from")} favorites.");
+                if (IsFavorite)
+                {
+                    await _databaseService.CollectionLinkAsync(CurrentWordModel, CurrentWordModel.SourceFileName);
+                }
+                else
+                {
+                    await _databaseService.RemoveCollectionLinkAsync(CurrentWordModel, CurrentWordModel.SourceFileName);
+                }
+                Debug.WriteLine($"CurrentWordModel.Word {CurrentWordModel.Word}");
 
             }
             catch (Exception ex)
@@ -191,14 +193,10 @@ namespace Echo.ViewModels
                     }
                 }
 
-
                 CurrentWordModel = wordModel;
 
                 CurrentWordModel.SourceStartTime = subtitleItem.StartTime;
                 CurrentWordModel.SourceEndTime = subtitleItem.EndTime;
-
-                JObject jsonOut = JObject.FromObject(CurrentWordModel);
-                Debug.WriteLine(jsonOut.ToString(Formatting.Indented));
 
                 IsVisible = true;
 
@@ -207,8 +205,7 @@ namespace Echo.ViewModels
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("NO");
-                ErrorMessage = ex.Message;
+                MessageBox.Show(ex.Message);
             }
             finally
             {
