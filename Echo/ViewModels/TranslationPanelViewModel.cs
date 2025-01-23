@@ -41,11 +41,15 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private bool isAutoSaveWord;
 
+        MainWindowViewModel MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
+
         public TranslationPanelViewModel(OxfordDictService oxfordService,
             DatabaseService databaseService)
         {
             _oxfordService = oxfordService;
             _databaseService = databaseService;
+
+            
         }
 
         [RelayCommand]
@@ -57,8 +61,11 @@ namespace Echo.ViewModels
                 ErrorMessage = null;
                 CurrentWord = word;
 
+                var sourceLang = MainWindowVM.LearningLanguage;
+                var targetLang = MainWindowVM.YourLanguage;
+
                 // First API call to get head word and other details
-                var (headword, details) = await _oxfordService.GetWordDetailsAsync(word);
+                var (headword, details) = await _oxfordService.GetWordDetailsAsync(word, sourceLang);
                 if (string.IsNullOrEmpty(headword))
                 {
                     ErrorMessage = "Word not found";
@@ -67,7 +74,7 @@ namespace Echo.ViewModels
                 _wordDetails = details;
 
                 // Second API call to get translations
-                var wordModel = await _oxfordService.GetTranslationsAsync(headword);
+                var wordModel = await _oxfordService.GetTranslationsAsync(headword,sourceLang,targetLang);
                 if (wordModel?.Definitions == null || !wordModel.Definitions.Any())
                 {
                     ErrorMessage = "Translation not found";

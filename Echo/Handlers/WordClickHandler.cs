@@ -45,6 +45,7 @@ namespace Echo.Handlers
 
         private static string TrimAllCharacters(string word)
         {
+            word = word.ToLower();
             //移除尾部所有符号空格数字
             return Regex.Replace(word, @"[\p{N}\p{P}\p{S}\s]+$", string.Empty);
         }

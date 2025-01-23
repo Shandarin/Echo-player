@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 
 namespace Echo.Services
@@ -89,6 +90,7 @@ namespace Echo.Services
                         SourceId        INTEGER DEFAULT 0,
                         SourceLanguageCode    TEXT NOT NULL,
                         TargetLanguageCode    TEXT NOT NULL,
+                        Infections      TEXT,
                         Status          INTEGER DEFAULT 0,
                         IsDeleted       BOOLEAN DEFAULT 0,
                         CreateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -332,22 +334,13 @@ namespace Echo.Services
                     await InsertOrUpdatePhoneticsAsync(connection, wordId, word.Pronounciations);
                 }
 
-                //// 保存或更新 Examples 表//放在Definitions中更新
-                //if (word.Senses != null && word.Senses.Any())
-                //{
-                //    await InsertOrUpdateExamplesAsync(connection, wordId, word.Senses);
-                //}
-
-                //// 保存或更新 WordSentenceCollectionLink 表
-                //var collectionId = await GetOrCreateCollectionIdAsync(connection, word);
-                //InsertOrUpdateWordSentenceCollectionLinkAsync(connection, collectionId, wordId);
-
 
                 transaction.Commit();
                 return wordId;
             }
             catch (Exception ex)
             {
+
                 MessageBox.Show($"Error saving word: {ex.Message}");
                 throw;
             }
@@ -391,7 +384,7 @@ namespace Echo.Services
         {
             foreach (var sense in word.Senses)
             {
-                //Debug.WriteLine($"sense.Definition:{sense.Definition}");
+                Debug.WriteLine($"sense.Definition:{sense.Definition}");
 
                 var command = new SQLiteCommand(@"
                 INSERT INTO Definitions (WordId, Definition,ExplanationLanguageCode, PartOfSpeech)
@@ -411,6 +404,8 @@ namespace Echo.Services
             }
             foreach (var sense in word.OriginalSenses)
             {
+
+                Debug.WriteLine($"sense.OriginalSenses:{sense.Definition}");
                 var command = new SQLiteCommand(@"
                 INSERT INTO Definitions (WordId, Definition,ExplanationLanguageCode, PartOfSpeech)
                 VALUES (@WordId, @Definition,@ExplanationLanguageCode, @PartOfSpeech);
@@ -445,26 +440,6 @@ namespace Echo.Services
             //Debug.WriteLine($"Convert.ToInt32(result):{Convert.ToInt32(result)}");
             return Convert.ToInt32(result); // 返回 WordId
         }
-
-        //private async Task InsertOrUpdateDefinitionsAsync(
-        //    SQLiteConnection connection,
-        //    int wordId,
-        //    Dictionary<string, string> definitions)
-        //{
-        //    foreach (var definition in definitions)
-        //    {
-        //        var command = new SQLiteCommand(@"
-        //    INSERT INTO Definitions (WordId, Definition, PartOfSpeech)
-        //    VALUES (@WordId, @Definition, @PartOfSpeech)
-        //", connection);
-
-        //        command.Parameters.AddWithValue("@WordId", wordId);
-        //        command.Parameters.AddWithValue("@Definition", definition.Value);
-        //        command.Parameters.AddWithValue("@PartOfSpeech", definition.Key);
-
-        //        await command.ExecuteNonQueryAsync();
-        //    }
-        //}
 
         private async Task InsertOrUpdatePhoneticsAsync(
             SQLiteConnection connection,
@@ -512,33 +487,6 @@ namespace Echo.Services
                 }
             
         }
-
-        //private async Task InsertOrUpdateExamplesAsync(
-        //    SQLiteConnection connection,
-        //    int wordId,
-        //    List<SenseModel> senses)
-        //{
-        //    foreach (var sense in senses)
-        //    {
-        //        if (sense.Examples == null || !sense.Examples.Any())
-        //        {
-        //            continue; // 跳过没有例句的 sense
-        //        }
-        //        foreach (var example in sense.Examples)
-        //        {
-        //            var command = new SQLiteCommand(@"
-        //        INSERT INTO Examples (WordId, ExampleText, Translation, CreateTime, UpdateTime)
-        //        VALUES (@WordId, @ExampleText, @Translation, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        //    ", connection);
-
-        //            command.Parameters.AddWithValue("@WordId", wordId);
-        //            command.Parameters.AddWithValue("@ExampleText", example.Key);
-        //            command.Parameters.AddWithValue("@Translation", example.Value);
-
-        //            await command.ExecuteNonQueryAsync();
-        //        }
-        //    }
-        //}
 
         private async Task<int> GetOrCreateCollectionIdAsync(SQLiteConnection connection, string collectionName)
         {
@@ -599,6 +547,116 @@ namespace Echo.Services
             //return Convert.ToInt32(result);
         }
 
+        public async Task<WordModel?> GetWordFromLocalAsync(
+            string wordString,
+            string sourceLang,
+            string targetLang)
+        {
+            if (string.IsNullOrWhiteSpace(wordString) || string.IsNullOrWhiteSpace(sourceLang) || string.IsNullOrWhiteSpace(targetLang))
+                throw new ArgumentException("Word, SourceLanguageCode, and TargetLanguageCode cannot be null or empty.");
+
+            using var connection = GetConnection();
+
+            var wordModel = new WordModel
+            {
+                Word = wordString,
+                SourceLanguageCode = sourceLang,
+                TargetLanguageCode = targetLang,
+                Pronounciations = new List<PronunciationModel>(),
+                Definitions = new Dictionary<string, string>()
+            };
+
+            try
+            {
+                // Step 1: Query Words table to get WordId
+                var wordCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Words 
+                    WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode;
+                ", connection);
+
+                wordCommand.Parameters.AddWithValue("@Word", wordString);
+                wordCommand.Parameters.AddWithValue("@SourceLanguageCode", sourceLang);
+
+                var wordIdResult = await wordCommand.ExecuteScalarAsync();
+                
+
+                if (wordIdResult == null)
+                {
+                    return null; // Word not found
+                }
+
+                int wordId = Convert.ToInt32(wordIdResult);
+
+                // Step 2: Query Phonetics table for Pronunciations
+                var phoneticCommand = new SQLiteCommand(@"
+                    SELECT Phonetic, Accent, AudioFilePath 
+                    FROM Phonetics 
+                    WHERE WordId = @WordId AND IsDeleted = 0;
+                ", connection);
+
+                phoneticCommand.Parameters.AddWithValue("@WordId", wordId);
+
+                using (var reader = await phoneticCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        wordModel.Pronounciations.Add(new PronunciationModel
+                        {
+                            PhoneticSpelling = reader.GetString(reader.GetOrdinal("Phonetic")),
+                            Dialect = reader["Accent"]?.ToString(),
+                            AudioFile = reader["AudioFilePath"]?.ToString()
+                            
+                        });
+                    }
+                }
+
+                // Step 3: Query Definitions table for Definitions
+                var definitionCommand = new SQLiteCommand(@"
+                    SELECT Definition, PartOfSpeech 
+                    FROM Definitions 
+                    WHERE WordId = @WordId AND ExplanationLanguageCode = @TargetLanguageCode AND IsDeleted = 0;
+                ", connection);
+
+                definitionCommand.Parameters.AddWithValue("@WordId", wordId);
+                definitionCommand.Parameters.AddWithValue("@TargetLanguageCode", targetLang);
+
+                using (var reader = await definitionCommand.ExecuteReaderAsync())
+                {
+                    var definitionsByCategory = new Dictionary<string, List<string>>();
+
+                    while (await reader.ReadAsync())
+                    {
+                        var partOfSpeech = reader["PartOfSpeech"]?.ToString();
+                        var definition = reader["Definition"]?.ToString();
+
+                        if (!string.IsNullOrWhiteSpace(partOfSpeech) && !string.IsNullOrWhiteSpace(definition))
+                        {
+                            if (!definitionsByCategory.ContainsKey(partOfSpeech))
+                            {
+                                definitionsByCategory[partOfSpeech] = new List<string>();
+                            }
+
+                            definitionsByCategory[partOfSpeech].Add(definition);
+                        }
+                    }
+
+                    // Combine definitions for each part of speech into a single string
+                    foreach (var kvp in definitionsByCategory)
+                    {
+                        wordModel.Definitions[kvp.Key] = string.Join(", ", kvp.Value);
+                    }
+                }
+
+                return wordModel;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching WordModel: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<int> WordExistsAsync(SQLiteConnection connection, WordModel word)
         {
             if (word == null || string.IsNullOrWhiteSpace(word.Word) || string.IsNullOrWhiteSpace(word.SourceLanguageCode))
@@ -638,21 +696,6 @@ namespace Echo.Services
             //MessageBox.Show($"wordId:{wordId}");
 
             return wordId;
-
-            //// Step 2: Check if the WordId exists in the WordSentenceCollectionLink table
-            //var checkLinkCommand = new SQLiteCommand(@"
-            //    SELECT EXISTS(
-            //        SELECT 1
-            //        FROM WordSentenceCollectionLink
-            //        WHERE WordId = @WordId
-            //    );
-            //    ", connection);
-
-            //checkLinkCommand.Parameters.AddWithValue("@WordId", wordId);
-
-            //var linkExistsResult = await checkLinkCommand.ExecuteScalarAsync();
-
-            //return Convert.ToInt32(linkExistsResult) == 1; // Returns true if the WordId exists in the link table
         }
 
         public async Task<bool> CheckCollectionLinkExistAsync(WordModel word)
@@ -827,6 +870,191 @@ namespace Echo.Services
                 Console.WriteLine($"Error removing word from collection: {ex.Message}");
                 throw;
             }
+        }
+
+        public async Task<List<CollectionModel>> GetAllCollections()
+        {
+            using var connection = GetConnection();
+            var command = new SQLiteCommand(@"
+                SELECT Id, Name
+                FROM Collections
+                WHERE IsDeleted = 0;
+            ", connection);
+            using var reader = await command.ExecuteReaderAsync();
+            var collections = new List<CollectionModel>();
+            while (await reader.ReadAsync())
+            {
+                var collection = new CollectionModel
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                    Name = reader.GetString(reader.GetOrdinal("Name"))
+                };
+                collections.Add(collection);
+            }
+            return collections;
+        }
+
+        public async Task<List<WordBasicModel>> GetAllWordsBasicAsync()
+        {
+            var words = new List<WordBasicModel>();
+
+            using var connection = GetConnection();
+            var command = new SQLiteCommand(@"
+                SELECT Id, Word
+                FROM Words
+                WHERE IsDeleted = 0
+                ORDER BY UpdateTime DESC;
+            ", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var wordModel = new WordBasicModel
+                {
+                    Word = reader["Word"]?.ToString(),
+                    // 你也可以在 WordModel 新增一个 int Id 字段，
+                    // 以便后续通过 Id 加载详情
+                    // 这里先假设 WordModel 没有 Id，就示范一下可以怎么存
+                    Id = reader.GetInt64(reader.GetOrdinal("Id"))
+                };
+                words.Add(wordModel);
+            }
+
+            return words;
+        }
+
+        public async Task<WordModel> GetWordDetailsAsync(long wordId)
+        {
+            var wordModel = new WordModel
+            {
+                Pronounciations = new List<PronunciationModel>(),
+                // 如果还需保持原先的 Definitions 字典，可留着；否则可移除
+                Definitions = new Dictionary<string, string>(),
+                Senses = new List<SenseModel>()
+            };
+
+            using var connection = GetConnection();
+
+            // Step 1: 从 Words 表中获取单词基本信息
+            var wordCommand = new SQLiteCommand(@"
+        SELECT Word, SourceLanguageCode, TargetLanguageCode, IsDeleted
+        FROM Words
+        WHERE Id = @WordId;
+    ", connection);
+
+            wordCommand.Parameters.AddWithValue("@WordId", wordId);
+
+            using var wordReader = await wordCommand.ExecuteReaderAsync();
+            if (await wordReader.ReadAsync())
+            {
+                wordModel.Word = wordReader["Word"]?.ToString();
+                wordModel.SourceLanguageCode = wordReader["SourceLanguageCode"]?.ToString();
+                wordModel.TargetLanguageCode = wordReader["TargetLanguageCode"]?.ToString();
+
+                var isDeleted = wordReader.GetBoolean(wordReader.GetOrdinal("IsDeleted"));
+                if (isDeleted)
+                {
+                    // 已标记删除，视需求处理或直接返回 null
+                }
+            }
+            else
+            {
+                // 没有找到该单词
+                return null;
+            }
+
+            // Step 2: 从 Phonetics 表中获取发音信息
+            var phoneticCommand = new SQLiteCommand(@"
+        SELECT Phonetic, Accent, AudioFilePath
+        FROM Phonetics
+        WHERE WordId = @WordId AND IsDeleted = 0;
+    ", connection);
+            phoneticCommand.Parameters.AddWithValue("@WordId", wordId);
+
+            using var phoneticReader = await phoneticCommand.ExecuteReaderAsync();
+            while (await phoneticReader.ReadAsync())
+            {
+                var pronModel = new PronunciationModel
+                {
+                    PhoneticSpelling = phoneticReader["Phonetic"]?.ToString() ?? "",
+                    Dialect = phoneticReader["Accent"]?.ToString() ?? "",
+                    AudioFile = phoneticReader["AudioFilePath"]?.ToString() ?? ""
+                };
+                wordModel.Pronounciations.Add(pronModel);
+            }
+
+            // Step 3: 从 Definitions 表中获取释义，构造 SenseModel
+            //         key: definitionId, value: SenseModel
+            // 将同语言的放一起
+            var definitionDict = new Dictionary<int, SenseModel>();
+
+            var definitionCommand = new SQLiteCommand(@"
+        SELECT Id, PartOfSpeech, Definition, ExplanationLanguageCode
+        FROM Definitions
+        WHERE WordId = @WordId AND IsDeleted = 0
+            ORDER BY 
+        CASE WHEN ExplanationLanguageCode = @SrcLang THEN 0 ELSE 1 END,
+        PartOfSpeech;
+    ", connection);
+            definitionCommand.Parameters.AddWithValue("@WordId", wordId);
+            definitionCommand.Parameters.AddWithValue("@SrcLang", wordModel.TargetLanguageCode);
+
+            using var definitionReader = await definitionCommand.ExecuteReaderAsync();
+            while (await definitionReader.ReadAsync())
+            {
+                var defId = definitionReader.GetInt32(definitionReader.GetOrdinal("Id"));
+                var category = definitionReader["PartOfSpeech"]?.ToString() ?? "Unknown";
+                var def = definitionReader["Definition"]?.ToString() ?? "";
+                var expLang = definitionReader["ExplanationLanguageCode"]?.ToString() ?? "";
+
+                //var tense = definitionReader["Tense"]?.ToString() ?? "";
+
+                var sense = new SenseModel
+                {
+                    ExplanationLanguageCode = expLang,
+                    Category = category,
+                    Definition = def,
+                    //Description = tense,
+                    Examples = new Dictionary<string, string>()
+                };
+
+                definitionDict[defId] = sense;
+                wordModel.Senses.Add(sense);
+            }
+
+            // Step 4: 从 Examples 表中获取例句，按 DefinitionId 加到对应的 SenseModel.Examples
+            var exampleCommand = new SQLiteCommand(@"
+                SELECT DefinitionId, ExampleText, Translation
+                FROM Examples
+                WHERE WordId = @WordId
+                  AND DefinitionId IS NOT NULL
+                ORDER BY Id;
+            ", connection);
+            exampleCommand.Parameters.AddWithValue("@WordId", wordId);
+
+            using var exampleReader = await exampleCommand.ExecuteReaderAsync();
+            while (await exampleReader.ReadAsync())
+            {
+                var defId = exampleReader.GetInt32(exampleReader.GetOrdinal("DefinitionId"));
+                var text = exampleReader["ExampleText"]?.ToString() ?? "";
+                var translation = exampleReader["Translation"]?.ToString() ?? "";
+
+                if (definitionDict.TryGetValue(defId, out var sense))
+                {
+                    // 添加到该Sense的 Examples 字典
+                    if (sense.Examples == null)
+                        sense.Examples = new Dictionary<string, string>();
+
+                    // Key: 例句文本, Value: 翻译
+                    sense.Examples[text] = translation;
+                }
+            }
+            string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
+            {
+                WriteIndented = true   // 缩进美化输出
+            });
+            Debug.WriteLine(json);
+            return wordModel;
         }
 
         public void Dispose()

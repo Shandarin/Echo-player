@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Echo.ViewModels"
+        xmlns:converters="clr-namespace:Echo.Converters"
         mc:Ignorable="d"
         Title="Vocabulary" 
         Height="600" Width="600"
@@ -12,6 +13,63 @@
         BorderBrush="#DDDDDD"
         BorderThickness="1"
          >
+
+    <Window.Resources>
+        <converters:IndexConverter x:Key="IndexConverter" />
+
+        <Style x:Key="NavigationButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+
+        <Style x:Key="WindowControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E81123"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FunctionButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style x:Key="ViewButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="NavigationTabControlStyle" TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style x:Key="ContentTabControlStyle" TargetType="TabControl">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -72,8 +130,8 @@
                 </Grid>
             </Border>
         </Grid>
-        
-        
+
+
 
         <!-- 功能栏 -->
         <Grid Grid.Row="1">
@@ -85,7 +143,7 @@
 
             <!-- 左侧功能按钮 -->
             <StackPanel Orientation="Horizontal" Margin="10,0" Height="25">
-                <ComboBox Width="120" ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}">
+                <ComboBox Width="120" ItemsSource="{Binding Collections}" SelectedItem="{Binding SelectedCollection}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"/>
@@ -96,7 +154,7 @@
                 <ComboBox Width="100" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilterOption}" Margin="5,0"/>
             </StackPanel>
 
-            <!-- 中间按钮组 -->
+            <!-- 中间按钮组-设置 -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="⏵" />
             </StackPanel>
@@ -111,22 +169,28 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- 左侧单词列表 -->
+            <!-- 单词列表ListView -->
             <ListView ItemsSource="{Binding Words}" 
                       SelectedItem="{Binding SelectedWord}"
                       BorderThickness="0"
                       Background="Transparent"
-                       Width="120" Margin="1,10,1,-10">
+                       Width="120" Margin="1,10,1,-10"
+                      AlternationCount="9999"
+                      >
                 <ListView.ItemTemplate>
                     <DataTemplate>
-
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3,3,3,3">
-                                <TextBlock Text="{Binding Index}" 
-                                     Foreground="#999"
-                                       Margin="0,0,6,0" Width="30"/>
-                                <TextBlock Text="{Binding Word}" 
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3,3,3,3">
+                            <TextBlock  
+                                Foreground="#999"
+                                Margin="0,0,6,0" 
+                                Width="30"
+                                Text="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, 
+                                              Path=(ItemsControl.AlternationIndex), 
+                                              Converter={StaticResource IndexConverter}}"
+                            />
+                            <TextBlock Text="{Binding Word}" 
                                          FontSize="12"/>
-                            </StackPanel>
+                        </StackPanel>
 
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -140,7 +204,8 @@
             Margin="0,10,0,10"/>
 
             <!-- 右侧单词详情 -->
-            <Grid Grid.Column="2" Margin="10">
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <Grid  Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -149,96 +214,120 @@
 
                 <!-- 单词标题区 -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="{Binding SelectedWord.Word}" 
+                    <TextBlock Text="{Binding CurrentWord.Word}" 
                              FontSize="24" 
                              FontWeight="Bold"/>
                     <Button Content="⭐" 
                             Margin="10,0"/>
                     <Button Content="✎" />
                 </StackPanel>
-                
+
 
                 <!-- 音标区 -->
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
-                        <TextBlock Text="英 /gru:p/" VerticalAlignment="Center"/>
-                        <Button Content="🔊" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="美 /gru:p/" VerticalAlignment="Center"/>
-                        <Button Content="🔊" />
-                    </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,10">
+                    <!-- 使用ItemsControl绑定多个发音 -->
+                    <ItemsControl ItemsSource="{Binding CurrentWord.Pronounciations}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="0,10,12,0">
+                                    <!-- 显示发音的方言名称 -->
+                                    <TextBlock Text="{Binding Dialect}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                    <!-- 显示音标 -->
+                                    <TextBlock Text="{Binding PhoneticSpelling, StringFormat='/{0}/'}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                    <!-- 播放音频按钮 -->
+                                    <Button Content="🔊"
+                            Command="{Binding DataContext.PlayAudioCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding AudioFile}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
 
 
 
                 <!-- 释义区 -->
-                <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,10" >
-                    <StackPanel Orientation="Vertical" Margin="0,0,20,0">
-                        <TextBlock Text="英 /gru:p/" VerticalAlignment="Center"/>
-                        
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text="美 /gru:p/" VerticalAlignment="Center"/>
-                     
-                    </StackPanel>
+                <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,10">
+                    <ItemsControl ItemsSource="{Binding CurrentWord.GroupedSenses}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical" Margin="0,0,0,15">
+
+                                    <!-- 分组头：显示语言 + 词性，只出现一次 -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                        <!--<TextBlock Text="{Binding ExplanationLanguageCode}"
+                               FontWeight="Bold"
+                               Margin="0,0,10,0"/>-->
+                                        <TextBlock Text="{Binding Category}"
+                               FontWeight="Bold" Margin="10,0,0,0" FontSize="12"/>
+                                    </StackPanel>
+
+                                    <!-- 内层 ItemsControl：显示这个分组内的多个释义 -->
+                                    <ItemsControl ItemsSource="{Binding Senses}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <!-- 每条释义显示区域 -->
+                                                <StackPanel Orientation="Vertical" Margin="20,0,0,5">
+                                                    <!-- Definition -->
+                                                        <TextBlock Text="{Binding Definition, StringFormat={}{0} ;}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,5"
+                                                               FontSize="14"/>
+
+                                                    <!-- 如果 Examples 不为空，就显示例句+翻译 -->
+                                                        <ItemsControl ItemsSource="{Binding LimitedExamples}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <!-- key:例句，value:翻译，一次显示两行 -->
+                                                                <StackPanel Orientation="Vertical" Margin="0,0,0,5">
+                                                                    <TextBlock Text="{Binding Key}"
+                                                           TextWrapping="Wrap" 
+                                                           Foreground="Gray"/>
+                                                                        <TextBlock Text="{Binding Value}"
+                                                                               TextWrapping="Wrap"
+                                                                               Foreground="Gray">
+                                                                            <TextBlock.Style>
+                                                                                <Style TargetType="TextBlock">
+                                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                                    <Style.Triggers>
+                                                                                        <!-- 如果 Value 为 null 或 空字符串，则隐藏 TextBlock -->
+                                                                                        <DataTrigger Binding="{Binding Value}" Value="">
+                                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
+                                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </TextBlock.Style>
+                                                                        </TextBlock>
+                                                                    </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+
+                                                        <!-- 给内层item一些间距(可选) -->
+                                                        <ItemsControl.ItemContainerStyle>
+                                                            <Style TargetType="ContentPresenter">
+                                                                <Setter Property="Margin" Value="0,0,0,3"/>
+                                                            </Style>
+                                                        </ItemsControl.ItemContainerStyle>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Grid>
+            </ScrollViewer>
         </Grid>
     </Grid>
-
-    <Window.Resources>
-        <Style x:Key="NavigationButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#666666"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
-
-        <Style x:Key="WindowControlButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#666666"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E81123"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="FunctionButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="30"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="Margin" Value="5,0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-
-        <Style x:Key="ViewButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="Margin" Value="5,0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-
-        <Style x:Key="IconButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="NavigationTabControlStyle" TargetType="TabControl">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-
-        <Style x:Key="ContentTabControlStyle" TargetType="TabControl">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-    </Window.Resources>
 </Window>

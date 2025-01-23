@@ -36,7 +36,7 @@ namespace Echo.Services
             //Debug.WriteLine($"OxfordDictService initialized:{config.AppId}");
         }
 
-        public async Task<(string headword, JObject details)> GetWordDetailsAsync(string word, string sourceLang = "en")
+        public async Task<(string headword, JObject details)> GetWordDetailsAsync(string word, string sourceLang )
         {
             try
             {
@@ -46,7 +46,6 @@ namespace Echo.Services
                 var url = $"{_baseUrl}/words/{sourceLang}?q={word}";
                 var response = await _httpClient.GetStringAsync(url);
                 var json = JObject.Parse(response);
-                Debug.WriteLine(json);
                 
                 var headword = json["results"]?[0]?["id"]?.ToString();
                 wordModel = new WordModel
@@ -70,7 +69,7 @@ namespace Echo.Services
                             Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
 
                             // Definition
-                            Definition = sense["definitions"]?.FirstOrDefault()?.ToString() ?? null,
+                            Definition = sense["definitions"]?.FirstOrDefault()?.ToString() ?? sense["crossReferenceMarkers"]?.FirstOrDefault()?.ToString() ?? null,
 
                             // Description
                             Description = sense["notes"]?.FirstOrDefault()?["text"]?.ToString() ?? null,
@@ -109,8 +108,8 @@ namespace Echo.Services
 
         public async Task<WordModel> GetTranslationsAsync(
             string headword,
-            string sourceLang = "en",
-            string targetLang = "zh")
+            string sourceLang,
+            string targetLang)
         {
             try
             {
@@ -157,24 +156,25 @@ namespace Echo.Services
                     })
                     .ToList()
                     ?? new List<PronunciationModel>();
-            
 
-                    wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
-                        .ToDictionary(
-                            lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
-                            lexicalEntry => string.Join("；", lexicalEntry["entries"]?
-                                .SelectMany(entry => entry["senses"]?
-                                    .Select(sense => sense["translations"]?[0]?["text"]?.ToString())
-                                    .Where(translation => !string.IsNullOrEmpty(translation)) ?? Enumerable.Empty<string>()
-                                )
-                            ) ?? string.Empty
-                        ) ?? new Dictionary<string, string>();
-                    //Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["grammaticalFeatures"]
-                    //    ?.ToDictionary(
-                    //        feature => feature["id"]?.ToString() ?? "Unknown",
-                    //        feature => feature["text"]?.ToString() ?? string.Empty
-                    //    ),
-                    wordModel.Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
+
+                wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
+                    .ToDictionary(
+                        lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
+                        lexicalEntry => string.Join("；", lexicalEntry["entries"]?
+                            .SelectMany(entry => entry["senses"]?
+                                .Select(sense => sense["translations"]?[0]?["text"]?.ToString())
+                                .Where(translation => !string.IsNullOrEmpty(translation)) ?? Enumerable.Empty<string>()
+                            )
+                        ) ?? string.Empty
+                    ) ?? wordModel.OriginalSenses
+                    .GroupBy(sense => sense.Category)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => string.Join("；", group.Select(sense => sense.Definition))
+                    );
+
+                wordModel.Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
                         ?.SelectMany(sense => sense["synonyms"]?
                             .Select(synonym => synonym["text"]?.ToString())
                             .Where(synonym => !string.IsNullOrEmpty(synonym)) ?? Enumerable.Empty<string>()

@@ -252,31 +252,38 @@
         <MenuItem Header="{x:Static resx:LangResx.Learn}" Style="{StaticResource MenuItemStyle}">
             <MenuItem Header="{x:Static resx:LangResx.Language}" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="{x:Static resx:LangResx.Your_Language}" Style="{StaticResource MenuItemStyle}">
+                    
                     <MenuItem Header="简体中文" 
-                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hans'}" 
+                              IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
-                              CommandParameter="zh-Hans" 
+                              CommandParameter="zh" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="繁体中文" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hant'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="zh-Hant" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="English" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='en'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="en" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="日本語" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ja'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="ja" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
+                    <!-- todo
                     <MenuItem Header="한국어" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ko'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="ko" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="Français" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
@@ -302,11 +309,13 @@
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="ru" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="Українська" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="uk" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="Português" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
@@ -322,31 +331,38 @@
                     <MenuItem Header="{x:Static resx:LangResx.Auto_Detect}" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='Auto'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="Auto" Style="{StaticResource MenuItemStyle}"/>
+                    
                     <MenuItem Header="简体中文" 
-                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hans'}" 
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
-                              CommandParameter="zh-Hans" 
+                              CommandParameter="zh" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="繁体中文" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh-Hant'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="zh-Hant" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="English" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='en'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="en" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="日本語" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ja'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="ja" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
+                    <!-- todo
                     <MenuItem Header="한국어" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ko'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="ko" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="Français" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
@@ -372,11 +388,13 @@
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="ru" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="Українська" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="uk" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="Português" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 

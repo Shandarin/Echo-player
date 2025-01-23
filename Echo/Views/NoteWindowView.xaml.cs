@@ -15,6 +15,11 @@ namespace Echo.Views
             _viewModel = new NoteWindowViewModel();
             DataContext = _viewModel;
 
+            Loaded += async (s, e) =>
+            {
+                await _viewModel.LoadBasicWordsAsync();
+            };
+
             // 注册窗口关闭事件
             Closing += OnWindowClosing;
         }

@@ -120,6 +120,12 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _videoFilePath;
 
+        [ObservableProperty]
+        private string _yourLanguage;
+
+        [ObservableProperty]
+        private string _learningLanguage;
+
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -145,6 +151,9 @@ namespace Echo.ViewModels
             VideoControlVM = new VideoControlViewModel(_mediaPlayer);
             MenuBarVM = new MenuBarViewModel();
 
+            _yourLanguage = MenuBarVM.SelectedYourLanguage;
+            _learningLanguage = MenuBarVM.SelectedLearningLanguage;
+
             // Subscribe to events
             MenuBarVM.OnScreenshotRequested += HandleScreenshotRequested;
             MenuBarVM.OnAspectRatioChanged += HandleAspectRatioChanged;
@@ -154,6 +163,8 @@ namespace Echo.ViewModels
             MenuBarVM.SubtitleVisibleChanged += HandleSubtitleVisibleChanged;
             MenuBarVM.OnChangeOpacity += HandleOnChangeOpacity;
             MenuBarVM.OnFontSizeChanged += HandleOnFontSizeChanged;
+            MenuBarVM.YourLanguageChanged += HandleYourLanguageChanged;
+            MenuBarVM.LearningLanguageChanged += HandleLearningLanguageChanged;
             FullscreenChanged += HandleFullscreenChanged;
 
             MediaPlayer.Playing += OnMediaPlaying;
@@ -199,6 +210,8 @@ namespace Echo.ViewModels
 
             
         }
+
+
 
         #region Callbacks 
 
@@ -361,6 +374,16 @@ namespace Echo.ViewModels
         private void HandleOnFontSizeChanged(object? sender, string size)
         {
             SubtitleFontSize = size;
+        }
+
+        private void HandleYourLanguageChanged(object? sender, string language)
+        {
+            _yourLanguage = language;
+        }
+
+        private void HandleLearningLanguageChanged(object? sender, string language)
+        {
+            _learningLanguage = language;
         }
         #endregion
 

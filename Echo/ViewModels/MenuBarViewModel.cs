@@ -29,7 +29,7 @@ namespace Echo.ViewModels
         private double subtitleOpacity = 0.5;
 
         [ObservableProperty]
-        private string currentLanguage = "zh-CN";
+        private string currentLanguage = "zh";
 
         [ObservableProperty]
         private string currentFontFamily = "Arial";
@@ -56,10 +56,10 @@ namespace Echo.ViewModels
         private string _selectedSoftwareLanguage;
 
         [ObservableProperty]
-        private string _selectedYourLanguage;
+        private string _selectedYourLanguage = "zh";
 
         [ObservableProperty]
-        private string _selectedLearningLanguage;
+        private string _selectedLearningLanguage = "en";
 
         public MenuBarViewModel() 
 
@@ -179,7 +179,7 @@ namespace Echo.ViewModels
             if (mainWindow?.DataContext is MainWindowViewModel vm)
             {
                 IsScrollSubtitleEnabled = !IsScrollSubtitleEnabled;
-                Debug.WriteLine(IsScrollSubtitleEnabled);
+                //Debug.WriteLine(IsScrollSubtitleEnabled);
                 vm.ToggleScrollingSubtitlesCommand.Execute(IsScrollSubtitleEnabled);
 
             }
@@ -206,13 +206,14 @@ namespace Echo.ViewModels
         private void ChangeYourLanguage(string lang)
         {
             SelectedYourLanguage = lang;
-            MessageBox.Show(lang);
+            YourLanguageChanged?.Invoke(this, lang);
         }
 
         [RelayCommand]
         private void ChangeLearningLanguage(string lang)
         {
             SelectedLearningLanguage = lang;
+            LearningLanguageChanged?.Invoke(this, lang);
         }
 
         partial void OnIsMouseHoverEnabledChanged(bool value)
@@ -239,6 +240,8 @@ namespace Echo.ViewModels
         public event EventHandler<string> OnFontFamilyChanged;
         public event EventHandler<string> OnSystemLanguageChanged;
         public event EventHandler<string> OnChangeOpacity;
+        public event EventHandler<string> YourLanguageChanged;
+        public event EventHandler<string> LearningLanguageChanged;
 
         public event EventHandler<bool> SubtitleVisibleChanged;
         public event EventHandler<bool> MouseHoverEnabledChanged;

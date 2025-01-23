@@ -108,7 +108,6 @@ namespace Echo.ViewModels
                 {
                     await _databaseService.RemoveCollectionLinkAsync(CurrentWordModel, CurrentWordModel.SourceFileName);
                 }
-                Debug.WriteLine($"CurrentWordModel.Word {CurrentWordModel.Word}");
 
             }
             catch (Exception ex)
@@ -127,29 +126,51 @@ namespace Echo.ViewModels
         [RelayCommand]
         private async Task TranslateWordAsync(string word)
         {
-            
             try
             {
+                var sourceLang = MainWindowVM.LearningLanguage;
+                var targetLang = MainWindowVM.YourLanguage;
+
                 var subtitleItem = MainWindowVM.CurrentSubtitleItem;//先获取当前字幕时间，以免延迟导致时间不准确
-                //CurrentWordModel.SourceStartTime = subtitleItem.StartTime;
-                //CurrentWordModel.SourceEndTime = subtitleItem.EndTime;
 
                 IsLoading = true;
                 ErrorMessage = null;
-                //CurrentWord = word;
+
+                //clickHandler已经转小写
+                //word = word.ToLower();
+
+                // Check if word is already in local database,if so ,return a simple word model
+                var wordLocal = await _databaseService.GetWordFromLocalAsync(word, sourceLang, targetLang);
+
+                if (wordLocal != null)
+                {
+                    HeadwordOP = wordLocal.Word;
+                    Pronunciations = wordLocal.Pronounciations;
+                    Definitions = wordLocal.Definitions;
+                    return ;
+                }
 
                 // First API call to get head word and other details
-                var (headword, details) = await _oxfordService.GetWordDetailsAsync(word);
+                var (headword, details) = await _oxfordService.GetWordDetailsAsync(word, sourceLang);
                 if (string.IsNullOrEmpty(headword))
                 {
                     ErrorMessage = "Word not found";
                     
                     return;
                 }
+
+                wordLocal = await _databaseService.GetWordFromLocalAsync(headword.ToLower(), sourceLang, targetLang);
+                if (wordLocal != null)
+                {
+                    HeadwordOP = wordLocal.Word;
+                    Pronunciations = wordLocal.Pronounciations;
+                    Definitions = wordLocal.Definitions;
+                    return;
+                }
                 //_wordDetails = details;
 
                 // Second API call to get translations
-                var wordModel = await _oxfordService.GetTranslationsAsync(headword);
+                var wordModel = await _oxfordService.GetTranslationsAsync(headword, sourceLang, targetLang);
 
                 if (wordModel?.Definitions == null || !wordModel.Definitions.Any())
                 {
@@ -158,25 +179,14 @@ namespace Echo.ViewModels
                     return;
                 }
 
-                string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
-                {
-                    WriteIndented = true   // 缩进美化输出
-                });
+                //string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
+                //{
+                //    WriteIndented = true   // 缩进美化输出
+                //});
 
                 HeadwordOP = wordModel.Word;
 
                 await CheckIfCollected(wordModel);
-
-                //Translation = wordModel.Translation;
-
-
-                //if (IsAutoSaveWord)
-                //{
-                //    // Save to database
-                //    await SaveToDatabase();
-                //}
-
-                // Update observable collections
 
                 Pronunciations.Clear();
                 if (wordModel.Pronounciations != null)
@@ -218,10 +228,6 @@ namespace Echo.ViewModels
         {
             CurrentWordModel.SourceFilePath = MainWindowVM.VideoFilePath; 
             CurrentWordModel.SourceFileName = Path.GetFileName(MainWindowVM.VideoFilePath);
-            //CurrentWordModel.LanguageCode = "en";
-            //CurrentWordModel.LanguageCode = MainWindowVM.SourceLanguage;
-            //CurrentWordModel.SourceStartTime = MainWindowVM.CurrentSubtitle.StartTime;
-            //CurrentWordModel.SourceEndTime = MainWindowVM.CurrentSubtitle.EndTime;
         }
 
 

@@ -1,7 +1,9 @@
 ﻿
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace Echo.Models
 {
-    public class WordModel
+    public class WordModel: ObservableObject
     {
         public string Word { get; set; }//or phrase
         public string SourceLanguageCode { get; set; }//原语言
@@ -21,5 +23,24 @@ namespace Echo.Models
         public string SourceFileName { get; set; }
         public long SourceStartTime { get; set; }
         public long SourceEndTime { get; set; }
+        public long Id { get; set; }
+        public List<SenseGroup> GroupedSenses
+        {
+            get
+            {
+                if (Senses == null || Senses.Count == 0)
+                    return new List<SenseGroup>();
+
+                return Senses
+                    .GroupBy(s => new { s.ExplanationLanguageCode, s.Category })
+                    .Select(g => new SenseGroup
+                    {
+                        ExplanationLanguageCode = g.Key.ExplanationLanguageCode,
+                        Category = g.Key.Category,
+                        Senses = g.ToList()
+                    })
+                    .ToList();
+            }
+        }
     }
 }
