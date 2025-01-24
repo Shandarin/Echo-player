@@ -303,4 +303,7 @@
   <data name="All" xml:space="preserve">
     <value>All</value>
   </data>
+  <data name="Seconds" xml:space="preserve">
+    <value>Seconds</value>
+  </data>
 </root>

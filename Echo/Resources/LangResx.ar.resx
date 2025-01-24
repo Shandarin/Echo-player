@@ -303,4 +303,7 @@
   <data name="All" xml:space="preserve">
     <value>كل</value>
   </data>
+  <data name="Seconds" xml:space="preserve">
+    <value>ثواني</value>
+  </data>
 </root>

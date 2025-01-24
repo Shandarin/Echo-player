@@ -303,4 +303,7 @@
   <data name="All" xml:space="preserve">
     <value>所有</value>
   </data>
+  <data name="Seconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
 </root>

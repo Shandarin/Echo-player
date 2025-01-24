@@ -126,6 +126,12 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _learningLanguage;
 
+        [ObservableProperty]
+        private int _backwardTime ;
+
+        [ObservableProperty]
+        private int _forwardTime;
+
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -165,6 +171,9 @@ namespace Echo.ViewModels
             MenuBarVM.OnFontSizeChanged += HandleOnFontSizeChanged;
             MenuBarVM.YourLanguageChanged += HandleYourLanguageChanged;
             MenuBarVM.LearningLanguageChanged += HandleLearningLanguageChanged;
+            MenuBarVM.BackwardTimeChanged += (s, e) => BackwardTime = e;
+            MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
+
             FullscreenChanged += HandleFullscreenChanged;
 
             MediaPlayer.Playing += OnMediaPlaying;
@@ -208,6 +217,9 @@ namespace Echo.ViewModels
             //string text = Resources.LangResx.File;
             //MessageBox.Show(text);
             LanguageManager.SetLanguage("zh-Hans");
+
+            BackwardTime = MenuBarVM.BackwardTime;
+            ForwardTime = MenuBarVM.ForwardTime;
 
         }
 
@@ -686,7 +698,62 @@ namespace Echo.ViewModels
             //Debug.WriteLine(argbValue);
         }
 
+        public void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    if (MainWindowState == WindowState.Maximized && MainWindowStyle == WindowStyle.None)
+                    {
+                        ToggleFullScreen();
+                    }
+                    break;
 
+                case Key.Left:
+                    // Skip backward
+                    if (MediaPlayer?.Media != null)
+                    {
+                        long newTime = MediaPlayer.Time - BackwardTime*1000; // 10 seconds in milliseconds
+                        if (newTime < 0) newTime = 0;
+                        MediaPlayer.Time = newTime;
+                    }
+                    break;
+
+                case Key.Right:
+                    // Skip forward
+                    if (MediaPlayer?.Media != null)
+                    {
+                        long newTime = MediaPlayer.Time + ForwardTime*1000;
+                        if (newTime > MediaPlayer.Length) newTime = MediaPlayer.Length;
+                        MediaPlayer.Time = newTime;
+                        Debug.WriteLine($"MediaPlayer.Time {ForwardTime}");
+                    }
+                    break;
+
+                case Key.Up:
+                    // Increase volume 
+                    if (MediaPlayer != null)
+                    {
+                        int newVolume = MediaPlayer.Volume + 5;
+                        if (newVolume > 100) newVolume = 100;
+                        MediaPlayer.Volume = newVolume;
+                        VideoControlVM.Volume = newVolume;
+                    }
+                    break;
+
+                case Key.Down:
+                    // Decrease volume 
+                    if (MediaPlayer != null)
+                    {
+                        int newVolume = MediaPlayer.Volume - 5;
+                        if (newVolume < 0) newVolume = 0;
+                        MediaPlayer.Volume = newVolume;
+                        VideoControlVM.Volume = newVolume;
+                    }
+                    break;
+            }
+  
+        }
 
         #endregion
     }

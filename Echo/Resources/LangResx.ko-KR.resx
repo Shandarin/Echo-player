@@ -303,4 +303,7 @@
   <data name="All" xml:space="preserve">
     <value>모두</value>
   </data>
+  <data name="Seconds" xml:space="preserve">
+    <value>초</value>
+  </data>
 </root>

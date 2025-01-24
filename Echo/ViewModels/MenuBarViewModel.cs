@@ -53,13 +53,19 @@ namespace Echo.ViewModels
         private double textBlockMarginBottom = 10;
 
         [ObservableProperty]
-        private string _selectedSoftwareLanguage;
+        private string _selectedSoftwareLanguage = "zh-Hans";
 
         [ObservableProperty]
         private string _selectedYourLanguage = "zh";
 
         [ObservableProperty]
         private string _selectedLearningLanguage = "en";
+
+        [ObservableProperty]
+        private int _backwardTime = 10;
+
+        [ObservableProperty]
+        private int _forwardTime = 10;
 
         public MenuBarViewModel() 
 
@@ -226,6 +232,10 @@ namespace Echo.ViewModels
             MouseHoverEnabledChanged?.Invoke(this, value);
         }
 
+        partial void OnBackwardTimeChanged(int value)
+        {
+            BackwardTimeChanged?.Invoke(this, value);
+        }
 
 
         // Events
@@ -245,7 +255,8 @@ namespace Echo.ViewModels
 
         public event EventHandler<bool> SubtitleVisibleChanged;
         public event EventHandler<bool> MouseHoverEnabledChanged;
- 
+        public event EventHandler<int> BackwardTimeChanged;
+        public event EventHandler<int> ForwardTimeChanged;
 
         // Additional commands can be added for other menu items
     }

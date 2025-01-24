@@ -430,6 +430,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Seconds 的本地化字符串。
+        /// </summary>
+        public static string Seconds {
+            get {
+                return ResourceManager.GetString("Seconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Select Subtitles 的本地化字符串。
         /// </summary>
         public static string Select_Subtitles {

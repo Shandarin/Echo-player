@@ -110,61 +110,13 @@ namespace Echo
         protected override void OnPreviewKeyDown(KeyEventArgs e)
         {
             base.OnPreviewKeyDown(e);
-
             if (DataContext is MainWindowViewModel vm)
             {
-                switch (e.Key)
-                {
-                    case Key.Escape:
-                        if (vm.MainWindowState == WindowState.Maximized && vm.MainWindowStyle == WindowStyle.None)
-                        {
-                            vm.ToggleFullScreen();
-                        }
-                        break;
-
-                    case Key.Left:
-                        // Skip backward
-                        if (vm.MediaPlayer?.Media != null)
-                        {
-                            long newTime = vm.MediaPlayer.Time - 10000; // 10 seconds in milliseconds
-                            if (newTime < 0) newTime = 0;
-                            vm.MediaPlayer.Time = newTime;
-                        }
-                        break;
-
-                    case Key.Right:
-                        // Skip forward
-                        if (vm.MediaPlayer?.Media != null)
-                        {
-                            long newTime = vm.MediaPlayer.Time + 10000;
-                            if (newTime > vm.MediaPlayer.Length) newTime = vm.MediaPlayer.Length;
-                            vm.MediaPlayer.Time = newTime;
-                        }
-                        break;
-
-                    case Key.Up:
-                        // Increase volume 
-                        if (vm.MediaPlayer != null)
-                        {
-                            int newVolume = vm.MediaPlayer.Volume + 5;
-                            if (newVolume > 100) newVolume = 100;
-                            vm.MediaPlayer.Volume = newVolume;
-                            vm.VideoControlVM.Volume = newVolume;
-                        }
-                        break;
-
-                    case Key.Down:
-                        // Decrease volume 
-                        if (vm.MediaPlayer != null)
-                        {
-                            int newVolume = vm.MediaPlayer.Volume - 5;
-                            if (newVolume < 0) newVolume = 0;
-                            vm.MediaPlayer.Volume = newVolume;
-                            vm.VideoControlVM.Volume = newVolume;
-                        }
-                        break;
-                }
+                vm.OnPreviewKeyDown(e);
             }
+
+
+
         }
 
         private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
