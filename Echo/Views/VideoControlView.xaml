@@ -7,16 +7,16 @@
              xmlns:viewmodels="clr-namespace:Echo.ViewModels" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Echo.ViewModels"
-             Height="50"
+             Height="60"
              >
-<!--datacontext-->
+    <!--datacontext-->
 
-    
+
     <UserControl.Resources>
         <!-- 控制按钮样式 -->
         <converters:SliderConverter x:Key="SliderConverter"/>
         <converters:TimeSpanConverter x:Key="TimeSpanConverter"/>
-        
+
         <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="ControlButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#2D2D2D"/>
@@ -47,34 +47,6 @@
             </Setter>
         </Style>
 
-        <!-- 进度条样式 -->
-        <Style x:Key="VideoSliderStyle" TargetType="Slider">
-            <Setter Property="Margin" Value="10,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Slider">
-                        <Grid>
-                            <Border x:Name="PART_Track" 
-                                    Height="4" 
-                                    Background="#404040" 
-                                    CornerRadius="2"/>
-                            <Border Height="4" 
-                                    Background="#FFD700"
-                                    HorizontalAlignment="Left"
-                                    CornerRadius="2"
-                                    Width="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, 
-                                            Converter={StaticResource SliderConverter}}"/>
-                            <Thumb x:Name="PART_Thumb" 
-                                   Width="12" 
-                                   Height="12"
-                                   Background="White"
-                                   />
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
         <!-- 滑块缩略图样式 -->
         <ControlTemplate x:Key="SliderThumbTemplate" TargetType="Thumb">
@@ -102,13 +74,14 @@
         </Grid.RowDefinitions>
 
         <!-- 进度条 -->
-        <Grid Grid.Row="0" Height="4" Margin="0,0,0,5" Grid.ColumnSpan="2">
+        <Grid Grid.Row="0"  Margin="0,0,0,0" Grid.ColumnSpan="2">
             <Slider x:Name="ProgressSlider"
-                    
-                    Minimum="0"
-                    Maximum="100"
-                    Value="{Binding Progress}"
-                     Margin="9,10,11,0" VerticalAlignment="Top"/>
+              
+                Minimum="0"
+                Maximum="100"
+                Value="{Binding Progress}"
+                Margin="20,2,21,0"
+                VerticalAlignment="Top"/>
         </Grid>
 
         <!-- 控制按钮区域 -->
@@ -120,7 +93,8 @@
                 <!-- 时间显示 -->
                 <ColumnDefinition Width="*"/>
                 <!-- 中间空白 -->
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="25.952"/>
+                <ColumnDefinition Width="135.018"/>
                 <!-- 音量控制 -->
                 <ColumnDefinition Width="Auto"/>
                 <!-- 右侧按钮 -->
@@ -175,7 +149,7 @@
             <StackPanel Grid.Column="1" 
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        Margin="10,0,0,0"
+                        Margin="10,0,26,0" Grid.ColumnSpan="3"
                         >
                 <TextBlock x:Name="CurrentTimeText"
                            Text="{Binding CurrentTime, Converter={StaticResource TimeSpanConverter}}"
@@ -193,27 +167,28 @@
             </StackPanel>
 
             <!-- 音量控制 -->
-            <StackPanel Grid.Column="3" 
+            <StackPanel Grid.Column="4" 
                         Orientation="Horizontal"
-                        Margin="55,0,10,0">
+                        Margin="29,0,10,0">
                 <Button x:Name="VolumeButton"
                         Style="{StaticResource ControlButtonStyle}"
+                        Command="{Binding ToggleMuteCommand}"
                        >
                     <TextBlock x:Name="VolumeIcon" 
-                             Text="🔊" 
+                             Text="{Binding VolumeImage}" 
                              FontSize="16"/>
                 </Button>
                 <Slider x:Name="VolumeSlider"
                         Width="70"
                         Minimum="0"
                         Maximum="100"
-                        Value="100"
-                        
+                        Value="{Binding Volume}"
+                        VerticalAlignment="Center"
                         />
             </StackPanel>
 
             <!-- 右侧附加控制 -->
-            <StackPanel Grid.Column="4" 
+            <StackPanel Grid.Column="5" 
                         Orientation="Horizontal">
 
             </StackPanel>

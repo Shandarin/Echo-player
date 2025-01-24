@@ -15,7 +15,7 @@ namespace Echo.ViewModels
         private readonly DispatcherTimer _timer;
 
         [ObservableProperty]
-        private double progress;
+        private double progress = 0;
 
         [ObservableProperty]
         private int volume;
@@ -38,22 +38,29 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _playButtonImage = "▶";
 
+        [ObservableProperty]
+        private string _volumeImage = "🔊";
+        
+
         public VideoControlViewModel(LibVLCSharp.Shared.MediaPlayer mediaPlayer)
         {
             _mediaPlayer = mediaPlayer;
 
-            _mediaPlayer.TimeChanged += (s, e) =>
+            _mediaPlayer.TimeChanged += async (s, e) =>
             {
                 UpdateTimeDisplay();
+                UpdateProgress(s,e);
+
             };
 
             InitializeMediaPlayer();
+            Initialize();
         }
 
 
         private void Initialize()
         {
-            Volume = 100;
+            Volume = 80;
             IsMuted = false;
             IsPlaying = false;
             Progress = 0;
@@ -87,7 +94,7 @@ namespace Echo.ViewModels
 
             _mediaPlayer.LengthChanged += (s, e) =>
             {
-                UpdateTimeDisplay();
+                //UpdateTimeDisplay();
             };
         }
 
@@ -146,11 +153,12 @@ namespace Echo.ViewModels
             }
         }
 
-        private void UpdateProgress(object sender, EventArgs e)
+        private async Task UpdateProgress(object sender, EventArgs e)
         {
             if (_mediaPlayer?.Media == null) return;
             Progress = _mediaPlayer.Position * 100;
-            UpdateTimeDisplay();
+            //Debug.WriteLine(Progress);
+            //UpdateTimeDisplay();
         }
 
         private void UpdateTimeDisplay()
@@ -160,21 +168,61 @@ namespace Echo.ViewModels
             
         }
 
+        private void ChangeVolumeImage()
+        {
+            if(Volume == 0)
+            {
+                VolumeImage = "🔇";
+            }
+            else if (Volume < 20 )
+            {
+                VolumeImage = "🔈";
+            }
+            else if(Volume< 60)
+            {
+                VolumeImage = "🔉";
+            }
+            else
+            {
+                VolumeImage = "🔊";
+            }
+        }
+
         partial void OnVolumeChanged(int value)
         {
+            if(value > 100 | value <0) return;
             if (_mediaPlayer != null)
             {
                 _mediaPlayer.Volume = value;
                 IsMuted = value == 0;
+                Volume = value;
             }
+            ChangeVolumeImage();
         }
 
         partial void OnProgressChanged(double value)
         {
             if (_mediaPlayer?.Media != null)
             {
-                _mediaPlayer.Position = (float)(value / 100);
-                UpdateTimeDisplay();
+                float newPos = (float)(value / 100);
+                // 若差距非常小，不必重新写回
+                if (Math.Abs(_mediaPlayer.Position - newPos) > 0.001f)
+                {
+                    _mediaPlayer.Position = newPos;
+                }
+                //UpdateTimeDisplay();
+            }
+        }
+
+        partial void OnIsMutedChanged(bool value)
+        {
+            if (IsMuted)
+            {
+                VolumeImage = "🔇";
+            }
+            else
+            {
+                ChangeVolumeImage();
             }
         }
     }
