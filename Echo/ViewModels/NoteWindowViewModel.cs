@@ -1,9 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Echo.Managers;
 using Echo.Models;
 using Echo.Services;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Echo.ViewModels
@@ -52,6 +56,14 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private WordBasicModel _selectedWord;
 
+        [ObservableProperty]
+        private bool _isFavorite;
+
+        [ObservableProperty]
+        private string _FavoriteIcon;
+        
+
+
 
         // 构造函数
         public NoteWindowViewModel()
@@ -73,6 +85,8 @@ namespace Echo.ViewModels
             // 默认选择
             SelectedSortOption = SortOptions[0];
             SelectedFilterOption = FilterOptions[0];
+
+            //LanguageManager.SetLanguage("ru");
         }
 
         /// <summary>
@@ -80,14 +94,18 @@ namespace Echo.ViewModels
         /// </summary>
         private async Task LoadCollections()
         {
+            string allText = LanguageManager.GetString("All");
+
             var collectionList = await _databaseService.GetAllCollections();
             Collections.Clear();
+            CollectionModel allCol = new();
+            allCol.Name = allText;
+            allCol.Id = 0;//0 for all
+            Collections.Add(allCol);
             foreach (var col in collectionList)
             {
                 Collections.Add(col);
             }
-
-            // 默认选中第一个（可选）
             if (Collections.Count > 0)
             {
                 SelectedCollection = Collections[0];
@@ -97,7 +115,11 @@ namespace Echo.ViewModels
         [RelayCommand]
         public async Task LoadBasicWordsAsync()
         {
-            var wordList = await _databaseService.GetAllWordsBasicAsync();
+            if (SelectedCollection.Id == null)
+            {
+                SelectedCollection.Id = 0;
+            }
+            var wordList = await _databaseService.GetAllWordsBasicAsync(SelectedCollection.Id);
             Words.Clear();
             foreach (var w in wordList)
             {
@@ -105,16 +127,74 @@ namespace Echo.ViewModels
             }
         }
 
-        // 选中单词时，加载详细数据
-        partial void OnSelectedWordChanged(WordBasicModel value)
+        [RelayCommand]
+        private async Task ToggleFavoriteAsync()
         {
-            if (value != null)
+
+            if (string.IsNullOrWhiteSpace(CurrentWord.Word))
             {
-                LoadWordDetailsAsync(value);
+                MessageBox.Show("No word selected to toggle favorite status.");
+                return;
+            }
+
+            try
+            {
+                IsFavorite = !IsFavorite;
+                FavoriteIcon = IsFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
+                string json = System.Text.Json.JsonSerializer.Serialize(CurrentWord, new JsonSerializerOptions
+                {
+                    WriteIndented = true   // 缩进美化输出
+                });
+                Debug.WriteLine("ToggleFavoriteAsync");
+                Debug.WriteLine(json);
+                if (IsFavorite)
+                {
+                    await _databaseService.CollectionLinkAsync(CurrentWord, CurrentWord.CollectionId);
+                }
+                else
+                {
+                    await _databaseService.RemoveCollectionLinkAsync(CurrentWord, CurrentWord.CollectionId);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error toggling favorite: {ex.Message}");
             }
         }
 
-        private async void LoadWordDetailsAsync(WordBasicModel basicWord)
+        [RelayCommand]
+        private async Task PlayAudio(string AudioPath)
+        {
+            await OnlineAudioPlayService.PlayAudioAsync(AudioPath);
+        }
+
+        [RelayCommand]
+        private async Task DeleteCollection()
+        {
+            MessageBox.Show("ok");
+            if (SelectedCollection.Id == 0)
+            {
+                MessageBox.Show("Cannot delete all collection.");
+                return;
+            }
+            if (MessageBox.Show($"Are you sure to delete this collection?  \nCollection name:\n{SelectedCollection.Name}", "Delete Collection", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                await _databaseService.DeleteCollectionAsync(SelectedCollection.Id);
+                await LoadCollections();
+            }
+        }
+
+        // 选中单词时，加载详细数据
+        partial void OnSelectedWordChanged(WordBasicModel? value)
+        {
+            if (value != null)
+            {
+                LoadWordDetailsAsync(value).ConfigureAwait(false);
+            }
+            CheckIfCollected(CurrentWord).ConfigureAwait(false);
+        }
+
+        private async Task LoadWordDetailsAsync(WordBasicModel basicWord)
         {
             //如果已经加载过详细信息，可以不重复加载
             //这里简单写一下，如果需要判断，可加标记
@@ -130,10 +210,13 @@ namespace Echo.ViewModels
                 detailedWord.TargetLanguageCode = detailedWord.TargetLanguageCode;
                 detailedWord.Pronounciations = detailedWord.Pronounciations;
                 detailedWord.Definitions = detailedWord.Definitions;
+                detailedWord.CollectionId = basicWord.CollectionId;
+                detailedWord.Id = basicWord.Id;
                 // ...
                 // 其他需要的字段
             }
             CurrentWord = detailedWord;
+
             //GroupedSenses();
         }
 
@@ -232,6 +315,21 @@ namespace Echo.ViewModels
         // 在 XAML 中，如果需要在搜索框 TextChanged 时立即执行过滤，
         // 可以在 SearchText 的 set 里调用 ApplyFilterAndSort()，或用一个延迟搜索机制
         // 此处仅演示。可以在属性变化时调用命令：
+
+        private async Task CheckIfCollected(WordModel wordM)
+        {
+            if (await _databaseService.CheckCollectionLinkExistAsync(wordM))
+            {
+                IsFavorite = true;
+                FavoriteIcon = "/Assets/images/collect-active.png";
+            }
+            else
+            {
+                IsFavorite = false;
+                FavoriteIcon = "/Assets/images/collect.png";
+            }
+        }
+
         partial void OnSearchTextChanged(string value)
         {
             //ApplyFilterAndSort();
@@ -239,7 +337,7 @@ namespace Echo.ViewModels
 
         partial void OnSelectedCollectionChanged(CollectionModel value)
         {
-            //ApplyFilterAndSort();
+            LoadBasicWordsAsync();
         }
 
         partial void OnSelectedFilterOptionChanged(string value)

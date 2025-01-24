@@ -24,6 +24,8 @@ namespace Echo.Models
         public long SourceStartTime { get; set; }
         public long SourceEndTime { get; set; }
         public long Id { get; set; }
+        //public string CollectionName { get; set; }
+        public long CollectionId { get; set; }
         public List<SenseGroup> GroupedSenses
         {
             get

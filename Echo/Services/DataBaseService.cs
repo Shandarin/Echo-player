@@ -754,7 +754,7 @@ namespace Echo.Services
         public async Task CollectionLinkAsync(WordModel word, string collectionName)
         {
             if (word == null)
-                throw new ArgumentException("Word, SourceLanguageCode, and CollectionName cannot be null or empty.");
+                throw new ArgumentException("Word cannot be null or empty.");
 
             var connection = GetConnection();
 
@@ -767,6 +767,60 @@ namespace Echo.Services
                 //  Check if the collection exists, otherwise create it
                 var collectionId = await GetOrCreateCollectionIdAsync(connection, collectionName);
 
+                //  Check if the Word and Collection link already exists
+                var selectLinkCommand = new SQLiteCommand(@"
+                SELECT EXISTS(
+                    SELECT 1 
+                    FROM WordSentenceCollectionLink 
+                    WHERE WordId = @WordId AND CollectionId = @CollectionId
+                );
+            ", connection);
+                selectLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+                selectLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                var linkExists = Convert.ToInt32(await selectLinkCommand.ExecuteScalarAsync()) == 1;
+
+                if (!linkExists)
+                {
+                    // Step 4: Insert the link into WordSentenceCollectionLink
+                    var insertLinkCommand = new SQLiteCommand(@"
+                INSERT INTO WordSentenceCollectionLink (WordId, CollectionId) 
+                VALUES (@WordId, @CollectionId);
+            ", connection);
+                    insertLinkCommand.Parameters.AddWithValue("@WordId", wordId);
+                    insertLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                    await insertLinkCommand.ExecuteNonQueryAsync();
+                }
+
+                // Commit the transaction
+                transaction.Commit();
+
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception("Error while saving to collection: " + ex.Message, ex);
+            }
+            finally
+            {
+                connection.Dispose();
+            }
+        }
+
+        public async Task CollectionLinkAsync(WordModel word, long collectionId)
+        {
+            if (word == null)
+                throw new ArgumentException("Word cannot be null or empty.");
+
+            var connection = GetConnection();
+
+            var wordId = await CheckAndSaveAsync(word);
+
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
                 //  Check if the Word and Collection link already exists
                 var selectLinkCommand = new SQLiteCommand(@"
                 SELECT EXISTS(
@@ -872,6 +926,38 @@ namespace Echo.Services
             }
         }
 
+        public async Task RemoveCollectionLinkAsync(WordModel word, long collectionId)
+        {
+            if (word == null || word.Id == null || string.IsNullOrWhiteSpace(word.SourceLanguageCode) || collectionId == null)
+                throw new ArgumentException("Invalid input: Word, SourceLanguageCode, and CollectionName cannot be null or empty.");
+
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                //  Delete the link from the WordSentenceCollectionLink table
+                var deleteLinkCommand = new SQLiteCommand(@"
+                    DELETE FROM WordSentenceCollectionLink 
+                    WHERE WordId = @WordId AND CollectionId = @CollectionId;
+                ", connection);
+
+                deleteLinkCommand.Parameters.AddWithValue("@WordId", word.Id);
+                deleteLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                int rowsAffected = await deleteLinkCommand.ExecuteNonQueryAsync();
+
+                // Commit the transaction
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                Console.WriteLine($"Error removing word from collection: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<List<CollectionModel>> GetAllCollections()
         {
             using var connection = GetConnection();
@@ -894,17 +980,28 @@ namespace Echo.Services
             return collections;
         }
 
-        public async Task<List<WordBasicModel>> GetAllWordsBasicAsync()
+        public async Task<List<WordBasicModel>> GetAllWordsBasicAsync(long CollectId = 0)
         {
             var words = new List<WordBasicModel>();
 
             using var connection = GetConnection();
-            var command = new SQLiteCommand(@"
-                SELECT Id, Word
-                FROM Words
-                WHERE IsDeleted = 0
-                ORDER BY UpdateTime DESC;
-            ", connection);
+
+            // SQL 查询，动态根据 CollectionId 是否为 0 设置条件
+            var sql = @"
+                SELECT 
+                    w.Id, 
+                    w.Word, 
+                    wscl.CollectionId
+                FROM Words w
+                INNER JOIN WordSentenceCollectionLink wscl 
+                    ON wscl.WordId = w.Id
+                WHERE w.IsDeleted = 0
+                  AND (@CollectionId = 0 OR wscl.CollectionId = @CollectionId)
+                ORDER BY wscl.UpdateTime DESC;
+    ";
+
+            using var command = new SQLiteCommand(sql, connection);
+            command.Parameters.AddWithValue("@CollectionId", CollectId);
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -912,10 +1009,8 @@ namespace Echo.Services
                 var wordModel = new WordBasicModel
                 {
                     Word = reader["Word"]?.ToString(),
-                    // 你也可以在 WordModel 新增一个 int Id 字段，
-                    // 以便后续通过 Id 加载详情
-                    // 这里先假设 WordModel 没有 Id，就示范一下可以怎么存
-                    Id = reader.GetInt64(reader.GetOrdinal("Id"))
+                    Id = reader.GetInt64(reader.GetOrdinal("Id")),
+                    CollectionId = reader.GetInt64(reader.GetOrdinal("CollectionId"))
                 };
                 words.Add(wordModel);
             }
@@ -937,10 +1032,10 @@ namespace Echo.Services
 
             // Step 1: 从 Words 表中获取单词基本信息
             var wordCommand = new SQLiteCommand(@"
-        SELECT Word, SourceLanguageCode, TargetLanguageCode, IsDeleted
-        FROM Words
-        WHERE Id = @WordId;
-    ", connection);
+                SELECT Word, SourceLanguageCode, TargetLanguageCode, IsDeleted
+                FROM Words
+                WHERE Id = @WordId;
+            ", connection);
 
             wordCommand.Parameters.AddWithValue("@WordId", wordId);
 
@@ -1049,12 +1144,47 @@ namespace Echo.Services
                     sense.Examples[text] = translation;
                 }
             }
-            string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
-            {
-                WriteIndented = true   // 缩进美化输出
-            });
-            Debug.WriteLine(json);
+            //string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
+            //{
+            //    WriteIndented = true   // 缩进美化输出
+            //});
+            //Debug.WriteLine(json);
             return wordModel;
+        }
+
+        public async Task DeleteCollectionAsync(long CollectionId)
+        {
+            using var connection = GetConnection();
+            await using var transaction = await connection.BeginTransactionAsync();
+
+            try
+            {
+                // Step 1: 删除 WordSentenceCollectionLink 表中对应的记录
+                var deleteLinkCommand = new SQLiteCommand(@"
+            DELETE FROM WordSentenceCollectionLink
+            WHERE CollectionId = @CollectionId;
+        ", connection);
+                deleteLinkCommand.Parameters.AddWithValue("@CollectionId", CollectionId);
+                await deleteLinkCommand.ExecuteNonQueryAsync();
+
+                // Step 2: 删除 Collections 表中对应的记录
+                var deleteCollectionCommand = new SQLiteCommand(@"
+            DELETE FROM Collections
+            WHERE Id = @CollectionId;
+        ", connection);
+                deleteCollectionCommand.Parameters.AddWithValue("@CollectionId", CollectionId);
+                await deleteCollectionCommand.ExecuteNonQueryAsync();
+
+                // 提交事务
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                // 回滚事务
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Error deleting collection: {ex.Message}");
+                throw;
+            }
         }
 
         public void Dispose()

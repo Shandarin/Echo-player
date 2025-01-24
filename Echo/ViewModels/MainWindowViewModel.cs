@@ -207,8 +207,8 @@ namespace Echo.ViewModels
             };
             //string text = Resources.LangResx.File;
             //MessageBox.Show(text);
+            LanguageManager.SetLanguage("zh-Hans");
 
-            
         }
 
 

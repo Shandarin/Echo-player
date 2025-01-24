@@ -300,4 +300,7 @@
   <data name="Sentence_Analysis_API" xml:space="preserve">
     <value>API di analisi delle frasi</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>Tutti</value>
+  </data>
 </root>

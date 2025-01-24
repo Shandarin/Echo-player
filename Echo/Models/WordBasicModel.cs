@@ -11,6 +11,6 @@ namespace Echo.Models
         public bool IsFavorite { get; set; }
         public bool IsSuccess { get; set; }//是否成功获取到数据
         public long Id { get; set; }
-        public long Index { get; set; }
+        public long CollectionId { get; set; }
     }
 }

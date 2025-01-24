@@ -492,12 +492,16 @@
             <MenuItem Header="{x:Static resx:LangResx.Open}" Command="{Binding OpenNoteCommand}">
 
             </MenuItem>
+            <!-- todo 
             <MenuItem Header="{x:Static resx:LangResx.Auto_Save_Vocabulary}" Command="{Binding ToggleAutoSaveVocabularyCommand}" Style="{StaticResource MenuItemStyle}"/>
-            <MenuItem Header="{x:Static resx:LangResx.Save_Vocabulary_by_Video}" Command="{Binding SaveVocabularyByVideoCommand}"/>
+            -->
+            <MenuItem IsCheckable="True" IsChecked="True" IsEnabled="False" Header="{x:Static resx:LangResx.Save_Vocabulary_by_Video}" Command="{Binding SaveVocabularyByVideoCommand}"/>
+            <!-- todo 
             <MenuItem Header="{x:Static resx:LangResx.Export}">
                 <MenuItem Header="{x:Static resx:LangResx.Export_as_Markdown}" Command="{Binding ExportMarkdownCommand}"/>
                 <MenuItem Header="{x:Static resx:LangResx.Export_as_SQLite_File}" Command="{Binding ExportMarkdownCommand}"/>
             </MenuItem>
+             -->
         </MenuItem>
 
         <!-- 控制菜单 -->

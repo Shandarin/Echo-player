@@ -79,6 +79,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 All 的本地化字符串。
+        /// </summary>
+        public static string All {
+            get {
+                return ResourceManager.GetString("All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Aspect Ratio 的本地化字符串。
         /// </summary>
         public static string Aspect_Ratio {

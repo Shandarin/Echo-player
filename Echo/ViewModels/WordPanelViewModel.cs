@@ -88,7 +88,7 @@ namespace Echo.ViewModels
 
             if (string.IsNullOrWhiteSpace(CurrentWordModel.Word))
             {
-                MessageBox.Show("No word selected to toggle favorite status.");
+                MessageBox.Show("No word selected to toggle favorite status.- wordPanel");
                 return;
             }
 
@@ -147,6 +147,8 @@ namespace Echo.ViewModels
                     HeadwordOP = wordLocal.Word;
                     Pronunciations = wordLocal.Pronounciations;
                     Definitions = wordLocal.Definitions;
+                    CurrentWordModel = wordLocal;
+                    AddInfo();
                     return ;
                 }
 
@@ -165,6 +167,8 @@ namespace Echo.ViewModels
                     HeadwordOP = wordLocal.Word;
                     Pronunciations = wordLocal.Pronounciations;
                     Definitions = wordLocal.Definitions;
+                    CurrentWordModel = wordLocal;
+                    AddInfo();
                     return;
                 }
                 //_wordDetails = details;

@@ -300,4 +300,7 @@
   <data name="Sentence_Analysis_API" xml:space="preserve">
     <value>واجهة برمجة تطبيقات تحليل الجمل</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>كل</value>
+  </data>
 </root>

@@ -300,4 +300,7 @@
   <data name="Sentence_Analysis_API" xml:space="preserve">
     <value>文の解析 API</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>すべて</value>
+  </data>
 </root>

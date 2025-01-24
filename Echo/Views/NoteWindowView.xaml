@@ -141,12 +141,20 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- 左侧功能按钮 -->
+            <!-- 收藏夹列表 -->
             <StackPanel Orientation="Horizontal" Margin="10,0" Height="25">
                 <ComboBox Width="120" ItemsSource="{Binding Collections}" SelectedItem="{Binding SelectedCollection}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}"/>
+                            <TextBlock Text="{Binding Name}">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="删除收藏夹" 
+                                          Command="{Binding DataContext.DeleteCollectionCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                         />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -213,14 +221,46 @@
                 </Grid.RowDefinitions>
 
                 <!-- 单词标题区 -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <Grid Grid.Row="0"  >
                     <TextBlock Text="{Binding CurrentWord.Word}" 
                              FontSize="24" 
                              FontWeight="Bold"/>
-                    <Button Content="⭐" 
-                            Margin="10,0"/>
-                    <Button Content="✎" />
-                </StackPanel>
+                        <!-- 收藏按钮 -->
+                        <Button Grid.Column="1" BorderThickness="0"
+                            Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect ShadowDepth="0" BlurRadius="0" Opacity="0"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Grid>
+                                                    <Image Source="{Binding FavoriteIcon}" Width="23"/>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <!-- 鼠标悬浮触发器 -->
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Effect">
+                                                <Setter.Value>
+                                                    <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="Gray" Opacity="0.5"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="Background" Value="#FFECECEC"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
 
 
                 <!-- 音标区 -->
