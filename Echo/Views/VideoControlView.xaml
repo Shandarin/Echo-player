@@ -131,23 +131,41 @@
                 <Button x:Name="PlayButton"
                         Style="{StaticResource ControlButtonStyle}"
                         Command="{Binding PlayOrPauseCommand}">
-                    <TextBlock x:Name="PlayButtonText" 
-                             Text="⏵" 
-                             FontSize="18"/>
+                    <TextBlock Width="28"
+                            Text="{Binding PlayButtonImage}" 
+                            FontSize="20"
+                            TextAlignment="Center" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center" 
+                               />
                 </Button>
                 <Button Style="{StaticResource ControlButtonStyle}"
                         Command="{Binding SkipForwardCommand}"
-                    >
-                    <TextBlock Text="⏮" FontSize="16"/>
+                    Margin=" 10,0,0,0">
+                    <TextBlock Text="⏮" FontSize="17"
+                            TextAlignment="Center" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center" 
+                               />
                 </Button>
 
                 <Button Style="{StaticResource ControlButtonStyle}"
-                        Command="{Binding SkipBackwardCommand}">
-                    <TextBlock Text="⏭" FontSize="16"/>
+                        Command="{Binding SkipBackwardCommand}" >
+                    <TextBlock Text="⏭" FontSize="17"
+                            TextAlignment="Center" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center" 
+                               />
                 </Button>
                 <Button Style="{StaticResource ControlButtonStyle}"
-                        Command="{Binding FullScreenCommand}">
-                    <TextBlock Text="⛶" FontSize="16"/>
+                        Command="{Binding FullScreenCommand}"
+                        Margin=" 5,0,0,0">
+                    <TextBlock Text="⛶" FontSize="18"
+                            TextAlignment="Center" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center" 
+                               Width="22"
+                               />
                 </Button>
             </StackPanel>
 

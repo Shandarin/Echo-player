@@ -34,6 +34,9 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private bool isControlBarVisible = true;
 
+        [ObservableProperty]
+        private string _playButtonImage = "▶";
+
         public VideoControlViewModel(MediaPlayer mediaPlayer)
         {
             _mediaPlayer = mediaPlayer;
@@ -59,16 +62,18 @@ namespace Echo.ViewModels
 
         private void InitializeMediaPlayer()
         {
-            Debug.WriteLine("InitializeMediaPlayer");
+            //Debug.WriteLine("InitializeMediaPlayer");
 
             _mediaPlayer.Playing += (s, e) =>
             {
+                PlayButtonImage = "▶";
                 IsPlaying = true;
                 UpdateTimeDisplay();
             };
 
             _mediaPlayer.Paused += (s, e) =>
             {
+                PlayButtonImage = "⏸";
                 IsPlaying = false;
             };
 

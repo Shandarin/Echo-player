@@ -132,6 +132,9 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private int _forwardTime;
 
+        [ObservableProperty]
+        private string _playImage;
+
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -191,12 +194,9 @@ namespace Echo.ViewModels
                 _scrollingSubtitleHandler?.SetSubtitles(subtitles);
             };
 
-            _mediaPlayer.Playing += (sender, e) =>
-            {
-                _subtitleHandler?.Start();
-            };
             _mediaPlayer.Paused += (sender, e) =>
             {
+                PlayImage = "▶";
                 _subtitleHandler?.Pause();
             };
 
@@ -275,6 +275,10 @@ namespace Echo.ViewModels
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
+
+            PlayImage = "⏸";
+
+            _subtitleHandler?.Start();
             if (!_hasAdjustedAspectRatio)
             {
                 HandleAspectRatioChanged(sender, "Default");
@@ -282,7 +286,7 @@ namespace Echo.ViewModels
             }
             
             _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
-
+            
 
 
 
