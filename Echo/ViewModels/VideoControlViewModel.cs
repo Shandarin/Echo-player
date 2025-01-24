@@ -5,12 +5,13 @@ using System.Windows.Threading;
 using System;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Media;
 
 namespace Echo.ViewModels
 {
     public partial class VideoControlViewModel : BaseViewModel
     {
-        private MediaPlayer _mediaPlayer;
+        private LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
         private readonly DispatcherTimer _timer;
 
         [ObservableProperty]
@@ -37,14 +38,14 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _playButtonImage = "▶";
 
-        public VideoControlViewModel(MediaPlayer mediaPlayer)
+        public VideoControlViewModel(LibVLCSharp.Shared.MediaPlayer mediaPlayer)
         {
             _mediaPlayer = mediaPlayer;
-            _timer = new DispatcherTimer
+
+            _mediaPlayer.TimeChanged += (s, e) =>
             {
-                Interval = TimeSpan.FromMilliseconds(200)
+                UpdateTimeDisplay();
             };
-            _timer.Tick += UpdateProgress;
 
             InitializeMediaPlayer();
         }
@@ -66,15 +67,22 @@ namespace Echo.ViewModels
 
             _mediaPlayer.Playing += (s, e) =>
             {
-                PlayButtonImage = "▶";
+                PlayButtonImage = "⏸";
                 IsPlaying = true;
-                UpdateTimeDisplay();
+                TotalTime = TimeSpan.FromMilliseconds(_mediaPlayer.Length);
             };
 
             _mediaPlayer.Paused += (s, e) =>
             {
-                PlayButtonImage = "⏸";
+                PlayButtonImage = "▶";
                 IsPlaying = false;
+            };
+
+            _mediaPlayer.Stopped += (s, e) =>
+            {
+                PlayButtonImage = "▶";
+                IsPlaying = false;
+                _mediaPlayer.Time = 0;
             };
 
             _mediaPlayer.LengthChanged += (s, e) =>
@@ -86,7 +94,7 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void PlayOrPause()
         {
-            Debug.WriteLine("PlayOrPause");
+            //Debug.WriteLine("PlayOrPause");
             if (_mediaPlayer == null) return;
 
             if (_mediaPlayer.IsPlaying)
@@ -149,7 +157,7 @@ namespace Echo.ViewModels
         {
             if (_mediaPlayer?.Media == null) return;
             CurrentTime = TimeSpan.FromMilliseconds(_mediaPlayer.Time);
-            TotalTime = TimeSpan.FromMilliseconds(_mediaPlayer.Length);
+            
         }
 
         partial void OnVolumeChanged(int value)

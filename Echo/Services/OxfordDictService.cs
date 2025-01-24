@@ -66,7 +66,7 @@ namespace Echo.Services
                         ?.Select(sense => new SenseModel
                         {
                             // Category
-                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
+                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Other",
 
                             // Definition
                             Definition = sense["definitions"]?.FirstOrDefault()?.ToString() ?? sense["crossReferenceMarkers"]?.FirstOrDefault()?.ToString() ?? null,
@@ -77,7 +77,7 @@ namespace Echo.Services
                             // Examples
                             Examples = sense["examples"]
                                 ?.ToDictionary(
-                                    example => example["text"]?.ToString() ?? "Unknown",
+                                    example => example["text"]?.ToString() ?? "Other",
                                     example => example["translations"]?.FirstOrDefault()?["text"]?.ToString() ?? null
                                 ) ?? new Dictionary<string, string>()
                         })
@@ -130,14 +130,14 @@ namespace Echo.Services
                     ?.Select(pronunciation =>
                     {
                         // 获取原始 dialect
-                        var originalDialect = pronunciation["dialects"]?[0]?.ToString() ?? "Unknown";
+                        var originalDialect = pronunciation["dialects"]?[0]?.ToString() ?? "Other";
 
                         // 转成我们需要的 "British" 或 "US" 或 "Unknown"
                         var dialect = originalDialect switch
                         {
                             "British English" => "British",
                             "American English" => "US",
-                            _ => "Unknown"
+                            _ => "Other"
                         };
 
                         // 音频地址
@@ -160,7 +160,7 @@ namespace Echo.Services
 
                 wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
                     .ToDictionary(
-                        lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
+                        lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Other",
                         lexicalEntry => string.Join("；", lexicalEntry["entries"]?
                             .SelectMany(entry => entry["senses"]?
                                 .Select(sense => sense["translations"]?[0]?["text"]?.ToString())
@@ -183,13 +183,13 @@ namespace Echo.Services
                         ?.Select(sense => new SenseModel
                         {
                             //Word = headword,
-                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Unknown",
-                            Definition = sense["translations"]?[0]?["text"]?.ToString() ?? "No definition available",
-                            Description = sense["notes"]?.FirstOrDefault()?["text"]?.ToString() ?? "No description available",
+                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Other",
+                            Definition = sense["translations"]?[0]?["text"]?.ToString() ?? "",
+                            Description = sense["notes"]?.FirstOrDefault()?["text"]?.ToString() ?? "",
                             Examples = sense["examples"]
                                 ?.ToDictionary(
                                     example => example["text"]?.ToString() ?? "Unknown",
-                                    example => example["translations"]?[0]?["text"]?.ToString() ?? "No translation available"
+                                    example => example["translations"]?[0]?["text"]?.ToString() ?? ""
                                 )
                         }).ToList() ?? new List<SenseModel>();
         

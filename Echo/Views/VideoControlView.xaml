@@ -15,6 +15,8 @@
     <UserControl.Resources>
         <!-- 控制按钮样式 -->
         <converters:SliderConverter x:Key="SliderConverter"/>
+        <converters:TimeSpanConverter x:Key="TimeSpanConverter"/>
+        
         <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="ControlButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#2D2D2D"/>
@@ -102,7 +104,7 @@
         <!-- 进度条 -->
         <Grid Grid.Row="0" Height="4" Margin="0,0,0,5" Grid.ColumnSpan="2">
             <Slider x:Name="ProgressSlider"
-                    Style="{StaticResource VideoSliderStyle}"
+                    
                     Minimum="0"
                     Maximum="100"
                     Value="{Binding Progress}"
@@ -172,9 +174,11 @@
             <!-- 时间显示 -->
             <StackPanel Grid.Column="1" 
                         Orientation="Horizontal"
-                        VerticalAlignment="Center">
+                        VerticalAlignment="Center"
+                        Margin="10,0,0,0"
+                        >
                 <TextBlock x:Name="CurrentTimeText"
-                           Text="00:00"
+                           Text="{Binding CurrentTime, Converter={StaticResource TimeSpanConverter}}"
                            Foreground="White"
                            VerticalAlignment="Center"
                            Margin="0,0,5,0"/>
@@ -183,7 +187,7 @@
                            VerticalAlignment="Center"
                            Margin="0,0,5,0"/>
                 <TextBlock x:Name="TotalTimeText"
-                           Text="00:00"
+                           Text="{Binding TotalTime, Converter={StaticResource TimeSpanConverter}}"
                            Foreground="White"
                            VerticalAlignment="Center"/>
             </StackPanel>
@@ -204,7 +208,7 @@
                         Minimum="0"
                         Maximum="100"
                         Value="100"
-                        Style="{StaticResource VideoSliderStyle}"
+                        
                         />
             </StackPanel>
 
