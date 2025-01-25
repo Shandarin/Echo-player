@@ -10,6 +10,7 @@ namespace Echo.Views
 {
     public partial class VideoControlView : UserControl
     {
+        public event Action? VideoControlMouseMoved;
 
         public VideoControlView()
         {
@@ -18,6 +19,10 @@ namespace Echo.Views
         public void Initialize(MediaPlayer mediaPlayer)
         {
             DataContext = new VideoControlViewModel(mediaPlayer);
+        }
+        private void OnMouseMove(object sender, RoutedEventArgs e)
+        {
+            VideoControlMouseMoved?.Invoke();
         }
     }
 }

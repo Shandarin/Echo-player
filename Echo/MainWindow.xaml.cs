@@ -9,79 +9,220 @@ using System.Windows.Threading;
 using Echo.Handlers;
 using Echo.Services;
 using Echo.ViewModels;
+using Echo.Views;
 
 
 namespace Echo
 {
     public partial class MainWindow : Window
     {
-        private DispatcherTimer controlBarTimer;
-        private DateTime fullscreenStartTime;
-        private Point lastMousePosition;
-        private const double SUBTITLE_AREA_HEIGHT = 150;
-        private bool isInSubtitleArea = false;
+        private DispatcherTimer _controlBarTimer;
+        //private DateTime _fullscreenStartTime;
+        private DateTime _lastMouseMoveTime;
+        private Point _lastMousePosition;
+
+        private const double SUBTITLE_AREA_HEIGHT = 150;//不能固定高度，要跟随字幕高度变化
+
+        private bool _isInSubtitleArea = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Find the translation container 
-            var translationContainer = this.FindName("TranslationContainer") as Canvas;
-            var sentenceContainer = this.FindName("SentenceContainer") as Canvas;
             var SubtitletextBlock = this.FindName("SubtitleTextBlock") as TextBlock;
 
-            var vm = DataContext as MainWindowViewModel;
-            if (vm != null)
+
+
+            if (DataContext is MainWindowViewModel vm)
             {
                 VideoView.MediaPlayer = vm.MediaPlayer;
 
-                vm.SetTranslationContainer(translationContainer);
-                vm.SetSentenceContainer(sentenceContainer);
+                if (FindName("TranslationContainer") is Canvas translationCanvas)
+                {
+                    vm.SetTranslationContainer(translationCanvas);
+                }
+                if (FindName("SentenceContainer") is Canvas sentenceCanvas)
+                {
+                    vm.SetSentenceContainer(sentenceCanvas);
+                }
 
-                var mainSubtitleBlock = this.FindName("SubtitleTextBlock") as TextBlock;
-                var prevSubtitleBlock = this.FindName("PreviousSubtitleBlock") as TextBlock;
-                var nextSubtitleBlock = this.FindName("NextSubtitleBlock") as TextBlock;
-                vm.SetSubtitleBlocks(mainSubtitleBlock, prevSubtitleBlock, nextSubtitleBlock);
+                if (FindName("SubtitleTextBlock") is TextBlock mainSubtitleBlock &&
+                    FindName("PreviousSubtitleBlock") is TextBlock prevSubtitleBlock &&
+                    FindName("NextSubtitleBlock") is TextBlock nextSubtitleBlock)
+                {
+                    vm.SetSubtitleBlocks(mainSubtitleBlock, prevSubtitleBlock, nextSubtitleBlock);
+                    // 同时让 VM 知道主字幕 TextBlock
+                    vm.SubtitleTextElement = mainSubtitleBlock;
+                }
 
-                //for word panel position
+                if (FindName("VideoControlView") is VideoControlView videoControlView)
+                {
+                    videoControlView.VideoControlMouseMoved += () =>
+                    {
+                        if (vm.IsFullScreen)
+                        {
+                            _lastMouseMoveTime = DateTime.Now;
+                        }
+
+                    };
+                }
+
                 vm.VideoViewElement = VideoView;
-                vm.SubtitleTextElement = SubtitleTextBlock;
+
+                //// 订阅全屏事件
+                //vm.FullscreenChanged += (_, isFullscreen) =>
+                //{
+                //    if (isFullscreen)
+                //    {
+                //        //_fullscreenStartTime = DateTime.Now;
+                //    }
+                //};
+                vm.ToggleFullScreenRequested += HandleToggleFullScreenRequested;
             }
 
-            controlBarTimer = new DispatcherTimer
+            // 初始化控制栏自动隐藏的计时器
+            _controlBarTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(3)
             };
-            controlBarTimer.Tick += (s, e) =>
-            {
-                if (DataContext is MainWindowViewModel vm)
-                {
-                    vm.VideoControlVM.IsControlBarVisible = false;
-                    vm.MenuBarVM.IsMenuBarVisible = false;
-                    controlBarTimer.Stop();
-                }
-            };
+            _controlBarTimer.Tick += OnControlBarTimerTick;
+            _controlBarTimer.Start();
 
-            // Subscribe to fullscreen changes
-            vm.FullscreenChanged += (sender, isFullscreen) =>
-            {
-                if (isFullscreen)
-                {
-                    fullscreenStartTime = DateTime.Now;
-                }
-            };
-   
+            _lastMouseMoveTime = DateTime.Now;
 
-            Initialize();
+            
 
             this.Closed += OnWindowClosed;
+
         }
 
-        private void Initialize()
+        #region Event Handlers
+
+        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            base.OnMouseLeftButtonDown(e);
+            if (DataContext is not MainWindowViewModel vm) return;
 
+            var clickPosition = e.GetPosition(MouseDetectionLayer);
+            bool isClickOnSubtitle = IsInSubtitleArea(clickPosition);
 
+            if (isClickOnSubtitle && !string.IsNullOrEmpty(vm.SubtitleText))
+            {
+                // 字幕区点击
+                vm.OnSubtitleAreaMouseLeftButtonDown(e);
+            }
+            else
+            {
+                // 视频区点击
+                vm.HandleVideoAreaClickCommand.Execute(clickPosition);
+            }
+
+            // 让窗口获取焦点，用于键盘控制
+            Focus();
+            Keyboard.Focus(this);
+
+            // 阻止进一步冒泡（如果需要）
+            e.Handled = true;
         }
+
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.OnPreviewKeyDown(e);
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (DataContext is not MainWindowViewModel vm) return;
+
+            var currentPosition = e.GetPosition(MouseDetectionLayer);
+
+            _lastMouseMoveTime = DateTime.Now;
+
+            // 判断是否进入或离开字幕区
+            bool isCurrentlyInSubtitleArea = IsInSubtitleArea(currentPosition);
+            if (isCurrentlyInSubtitleArea != _isInSubtitleArea)
+            {
+                _isInSubtitleArea = isCurrentlyInSubtitleArea;
+                if (_isInSubtitleArea)
+                {
+                    vm.OnSubtitleAreaMouseEnter();
+                }
+                else
+                {
+                    vm.OnSubtitleAreaMouseLeave();
+                }
+            }
+
+            // 3) 全屏模式下，若移动距离大于一定阈值则显示控制栏
+            if (vm.IsFullScreen)
+            {
+                double distanceMoved = (currentPosition - _lastMousePosition).Length;
+                if (distanceMoved > 10)
+                {
+                    // 显示控制栏
+                    if (!vm.VideoControlVM.IsControlBarVisible)
+                    {
+                        vm.VideoControlVM.IsControlBarVisible = true;
+                        // 如果你不想同时隐藏或显示 MenuBar，可以去掉这行
+                        // vm.MenuBarVM.IsMenuBarVisible = true;
+                    }
+                }
+            }
+
+            // 记录最后一次鼠标位置
+            _lastMousePosition = currentPosition;
+        }
+
+
+        private void OnControlBarTimerTick(object? sender, EventArgs e)
+        {
+            if (DataContext is not MainWindowViewModel vm) return;
+
+            // 仅在全屏模式下检查是否要隐藏
+            if (vm.IsFullScreen)
+            {
+                double secondsSinceLastMove = (DateTime.Now - _lastMouseMoveTime).TotalSeconds;
+                //Debug.WriteLine(secondsSinceLastMove);
+                if (secondsSinceLastMove >= 3)
+                {
+                    // 鼠标已经停止 3 秒，隐藏控制栏
+                    vm.VideoControlVM.IsControlBarVisible = false;
+                    // vm.MenuBarVM.IsMenuBarVisible = false;//会出错
+                }
+            }
+        }
+
+        public void HandleToggleFullScreenRequested(object sender, bool isFullScreen)
+        {
+            if(isFullScreen)
+            {
+                this.SizeToContent = SizeToContent.Manual;
+                this.WindowStyle = WindowStyle.None;
+                this.ResizeMode = ResizeMode.NoResize;
+                this.WindowState = WindowState.Maximized;
+                this.Topmost = true;
+            }
+            else
+            {
+                this.Topmost = false;
+                this.WindowStyle = WindowStyle.SingleBorderWindow;
+                this.SizeToContent = SizeToContent.WidthAndHeight;
+                this.ResizeMode = ResizeMode.CanResize;
+                this.WindowState = WindowState.Normal;
+            }
+            
+        }
+
+        private void OnWindowClosed(object? sender, EventArgs e)
+        {
+            var vm = DataContext as MainWindowViewModel;
+            vm?.DisposeMedia();
+        }
+        #endregion
 
         private void OnSubtitleAreaMouseEnter(object sender, MouseEventArgs e)
         {
@@ -107,108 +248,11 @@ namespace Echo
             }
         }
 
-        protected override void OnPreviewKeyDown(KeyEventArgs e)
-        {
-            base.OnPreviewKeyDown(e);
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.OnPreviewKeyDown(e);
-            }
-
-
-
-        }
-
-        private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                Point clickPosition = e.GetPosition(MouseDetectionLayer);
-                if(!IsInSubtitleArea(clickPosition))
-                {
-                    vm.HandleVideoAreaClickCommand.Execute(clickPosition);
-                    e.Handled = true;
-                }
-                   
-            }
-            this.Focus();
-            Keyboard.Focus(this);
-        }
-
-        private void OnWindowClosed(object? sender, EventArgs e)
-        {
-            var vm = DataContext as MainWindowViewModel;
-            vm?.DisposeMedia();
-        }
-
-        private void OnMouseLeftButtonDown(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                var position = e.GetPosition(MouseDetectionLayer);
-                if (IsInSubtitleArea(position) && !string.IsNullOrEmpty(vm.SubtitleText))
-                {
-                    vm.OnSubtitleAreaMouseLeftButtonDown(e);
-                }
-            }
-        }
-
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (!(DataContext is MainWindowViewModel vm))
-                return;
-
-            var currentPosition = e.GetPosition(MouseDetectionLayer);
-            var currentTime = DateTime.Now;
-
-            bool isCurrentlyInSubtitleArea = IsInSubtitleArea(currentPosition);
-
-            if (isCurrentlyInSubtitleArea != isInSubtitleArea)
-            {
-                isInSubtitleArea = isCurrentlyInSubtitleArea;
-                if (isInSubtitleArea)
-                {
-                    vm.OnSubtitleAreaMouseEnter();
-                }
-                else
-                {
-                    vm.OnSubtitleAreaMouseLeave();
-                }
-            }
-
-            // 全屏模式下的控制栏显示逻辑
-            if (vm.IsFullScreen)
-            {
-                var timeSinceFullscreen = (currentTime - fullscreenStartTime).TotalSeconds;
-
-                var distanceMoved = Math.Sqrt(
-                    Math.Pow(currentPosition.X - lastMousePosition.X, 2) +
-                    Math.Pow(currentPosition.Y - lastMousePosition.Y, 2)
-                );
-
-                // 仅在进入全屏1秒内且移动超过10像素时显示VideoControl and MenuBar
-                if (timeSinceFullscreen >= 1 && distanceMoved > 10)
-                {
-                    vm.VideoControlVM.IsControlBarVisible = true;
-                    //vm.MenuBarVM.IsMenuBarVisible = true; //会出错?
-                    controlBarTimer.Stop();
-                    controlBarTimer.Start();
-                }
-            }
-
-            lastMousePosition = currentPosition;
-        }
-
         private bool IsInSubtitleArea(Point mousePosition)
         {
             double subtitleAreaTop = MouseDetectionLayer.ActualHeight - SUBTITLE_AREA_HEIGHT;
             return mousePosition.Y >= subtitleAreaTop;
         }
-        private void AdjustWindowSize(uint videoWidth, uint videoHeight)
-        {
-            Debug.WriteLine("ok");
-        }
-
 
     }
 }

@@ -88,6 +88,76 @@ public class WindowSizeHandler
         return ((uint)adjustedWidth, (uint)adjustedHeight, adjustedLeft, adjustedTop);
     }
 
+    public (uint adjustedWidth, uint adjustedHeight) CalculateFullWindowSize(
+        uint videoWidth,
+        uint videoHeight,
+        string ratio)
+    {
+        // 1) 解析宽高比
+        double aspectWidth, aspectHeight;
+        if (string.Equals(ratio, "Default", StringComparison.OrdinalIgnoreCase))
+        {
+            aspectWidth = videoWidth;
+            aspectHeight = videoHeight;
+        }
+        else
+        {
+            var aspectParts = ratio.Split(':');
+            if (aspectParts.Length != 2 ||
+                !double.TryParse(aspectParts[0], out aspectWidth) ||
+                !double.TryParse(aspectParts[1], out aspectHeight) ||
+                aspectWidth <= 0 || aspectHeight <= 0)
+            {
+                aspectWidth = videoWidth;
+                aspectHeight = videoHeight;
+            }
+            else
+            {
+                aspectHeight = videoHeight / (aspectWidth / aspectHeight);
+                aspectWidth = videoWidth;
+            }
+        }
+
+        // 2) 获取屏幕 DPI 缩放后的分辨率
+        double scaledScreenWidth = SystemParameters.PrimaryScreenWidth;
+        double scaledScreenHeight = SystemParameters.PrimaryScreenHeight;
+
+        // 如果需要获取原始像素分辨率(不含DPI缩放)，可用:
+        // int actualScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+        // int actualScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+        // double dpiScaleX = scaledScreenWidth / actualScreenWidth;
+        // double dpiScaleY = scaledScreenHeight / actualScreenHeight;
+        // double scaleRatio = Math.Min(dpiScaleX, dpiScaleY);
+
+        // 先把视频“原尺寸”转换到当前 DPI 下
+        //（如果你坚持做和原方法相同的计算，可继续用前述 scaleRatio。此处演示直接用 scaledScreenWidth/scaledScreenHeight）
+        double scaledAspectWidth = aspectWidth;
+        double scaledAspectHeight = aspectHeight;
+        // 如果你原本想对 aspectWidth/Height 做 DPI 缩放，可用:
+        // scaledAspectWidth = aspectWidth * scaleRatio;
+        // scaledAspectHeight = aspectHeight * scaleRatio;
+
+        // 3) 让视频适配屏幕 (缩放以适应屏幕宽高最短的一边)
+        //   计算能让视频完整显示在屏幕内的最大拉伸倍数
+        double ratioToFillScreen = Math.Min(
+            scaledScreenWidth / scaledAspectWidth,
+            scaledScreenHeight / scaledAspectHeight
+        );
+
+        double finalWidth = scaledAspectWidth * ratioToFillScreen;
+        double finalHeight = scaledAspectHeight * ratioToFillScreen;
+
+        // 4) 让其居中
+        double left = (scaledScreenWidth - finalWidth) / 2.0;
+        double top = (scaledScreenHeight - finalHeight) / 2.0;
+
+        // 5) 返回整型
+        return (
+            (uint)finalWidth,
+            (uint)finalHeight
+        );
+    }
+
     public void ResetWindowSize(Window window)
     {
         // Reset to default dimensions

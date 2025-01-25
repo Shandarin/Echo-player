@@ -8,15 +8,15 @@
         xmlns:i1="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:converters="clr-namespace:Echo.Converters"
         Title="Echo Player" 
-        MinWidth="650"
-        MinHeight="430"
+        MinWidth="{Binding MainWindowMinWidth,Mode=TwoWay}"
+        MinHeight="{Binding MainWindowMinHeight,Mode=TwoWay}"
         Background="Black"
-        WindowStyle="{Binding MainWindowStyle}"
-        WindowState="{Binding MainWindowState}"
+        WindowStyle="SingleBorderWindow"
+        WindowState="Normal"
         ResizeMode="CanResizeWithGrip"
         Focusable="True"
         WindowStartupLocation="CenterScreen"
-        SizeToContent="{Binding WindowSizetoContent}"
+        SizeToContent="WidthAndHeight"
         Left="{Binding MainWindowLeft,Mode=TwoWay}"
         Top="{Binding MainWindowTop,Mode=TwoWay}"
         >
@@ -92,9 +92,8 @@
                                 Panel.ZIndex="1" 
                                 MouseMove="OnMouseMove"
                                 MouseLeftButtonDown="OnMouseLeftButtonDown"
-                          PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"
                      >
-                        
+                        <!--todo
                         <Grid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Play/Pause" Command="{Binding VideoControlVM.PlayOrPauseCommand}">
@@ -143,7 +142,7 @@
                                 </MenuItem>
                             </ContextMenu>
                         </Grid.ContextMenu>
-
+-->
 
                         <!-- 字幕容器 -->
                     <StackPanel x:Name="SubtitleBorder"
@@ -202,7 +201,7 @@
         </Grid>
 
         <!-- 底部控制栏 -->
-        <views:VideoControlView DataContext="{Binding VideoControlVM}"  Grid.Row="2"/>
+        <views:VideoControlView x:Name="VideoControlView" DataContext="{Binding VideoControlVM}"  Grid.Row="2"/>
 
     </Grid>
 </Window>

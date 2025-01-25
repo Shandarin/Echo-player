@@ -20,6 +20,7 @@ using Echo.Services;
 using Echo.Views;
 using Echo.Managers;
 using SubtitlesParser.Classes;
+using System.Reflection;
 
 namespace Echo.ViewModels
 {
@@ -31,22 +32,21 @@ namespace Echo.ViewModels
         private readonly WordClickHandler _wordClickHandler;
         private readonly WindowSizeHandler _windowSizeHandler = new();
         private readonly TranslationService _translationService;
-        private readonly ScrollingSubtitleHandler _scrollingSubtitleHandler;
-        private bool _hasAdjustedAspectRatio = false;
-        
+        //private readonly ScrollingSubtitleHandler _scrollingSubtitleHandler;
 
+        private bool _hasAdjustedAspectRatio = false;
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
         private SentencePanelView _sentencePanelView;
         
-        private TextBlock _prevSubtitleBlock;
-        private TextBlock _nextSubtitleBlock;
+        //private TextBlock _prevSubtitleBlock;
+        //private TextBlock _nextSubtitleBlock;
 
         //for double click detect
         private DateTime lastClickTime = DateTime.MinValue;
         private const double DOUBLE_CLICK_INTERVAL = 300; // 300ms for double click detection
 
-        //for obtain actual screen resolution
+        //obtain actual screen resolution
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int nIndex);
 
@@ -57,6 +57,7 @@ namespace Echo.ViewModels
         #region Events
         public event EventHandler<bool> FullscreenChanged;
         public event EventHandler<string> VideoFilePathChanged;
+        public event EventHandler<bool> ToggleFullScreenRequested;
         #endregion
 
         #region Observable Properties
@@ -85,10 +86,16 @@ namespace Echo.ViewModels
         private string _videoAreaContainerBackground = "Black"; //避免启动时背景为其他颜色
 
         [ObservableProperty]
-        private string _videoViewHeight;
+        private string _videoViewHeight = "Auto";
 
         [ObservableProperty]
-        private string _videoViewWidth;
+        private string _videoViewWidth = "Auto";
+
+        [ObservableProperty]
+        private string _previousVideoViewHeight;
+
+        [ObservableProperty]
+        private string _previousVideoViewWidth;
 
         [ObservableProperty]
         private uint _mainWindowLeft;
@@ -135,6 +142,22 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _playImage;
 
+        [ObservableProperty]
+        private string _aspectRatio = "Default";
+
+        //[ObservableProperty]
+        //private uint _mainWindowMinWidth = 200;
+
+        //[ObservableProperty]
+        //private uint _mainWindowMinHeight = 150;
+
+        //[ObservableProperty]
+        //private uint _mainWindowWidth = 800;
+
+        //[ObservableProperty]
+        //private uint _mainWindowHeight = 200;
+
+
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -144,7 +167,6 @@ namespace Echo.ViewModels
 
         public FrameworkElement VideoViewElement { get; set; }
         public FrameworkElement SubtitleTextElement { get; set; }
-
         public LibVLCSharp.Shared.MediaPlayer MediaPlayer => _mediaPlayer;
 
         #endregion
@@ -156,7 +178,9 @@ namespace Echo.ViewModels
             _libVLC = new LibVLC();
             _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
             _mediaPlayer.EnableHardwareDecoding = true;
-            
+
+            //_mediaPlayer.AspectRatio = "1:1";
+
             VideoControlVM = new VideoControlViewModel(_mediaPlayer);
             MenuBarVM = new MenuBarViewModel();
 
@@ -177,32 +201,30 @@ namespace Echo.ViewModels
             MenuBarVM.BackwardTimeChanged += (s, e) => BackwardTime = e;
             MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
 
-            FullscreenChanged += HandleFullscreenChanged;
-
             MediaPlayer.Playing += OnMediaPlaying;
-
 
 
             // Initialize services and handlers
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
             _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer);
-            _scrollingSubtitleHandler = new ScrollingSubtitleHandler();
+            //_scrollingSubtitleHandler = new ScrollingSubtitleHandler();
 
             _subtitleHandler.SubtitlesLoaded += subtitles =>
             {
-                _scrollingSubtitleHandler?.SetSubtitles(subtitles);
+                //_scrollingSubtitleHandler?.SetSubtitles(subtitles);
             };
 
             _mediaPlayer.Paused += (sender, e) =>
             {
-                PlayImage = "▶";
+                //PlayImage = "▶";
                 _subtitleHandler?.Pause();
             };
 
             _mediaPlayer.Stopped += (sender, e) =>
             {
                 _subtitleHandler?.Stop();
+                VideoAreaContainerBackground = "Black";
             };
 
             _mediaPlayer.TimeChanged += (sender, e) =>
@@ -210,7 +232,7 @@ namespace Echo.ViewModels
                 if (_mediaPlayer.IsPlaying)
                 {
                     _subtitleHandler.UpdateTime(e.Time);
-                    _scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
+                    //_scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
                 }
 
             };
@@ -227,10 +249,11 @@ namespace Echo.ViewModels
 
         #region Callbacks 
 
-        partial void OnIsFullScreenChanged(bool value)
-        {
-            FullscreenChanged?.Invoke(this, value);
-        }
+        //partial void OnIsFullScreenChanged(bool value)
+        //{
+        //    FullscreenChanged?.Invoke(this, value);
+        //    //MediaPlayer.ToggleFullscreen();
+        //}
 
         partial void OnIsSubtitleVisibleChanged(bool value)
         {
@@ -268,41 +291,22 @@ namespace Echo.ViewModels
             VideoFilePathChanged?.Invoke(this, value);
         }
 
-        //partial void OnVideoFilePathChanged(string value)
-        //{
-        //    VideoFilePathChanged?.Invoke(this, value);
-        //}
-
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
+            
+
+            VideoAreaContainerBackground = "Transparent";
 
             PlayImage = "⏸";
 
             _subtitleHandler?.Start();
             if (!_hasAdjustedAspectRatio)
             {
+
                 HandleAspectRatioChanged(sender, "Default");
                 _hasAdjustedAspectRatio = true;
-            }
-            
+            }  
             _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
-            
-
-
-
-            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Timeout, 100);
-            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Size, 10);
-            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Position, 4);
-            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Color, (int)4);
-            //MediaPlayer.SetMarqueeString(VideoMarqueeOption.Text, "dfadfsadfs");
-            //MediaPlayer.SetMarqueeInt(VideoMarqueeOption.Enable, 1);
-
-        }
-
-
-        private void HandleFullscreenChanged(object? sender, bool www)
-        {
-            Debug.WriteLine($"fuul{www}");
         }
 
         #endregion
@@ -312,6 +316,7 @@ namespace Echo.ViewModels
         private void HandleAspectRatioChanged(object sender, string ratio)
         {
             if (!MediaPlayer.IsPlaying) return;
+            WindowSizeToContent = SizeToContent.WidthAndHeight;
             uint videoWidth = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Width;
             uint videoHeight = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Height;
 
@@ -321,9 +326,30 @@ namespace Echo.ViewModels
             (uint vvWidth, uint vvHeight, MainWindowLeft, MainWindowTop) =
                  _windowSizeHandler.CalculateWindowSize(MainWindowLeft, MainWindowTop, videoWidth, videoHeight, ratio);
 
+            
             VideoViewWidth = vvWidth.ToString();
             VideoViewHeight = vvHeight.ToString();
 
+            AspectRatio = ratio;
+
+        }
+
+        private void FullVideoView(object? sender, EventArgs e)
+        {
+            if (IsFullScreen)
+            {
+                uint videoWidth = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Width;
+                uint videoHeight = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Height;
+                if (videoWidth == 0 || videoHeight == 0)
+                    return;
+
+                (uint vvWidth, uint vvHeight) =
+                _windowSizeHandler.CalculateFullWindowSize(videoWidth, videoHeight, AspectRatio);
+
+                VideoViewWidth = vvWidth.ToString();
+                VideoViewHeight = vvHeight.ToString();
+
+            }
         }
 
         private void HandleScreenshotRequested(object sender, EventArgs e)
@@ -403,8 +429,6 @@ namespace Echo.ViewModels
         }
         #endregion
 
-
-
         #region commands
 
         [RelayCommand]
@@ -444,9 +468,10 @@ namespace Echo.ViewModels
                     _mediaPlayer.Media?.Dispose();
                     _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
                     _mediaPlayer.Play();
+                    //VideoAreaContainerBackground = "Transparent";
 
                     VideoFilePath = filePath;
-                    VideoAreaContainerBackground = "Transparent";
+                    
 
                     // 自动检查同名字幕
                     _subtitleHandler.Dispose();
@@ -516,7 +541,7 @@ namespace Echo.ViewModels
         private void ToggleScrollingSubtitles(bool isEnabled)
         {
             IsScrollingEnabled = isEnabled;
-            _scrollingSubtitleHandler?.EnableScrolling(isEnabled);
+            //_scrollingSubtitleHandler?.EnableScrolling(isEnabled);
         }
 
         #endregion
@@ -563,8 +588,6 @@ namespace Echo.ViewModels
             }
         }
 
-
-
         public void SetSubtitleBlocks(TextBlock mainBlock, TextBlock prevBlock, TextBlock nextBlock)
         {
             if (mainBlock == null)
@@ -572,7 +595,7 @@ namespace Echo.ViewModels
 
             _subtitleTextBlock = mainBlock;
             _wordClickHandler.SetTextBlock(mainBlock);
-            _scrollingSubtitleHandler.Initialize(mainBlock, prevBlock, nextBlock);
+            //_scrollingSubtitleHandler.Initialize(mainBlock, prevBlock, nextBlock);
         }
 
 
@@ -626,30 +649,18 @@ namespace Echo.ViewModels
         public void ToggleFullScreen()
         {
             _isFullScreen = !_isFullScreen;
-
-            if (_isFullScreen)
+            ToggleFullScreenRequested?.Invoke(this, _isFullScreen);
+            if (IsFullScreen)
             {
-                WindowSizeToContent = SizeToContent.Manual;
-                MainWindowStyle = WindowStyle.None;
-                MainWindowState = WindowState.Maximized;
-                //_mediaPlayer.ToggleFullscreen();
+                FullVideoView(null, null);
             }
             else
             {
-                WindowSizeToContent = SizeToContent.WidthAndHeight;
-                MainWindowStyle = WindowStyle.SingleBorderWindow;
-                MainWindowState = WindowState.Normal;
-                //_mediaPlayer.ToggleFullscreen();
+                HandleAspectRatioChanged(null, "Default");
             }
+            
+            _mediaPlayer.ToggleFullscreen();
 
-            VideoViewHeight = "Auto";
-            VideoViewWidth = "Auto";
-
-
-            VideoControlVM.IsControlBarVisible = !_isFullScreen;
-            MenuBarVM.IsMenuBarVisible = VideoControlVM.IsControlBarVisible;
-
-            OnPropertyChanged(nameof(IsFullScreen));
         }
 
 
@@ -701,6 +712,8 @@ namespace Echo.ViewModels
             SubtitleBackgroud = argbValue;
             //Debug.WriteLine(argbValue);
         }
+
+        #endregion
 
         public void OnPreviewKeyDown(KeyEventArgs e)
         {
@@ -759,6 +772,19 @@ namespace Echo.ViewModels
   
         }
 
-        #endregion
+        public void ShowVideoControlView()
+        {
+
+            MenuBarVM.IsMenuBarVisible = true;
+            VideoControlVM.IsControlBarVisible = true;
+            
+        }
+        public void HideControlView()
+        {
+            VideoControlVM.IsControlBarVisible = false;
+            MenuBarVM.IsMenuBarVisible = false;
+        }
+
+        
     }
 }
