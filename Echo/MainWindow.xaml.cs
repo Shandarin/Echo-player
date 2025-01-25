@@ -31,8 +31,6 @@ namespace Echo
 
             var SubtitletextBlock = this.FindName("SubtitleTextBlock") as TextBlock;
 
-
-
             if (DataContext is MainWindowViewModel vm)
             {
                 VideoView.MediaPlayer = vm.MediaPlayer;
@@ -69,14 +67,6 @@ namespace Echo
 
                 vm.VideoViewElement = VideoView;
 
-                //// 订阅全屏事件
-                //vm.FullscreenChanged += (_, isFullscreen) =>
-                //{
-                //    if (isFullscreen)
-                //    {
-                //        //_fullscreenStartTime = DateTime.Now;
-                //    }
-                //};
                 vm.ToggleFullScreenRequested += HandleToggleFullScreenRequested;
             }
 
@@ -161,7 +151,8 @@ namespace Echo
             if (vm.IsFullScreen)
             {
                 double distanceMoved = (currentPosition - _lastMousePosition).Length;
-                if (distanceMoved > 10)
+                
+                if (distanceMoved > 50)
                 {
                     // 显示控制栏
                     if (!vm.VideoControlVM.IsControlBarVisible)
@@ -189,6 +180,7 @@ namespace Echo
                 //Debug.WriteLine(secondsSinceLastMove);
                 if (secondsSinceLastMove >= 3)
                 {
+                
                     // 鼠标已经停止 3 秒，隐藏控制栏
                     vm.VideoControlVM.IsControlBarVisible = false;
                     // vm.MenuBarVM.IsMenuBarVisible = false;//会出错

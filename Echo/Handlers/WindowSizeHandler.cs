@@ -158,6 +158,66 @@ public class WindowSizeHandler
         );
     }
 
+    public (uint adjustedWidth, uint adjustedHeight) CalculateNormalWindowSize(
+    uint videoWidth,
+    uint videoHeight,
+    string ratio)
+    {
+        // 1) 解析宽高比
+        double aspectWidth, aspectHeight;
+        if (string.Equals(ratio, "Default", StringComparison.OrdinalIgnoreCase))
+        {
+            // 使用视频的原始宽高
+            aspectWidth = videoWidth;
+            aspectHeight = videoHeight;
+        }
+        else
+        {
+            // 解析例如 "16:9" 或 "4:3" 这样的比例
+            var aspectParts = ratio.Split(':');
+            if (aspectParts.Length != 2 ||
+                !double.TryParse(aspectParts[0], out aspectWidth) ||
+                !double.TryParse(aspectParts[1], out aspectHeight) ||
+                aspectWidth <= 0 || aspectHeight <= 0)
+            {
+                // 如果比例解析失败，回退到视频原始宽高
+                aspectWidth = videoWidth;
+                aspectHeight = videoHeight;
+            }
+            else
+            {
+                // 确保计算比例后，高度仍然基于视频
+                aspectHeight = videoHeight / (aspectWidth / aspectHeight);
+                aspectWidth = videoWidth;
+            }
+        }
+
+        // 2) 获取屏幕 DPI 缩放后的分辨率
+        double scaledScreenWidth = SystemParameters.PrimaryScreenWidth;
+        double scaledScreenHeight = SystemParameters.PrimaryScreenHeight;
+
+        // 3) 确定常规窗口的宽高上限（通常设置为屏幕的一部分）
+        const double windowSizeFactor = 0.5; // 常规窗口占屏幕的一半
+        double maxNormalWidth = scaledScreenWidth * windowSizeFactor;
+        double maxNormalHeight = scaledScreenHeight * windowSizeFactor;
+
+        // 4) 计算适配常规窗口的最大缩放比例
+        double ratioToFitNormalWindow = Math.Min(
+            maxNormalWidth / aspectWidth,
+            maxNormalHeight / aspectHeight
+        );
+
+        // 5) 根据缩放比例调整宽高
+        double adjustedWidth = aspectWidth * ratioToFitNormalWindow;
+        double adjustedHeight = aspectHeight * ratioToFitNormalWindow;
+
+        // 6) 返回整型宽高
+        return (
+            (uint)adjustedWidth,
+            (uint)adjustedHeight
+        );
+    }
+
     public void ResetWindowSize(Window window)
     {
         // Reset to default dimensions

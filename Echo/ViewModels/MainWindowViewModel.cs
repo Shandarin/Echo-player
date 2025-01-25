@@ -86,10 +86,10 @@ namespace Echo.ViewModels
         private string _videoAreaContainerBackground = "Black"; //避免启动时背景为其他颜色
 
         [ObservableProperty]
-        private string _videoViewHeight = "Auto";
+        private string _videoViewHeight = "300";
 
         [ObservableProperty]
-        private string _videoViewWidth = "Auto";
+        private string _videoViewWidth = "580";
 
         [ObservableProperty]
         private string _previousVideoViewHeight;
@@ -145,17 +145,7 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _aspectRatio = "Default";
 
-        //[ObservableProperty]
-        //private uint _mainWindowMinWidth = 200;
 
-        //[ObservableProperty]
-        //private uint _mainWindowMinHeight = 150;
-
-        //[ObservableProperty]
-        //private uint _mainWindowWidth = 800;
-
-        //[ObservableProperty]
-        //private uint _mainWindowHeight = 200;
 
 
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
@@ -326,9 +316,9 @@ namespace Echo.ViewModels
             (uint vvWidth, uint vvHeight, MainWindowLeft, MainWindowTop) =
                  _windowSizeHandler.CalculateWindowSize(MainWindowLeft, MainWindowTop, videoWidth, videoHeight, ratio);
 
-            
             VideoViewWidth = vvWidth.ToString();
             VideoViewHeight = vvHeight.ToString();
+            Debug.WriteLine($"vvWidth:{vvWidth} vvHeight:{vvHeight} MainWindowLeft:{MainWindowLeft} MainWindowTop:{MainWindowTop}");
 
             AspectRatio = ratio;
 
@@ -345,6 +335,24 @@ namespace Echo.ViewModels
 
                 (uint vvWidth, uint vvHeight) =
                 _windowSizeHandler.CalculateFullWindowSize(videoWidth, videoHeight, AspectRatio);
+
+                VideoViewWidth = vvWidth.ToString();
+                VideoViewHeight = vvHeight.ToString();
+
+            }
+        }
+
+        private void NormalVideoView(object? sender, EventArgs e)
+        {
+            if (!IsFullScreen)
+            {
+                uint videoWidth = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Width;
+                uint videoHeight = MediaPlayer.Media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video).Data.Video.Height;
+                if (videoWidth == 0 || videoHeight == 0)
+                    return;
+
+                (uint vvWidth, uint vvHeight) =
+                _windowSizeHandler.CalculateNormalWindowSize(videoWidth, videoHeight, AspectRatio);
 
                 VideoViewWidth = vvWidth.ToString();
                 VideoViewHeight = vvHeight.ToString();
@@ -653,13 +661,22 @@ namespace Echo.ViewModels
             if (IsFullScreen)
             {
                 FullVideoView(null, null);
+                ///HideControlView();
+                MenuBarVM.IsMenuBarVisible = false;
+                //PreviousVideoViewHeight = VideoViewHeight;
+                //PreviousVideoViewWidth = VideoViewWidth;
             }
             else
             {
-                HandleAspectRatioChanged(null, "Default");
+                NormalVideoView(null, null);
+                //ShowVideoControlView();
+                MenuBarVM.IsMenuBarVisible = true;
+                //VideoViewHeight = PreviousVideoViewHeight;
+                //VideoViewWidth = PreviousVideoViewWidth;
+                Debug.WriteLine($"VideoViewWidth {VideoViewWidth}");
             }
             
-            _mediaPlayer.ToggleFullscreen();
+           // _mediaPlayer.ToggleFullscreen();
 
         }
 
