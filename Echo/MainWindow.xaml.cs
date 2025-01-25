@@ -21,7 +21,7 @@ namespace Echo
         private DateTime _lastMouseMoveTime;
         private Point _lastMousePosition;
 
-        private const double SUBTITLE_AREA_HEIGHT = 150;//不能固定高度，要跟随字幕高度变化
+        private double _subtitle_area_height;
 
         private bool _isInSubtitleArea = false;
 
@@ -51,6 +51,16 @@ namespace Echo
                     vm.SetSubtitleBlocks(mainSubtitleBlock, prevSubtitleBlock, nextSubtitleBlock);
                     // 同时让 VM 知道主字幕 TextBlock
                     vm.SubtitleTextElement = mainSubtitleBlock;
+
+                    _subtitle_area_height = mainSubtitleBlock.Height + 10;
+
+                    mainSubtitleBlock.LayoutUpdated += (s, e) =>
+                    {
+                        if (mainSubtitleBlock.ActualHeight != _subtitle_area_height)
+                        {
+                            _subtitle_area_height = mainSubtitleBlock.ActualHeight +10;
+                        }
+                    };
                 }
 
                 if (FindName("VideoControlView") is VideoControlView videoControlView)
@@ -242,7 +252,7 @@ namespace Echo
 
         private bool IsInSubtitleArea(Point mousePosition)
         {
-            double subtitleAreaTop = MouseDetectionLayer.ActualHeight - SUBTITLE_AREA_HEIGHT;
+            double subtitleAreaTop = MouseDetectionLayer.ActualHeight - _subtitle_area_height;
             return mousePosition.Y >= subtitleAreaTop;
         }
 
