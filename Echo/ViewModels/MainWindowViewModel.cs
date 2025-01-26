@@ -54,11 +54,11 @@ namespace Echo.ViewModels
         private const int SM_CXSCREEN = 0; // 主屏幕宽度
         private const int SM_CYSCREEN = 1; // 主屏幕高度
 
-
         #region Events
         public event EventHandler<bool> FullscreenChanged;
         public event EventHandler<string> VideoFilePathChanged;
         public event EventHandler<bool> ToggleFullScreenRequested;
+        
         #endregion
 
         #region Observable Properties
@@ -146,9 +146,6 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _aspectRatio = "Default";
 
-
-
-
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -209,12 +206,10 @@ namespace Echo.ViewModels
             _mediaPlayer.Paused += (sender, e) =>
             {
                 //PlayImage = "▶";
-                _subtitleHandler?.Pause();
             };
 
             _mediaPlayer.Stopped += (sender, e) =>
             {
-                _subtitleHandler?.Stop();
                 VideoAreaContainerBackground = "Black";
             };
 
@@ -222,21 +217,15 @@ namespace Echo.ViewModels
             {
                 if (_mediaPlayer.IsPlaying)
                 {
-                    _subtitleHandler.UpdateTime(e.Time);
                     //_scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
                 }
-
             };
-            //string text = Resources.LangResx.File;
-            //MessageBox.Show(text);
             LanguageManager.SetLanguage("zh-Hans");
 
             BackwardTime = MenuBarVM.BackwardTime;
             ForwardTime = MenuBarVM.ForwardTime;
 
         }
-
-
 
         #region Callbacks 
 
@@ -254,7 +243,7 @@ namespace Echo.ViewModels
                 if (_subtitleTextBlock != null)
                 {
                     _subtitleTextBlock.Visibility = Visibility.Collapsed;
-                    _subtitleHandler?.Stop();
+
                 }
             }
             else
@@ -265,7 +254,6 @@ namespace Echo.ViewModels
                     _subtitleTextBlock.Visibility = Visibility.Visible;
                     if (!IsMouseHoverEnabled)
                     {
-                        _subtitleHandler?.Start();
                     }
                 }
             }
@@ -273,7 +261,6 @@ namespace Echo.ViewModels
 
         partial void OnSubtitleOpacityChanged(string op)
         {
-            Debug.WriteLine(SubtitleOpacity);
             SetSubtitleBackground();
         }
 
@@ -290,7 +277,6 @@ namespace Echo.ViewModels
 
             PlayImage = "⏸";
 
-            _subtitleHandler?.Start();
             if (!_hasAdjustedAspectRatio)
             {
 
@@ -382,9 +368,7 @@ namespace Echo.ViewModels
             if (_mediaPlayer.IsPlaying)
             {
                 LoadSubtitle(filepath);
-                _subtitleHandler.Start();
             }
-            //Debug.WriteLine($"file {filepath}");
         }
 
         private void HandleMouseHoverEnabledChanged(object? sender, bool value)
@@ -398,7 +382,6 @@ namespace Echo.ViewModels
                 {
                     ShowTextBlock();
                 }
-                _subtitleHandler?.Start();
             }
             else
             {
@@ -407,7 +390,6 @@ namespace Echo.ViewModels
                 {
                     HideTextBlock();
                 }
-                _subtitleHandler?.Stop();
             }
         }
 
@@ -443,7 +425,6 @@ namespace Echo.ViewModels
         private void LoadSubtitle(string subtitlePath)
         {
             _subtitleHandler.LoadSubtitle(subtitlePath);
-            _subtitleHandler.Start();
         }
 
         private void UpdateSubtitleText(string newText)
@@ -453,7 +434,7 @@ namespace Echo.ViewModels
         }
 
         [RelayCommand]
-        public void OpenFile()
+        public async Task OpenFileAsync()
         {
             var dialog = new OpenFileDialog
             {
@@ -482,10 +463,7 @@ namespace Echo.ViewModels
 
                     VideoFilePath = filePath;
 
-                    SubtitleExtractHandler.ExtractEmbeddedSubtitles(filePath);
-
-
-                    // 自动检查同名字幕
+                    // step 1: check same dir for subtitles
                     _subtitleHandler.Dispose();
                     var srtPath = Path.ChangeExtension(filePath, ".srt");
                     var assPath = Path.ChangeExtension(filePath, ".ass");
@@ -493,16 +471,36 @@ namespace Echo.ViewModels
                     {
                         //MessageBox.Show($"Found subtitle: {srtPath}");
                         LoadSubtitle(srtPath);
-                        _subtitleHandler.Start();
                     }
                     else if (File.Exists(assPath))
                     {
                         //MessageBox.Show($"Found subtitle: {assPath}");
                         LoadSubtitle(assPath);
-                        _subtitleHandler.Start();
+                    }
+
+                    var EmbeddedSubtitleFiles = new List<string>();
+                    //step 2: check extracted embedded subtitles
+                    EmbeddedSubtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
+
+                    //step 3: extract embedded subtitles(not always there)
+                    if (!EmbeddedSubtitleFiles.Any() | EmbeddedSubtitleFiles is null)
+                    {
+                        EmbeddedSubtitleFiles = await SubtitleExtractHandler.ExtractEmbeddedSubtitlesAsync(filePath);
+                    }
+
+                    if (EmbeddedSubtitleFiles.Any())
+                    {
+                        foreach (var file in EmbeddedSubtitleFiles)
+                        {
+                            if (file.Contains("OriginalLang") & !file.Contains("SDH"))
+                            {
+                                LoadSubtitle(file);
+                            }
+                        }
+                        if (!_subtitleHandler.IsLoaded)
+                            LoadSubtitle(EmbeddedSubtitleFiles[0]);
                     }
                 }
-                
             }
         }
 
@@ -578,7 +576,6 @@ namespace Echo.ViewModels
             if (IsMouseHoverEnabled)
             {
                 ShowTextBlock();
-                _subtitleHandler?.Start();
             }
         }
 
@@ -587,7 +584,6 @@ namespace Echo.ViewModels
             if (IsMouseHoverEnabled)
             {
                 HideTextBlock();
-                _subtitleHandler?.Stop();
             }
         }
         public void OnSubtitleAreaMouseLeftButtonDown(System.Windows.Input.MouseEventArgs e)

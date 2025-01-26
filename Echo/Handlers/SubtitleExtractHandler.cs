@@ -12,7 +12,7 @@ namespace Echo.Handlers
     public class SubtitleExtractHandler
     {
 
-        public static async Task ExtractEmbeddedSubtitles(string videoPath)
+        public static async Task<List<string>> ExtractEmbeddedSubtitlesAsync(string videoPath)
         {
             var appRootDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var mkvExtractPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvextract.exe");
@@ -26,19 +26,20 @@ namespace Echo.Handlers
             var trackInfo = GetTrackInfo(mkvInfoPath, videoPath);
             if (string.IsNullOrEmpty(trackInfo))
             {
-                throw new Exception("Failed to get track info from video file.");
+                return null;
             }
 
             // Parse subtitle tracks
             var subtitleTracks = ParseTracks(trackInfo);
             if (!subtitleTracks.Any())
             {
-                throw new Exception("No subtitle tracks found in the video file.");
+                return null;
             }
 
             // Get video filename without extension for naming subtitle files
             var videoFileName = Path.GetFileNameWithoutExtension(videoPath);
 
+            var subtitleFiles = new List<string>();
             foreach (var track in subtitleTracks)
             {
                 // Generate subtitle filename
@@ -68,6 +69,7 @@ namespace Echo.Handlers
                             var errorMessage = process.StandardError.ReadToEnd();
                             throw new Exception($"Failed to extract subtitle track {track.TrackId}: {errorMessage}");
                         }
+                        subtitleFiles.Add(outputPath);
                     }
                     catch (Exception ex)
                     {
@@ -75,6 +77,7 @@ namespace Echo.Handlers
                     }
                 }
             }
+            return subtitleFiles;
         }
 
         private static string GetTrackInfo(string mkvInfoPath, string videoPath)
@@ -165,11 +168,11 @@ namespace Echo.Handlers
             //    parts.Add(track.Name);
             //}
 
-            //// Add SDH indicator if it's for hearing impaired
-            //if (track.IsHearingImpaired)
-            //{
-            //    parts.Add("SDH");
-            //}
+            // Add SDH indicator if it's for hearing impaired
+            if (track.IsHearingImpaired)
+            {
+                parts.Add("SDH");
+            }
 
             // Add default indicator
             if (track.IsOriginalLanguage)
@@ -190,7 +193,6 @@ namespace Echo.Handlers
 
             foreach (var line in lines)
             {
-                Debug.WriteLine(line);
                 var trimmedLine = line.Trim();
 
                 // Start of a new track
@@ -233,6 +235,11 @@ namespace Echo.Handlers
                 //    currentTrack.IsDefault = trimmedLine.Split(':')[1].Trim() == "1";
                 //}
 
+                else if (trimmedLine.Contains("\"Hearing impaired\" flag:"))
+                {
+                    currentTrack.IsHearingImpaired = trimmedLine.Split(':')[1].Trim() == "1";
+                }
+
                 else if (trimmedLine.Contains("Original language"))
                 {
                     currentTrack.IsOriginalLanguage = trimmedLine.Split(':')[1].Trim() == "1";
@@ -244,7 +251,6 @@ namespace Echo.Handlers
             if (currentTrack != null && currentTrack.IsSubtitle)
             {
                 trackInfos.Add(currentTrack);
-                Debug.WriteLine(currentTrack.TrackId);
             }
 
             return trackInfos;
@@ -273,6 +279,39 @@ namespace Echo.Handlers
             }
         }
 
+        public static List<string> FindEmbeddedSubtitleFiles(string videoPath)
+        {
+            var embeddedSubtitlePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Echo", "Subtitles");
+
+            var videoFileName = Path.GetFileNameWithoutExtension(videoPath);
+            var embeddedSubtitleFiles = new List<string>();
+
+            try
+            {
+                if (Directory.Exists(embeddedSubtitlePath))
+                {
+                    var subtitleFiles = Directory.GetFiles(embeddedSubtitlePath, $"{videoFileName}*.srt")
+                        .Where(file => Path.GetFileName(file).StartsWith(videoFileName, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    embeddedSubtitleFiles.AddRange(subtitleFiles);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error finding subtitle files: {ex.Message}");
+            }
+
+            return embeddedSubtitleFiles;
+        }
+
+        public static async Task<List<string>> FindEmbeddedSubtitleFilesAsync(string videoPath)
+        {
+            return await Task.Run(() => FindEmbeddedSubtitleFiles(videoPath));
+        }
+
         public class SubtitleTrackInfo
         {
             //public int TrackNumber { get; set; }
@@ -281,7 +320,7 @@ namespace Echo.Handlers
             public string Language { get; set; }
             public string Name { get; set; }
             //public bool IsDefault { get; set; }
-            //public bool IsHearingImpaired { get; set; }
+            public bool IsHearingImpaired { get; set; }
             public bool IsOriginalLanguage { get; set; }
             public bool IsSubtitle { get; set; }
         }

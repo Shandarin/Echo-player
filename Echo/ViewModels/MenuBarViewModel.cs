@@ -80,7 +80,7 @@ namespace Echo.ViewModels
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow?.DataContext is MainWindowViewModel vm)
             {
-                vm.OpenFile();
+                 vm.OpenFileAsync();
             }
         }
 

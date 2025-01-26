@@ -7,6 +7,8 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text;
 using System.Text.RegularExpressions;
+using Echo.ViewModels;
+using System.Windows;
 
 namespace Echo.Handlers
 {
@@ -17,6 +19,8 @@ namespace Echo.Handlers
         private readonly Action<string> _updateSubtitleText;
         private long _currentTime;
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
+        
+        public bool IsLoaded = false;
 
         public SubtitleItem CurrentSubtitleItem;
 
@@ -28,11 +32,13 @@ namespace Echo.Handlers
             _subtitles = new List<SubtitleItem>();
             _mediaPlayer = mediaPlayer;
 
-            _timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(100)
-            };
-            _timer.Tick += CheckCurrentSubtitle;
+            mediaPlayer.TimeChanged += HandleMediaTimeChanged;
+        }
+
+        private void HandleMediaTimeChanged(object? sender, MediaPlayerTimeChangedEventArgs e)
+        {
+            CheckCurrentSubtitle(sender,e);
+            UpdateTime(e.Time);
         }
 
         public void LoadSubtitle(string subtitlePath)
@@ -45,30 +51,20 @@ namespace Echo.Handlers
                 _subtitles = parser.ParseStream(fileStream);
                 SubtitlesLoaded?.Invoke(_subtitles);
             }
+            IsLoaded = true;
         }
 
-        public void Start()
+        public void Show()
         {
-            _timer.Start();
+            CheckCurrentSubtitle(null,null);
         }
 
-        public void Pause()
+        public void Hide()
         {
-            _timer.Stop();
-            //_updateSubtitleText(string.Empty);
-        }
-
-        public void Stop()
-        {
-            _timer.Stop();
             _updateSubtitleText(string.Empty);
         }
 
-        //triggered in MainWindowViewModel.cs by :
-        //_mediaPlayer.TimeChanged += (sender, e) =>
-        //    {
-        //        _subtitleHandler.UpdateTime(e.Time);
-        //    };
+
         public void UpdateTime(long currentTimeMs)
             {
                 _currentTime = currentTimeMs;
@@ -109,12 +105,9 @@ namespace Echo.Handlers
             }
         }
 
-
-
         public void Dispose()
         {
-            _timer.Stop();
-            //_timer.Tick -= CheckCurrentSubtitle;
+            IsLoaded = false;
 
             _subtitles?.Clear();
             _subtitles = null;
