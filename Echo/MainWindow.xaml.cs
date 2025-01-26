@@ -49,7 +49,6 @@ namespace Echo
                     FindName("NextSubtitleBlock") is TextBlock nextSubtitleBlock)
                 {
                     vm.SetSubtitleBlocks(mainSubtitleBlock, prevSubtitleBlock, nextSubtitleBlock);
-                    // 同时让 VM 知道主字幕 TextBlock
                     vm.SubtitleTextElement = mainSubtitleBlock;
 
                     _subtitle_area_height = mainSubtitleBlock.Height + 10;
@@ -80,7 +79,7 @@ namespace Echo
                 vm.ToggleFullScreenRequested += HandleToggleFullScreenRequested;
             }
 
-            // 初始化控制栏自动隐藏的计时器
+            // 控制栏自动隐藏的计时器
             _controlBarTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(3)
