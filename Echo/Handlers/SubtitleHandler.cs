@@ -5,6 +5,8 @@ using System.Windows.Threading;
 using LibVLCSharp.Shared;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Echo.Handlers
 {
@@ -107,10 +109,7 @@ namespace Echo.Handlers
             }
         }
 
-        private void GCurrentSubtitle(object sender, EventArgs e)
-        {
 
-        }
 
         public void Dispose()
         {

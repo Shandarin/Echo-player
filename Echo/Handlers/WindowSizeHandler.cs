@@ -218,6 +218,44 @@ public class WindowSizeHandler
         );
     }
 
+    public (uint adjustedWidth, uint adjustedHeight) CalculateResizedVideoSize(
+        double windowWidth,
+        double windowHeight,
+        double videoViewWidth,
+        double videoViewHeight)
+
+    {
+        Debug.WriteLine($"windowWidth {windowWidth}");
+        Debug.WriteLine($"windowHeight {windowHeight}");
+        Debug.WriteLine($"videoViewWidth {videoViewWidth}");
+        Debug.WriteLine($"videoViewHeight {videoViewHeight}");
+
+        // 1) 计算视频的宽高比
+        double aspectRatio = videoViewWidth / videoViewHeight;
+
+        // 2) 获取屏幕 DPI 缩放比例
+        double scaledScreenWidth = SystemParameters.PrimaryScreenWidth;
+        double scaledScreenHeight = SystemParameters.PrimaryScreenHeight;
+
+        int actualScreenWidth = GetSystemMetrics(SM_CXSCREEN); // 实际屏幕宽度（未缩放）
+        int actualScreenHeight = GetSystemMetrics(SM_CYSCREEN); // 实际屏幕高度（未缩放）
+
+        // 计算 DPI 缩放比例
+        double dpiScaleX = scaledScreenWidth / actualScreenWidth;
+        double dpiScaleY = scaledScreenHeight / actualScreenHeight;
+        double dpiScale = Math.Min(dpiScaleX, dpiScaleY);
+
+        // 3) 将窗口宽高调整到缩放后的分辨率
+        double adjustedWidth = windowWidth ;
+        double adjustedHeight = windowHeight ;
+
+        // 6) 返回整型宽高
+        return (
+            (uint)adjustedWidth,
+            (uint)adjustedHeight
+        );
+    }
+
     public void ResetWindowSize(Window window)
     {
         // Reset to default dimensions

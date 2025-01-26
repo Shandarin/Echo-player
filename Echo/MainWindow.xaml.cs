@@ -250,6 +250,15 @@ namespace Echo
             }
         }
 
+        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                //Debug.WriteLine("Size Changed");
+                //vm.OnWindowSizeChanged(e.NewSize);
+            }
+        }
+
         private bool IsInSubtitleArea(Point mousePosition)
         {
             double subtitleAreaTop = MouseDetectionLayer.ActualHeight - _subtitle_area_height;

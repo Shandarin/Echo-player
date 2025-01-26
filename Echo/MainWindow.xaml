@@ -5,6 +5,7 @@
         xmlns:views="clr-namespace:Echo.Views" 
         xmlns:local="clr-namespace:Echo.ViewModels"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:i1="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:converters="clr-namespace:Echo.Converters"
         Title="Echo Player" 
@@ -19,7 +20,10 @@
         SizeToContent="WidthAndHeight"
         Left="{Binding MainWindowLeft,Mode=TwoWay}"
         Top="{Binding MainWindowTop,Mode=TwoWay}"
+        SizeChanged="OnWindowSizeChanged"
         >
+
+
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>

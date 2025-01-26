@@ -21,6 +21,7 @@ using Echo.Views;
 using Echo.Managers;
 using SubtitlesParser.Classes;
 using System.Reflection;
+using LibVLCSharp.WPF;
 
 namespace Echo.ViewModels
 {
@@ -356,7 +357,6 @@ namespace Echo.ViewModels
 
                 VideoViewWidth = vvWidth.ToString();
                 VideoViewHeight = vvHeight.ToString();
-
             }
         }
 
@@ -473,13 +473,17 @@ namespace Echo.ViewModels
                 {
                     _hasAdjustedAspectRatio = false;
                     // 打开视频文件
+
                     _mediaPlayer.Media?.Dispose();
                     _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
                     _mediaPlayer.Play();
-                    //VideoAreaContainerBackground = "Transparent";
+
+                    //_isMouseLoaded = true;
 
                     VideoFilePath = filePath;
-                    
+
+                    SubtitleExtractHandler.ExtractEmbeddedSubtitles(filePath);
+
 
                     // 自动检查同名字幕
                     _subtitleHandler.Dispose();
@@ -552,9 +556,22 @@ namespace Echo.ViewModels
             //_scrollingSubtitleHandler?.EnableScrolling(isEnabled);
         }
 
-        #endregion
+        [RelayCommand]
+        private void WindowSizeChanged(SizeChangedEventArgs e)
+        {
+            Debug.WriteLine($"size {e}");
+        }
 
-        #region Public Methods 
+        //public void OnWindowSizeChanged(Size newSize)
+        //{
+        //    if (_mediaPlayer.Media != null & !IsFullScreen & _hasAdjustedAspectRatio & _mediaPlayer.IsPlaying)
+        //    {
+        //        var result = _windowSizeHandler.CalculateResizedVideoSize(newSize.Width, newSize.Height, double.Parse(VideoViewWidth), double.Parse(VideoViewHeight));
+
+        //        VideoViewWidth = result.Item1.ToString();
+        //        VideoViewHeight = result.Item2.ToString();
+        //    }
+        //}
 
         public void OnSubtitleAreaMouseEnter()
         {
