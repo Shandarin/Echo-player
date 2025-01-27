@@ -18,7 +18,7 @@ Echo Player is a WPF-based video player designed to simplify language learning t
 - Subtitle display on mouse hover
 
 ### Vulcabulary book
-- Collect and save words and sentences for review
+- Save words and sentences for review
 
 ### System Requirements
 - Windows 11
