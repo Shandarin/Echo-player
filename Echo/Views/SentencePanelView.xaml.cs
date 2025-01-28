@@ -2,7 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Echo.Managers;
 using Echo.Services;
+using Echo.ViewModels;
 
 namespace Echo.Views
 {
@@ -10,14 +12,15 @@ namespace Echo.Views
     {
         private Point _dragStartPoint;
         private bool _isDragging = false;
-        private readonly OpenAIService _openAiService;
+        
+        private string translateText;
 
         public event EventHandler CloseRequested;
 
         public SentencePanelView()
         {
             InitializeComponent();
-            _openAiService = new OpenAIService();
+            
         }
 
         public async void Show(string text, Point position)
@@ -73,24 +76,33 @@ namespace Echo.Views
 
         private async System.Threading.Tasks.Task AnalyzeSubtitle(string text, Point position)
         {
+            
             try
             {
                 ShowLoading(true);
-                ContentText.Text = "Analyzing...";
+                ///ContentText.Text = "Analyzing...";
                 UpdatePanelPosition(position); // 确保 "Analyzing..." 状态下位置正确
 
-                // 模拟分析过程
-                var analysis = await _openAiService.AnalyzeSubtitleAsync(text);
+                //var analysis = await _openAiService.AnalyzeSubtitleAsync(text);
+                
 
-                // 更新结果
-                ContentText.Text = analysis;
+                if (DataContext is SentencePanelViewModel vm)
+                {
+                    text = TextManager.RemoveHtmlTags(text);
+                    vm.Sentence = text;
+                    await vm.SentenceTranslateAsync(text);
+                    //analysis = await vm.AnalyzeSubtitleAsync(text);
+                }
+                
+
+                //ContentText.Text = translateText;
 
                 // 更新面板位置，确保完整回复框也在鼠标上方
                 UpdatePanelPosition(position);
             }
             catch (Exception ex)
             {
-                ContentText.Text = $"Analysis failed: {ex.Message}";
+                ///ContentText.Text = $"Analysis failed: {ex.Message}";
                 UpdatePanelPosition(position);
             }
             finally

@@ -81,6 +81,8 @@ namespace Echo.ViewModels
             SelectedLearningLanguage = Properties.Settings.Default.LearningLanguage;
             BackwardTime = Properties.Settings.Default.BackwardTime;
             ForwardTime = Properties.Settings.Default.ForwardTime;
+
+
         }
 
         // File Menu Commands

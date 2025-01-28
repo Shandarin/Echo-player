@@ -1187,6 +1187,21 @@ namespace Echo.Services
             }
         }
 
+        public async Task CollectionSentenceAsync(string Sentence, string ContentText, string SourceLanguage, string TargetLanguage)
+        {
+
+        }
+
+        public async Task RemoveSentenceAsync(string Sentence, string SourceLanguage, string TargetLanguage)
+        {
+
+        }
+
+        public async Task GetSentenceAsync(string Sentence, string SourceLanguage, string TargetLanguage)
+        {
+
+        }
+
         public void Dispose()
         {
             _connection?.Dispose();

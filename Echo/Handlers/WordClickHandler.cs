@@ -43,7 +43,6 @@ namespace Echo.Handlers
         private void OnWordClick(string word, Point position)
         {
             word = TrimAllCharacters(word);
-            Debug.WriteLine($"work clicked!: {word}");
             _translationService?.ShowTranslation(word, position);
             
         }

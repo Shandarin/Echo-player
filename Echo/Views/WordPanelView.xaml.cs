@@ -50,7 +50,7 @@ namespace Echo.Views
 
                 if (videoView == null || subtitleTextBlock == null)
                 {
-                    Debug.WriteLine("VideoView or SubtitleTextBlock not found.");
+                    //Debug.WriteLine("VideoView or SubtitleTextBlock not found.");
                     return;
                 }
 

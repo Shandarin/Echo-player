@@ -10,7 +10,6 @@ namespace Echo.Services
     public class OpenAIService
     {
         private readonly HttpClient _httpClient;
-        private string _targetLanguage ;
 
         private string _apiKey;
         private string _apiModel ;
@@ -29,11 +28,10 @@ namespace Echo.Services
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
         }
 
-        public async Task<string> AnalyzeSubtitleAsync(string subtitle)
+        public async Task<string> AnalyzeSubtitleAsync(string subtitle, string targetLang)
         {
-            _targetLanguage= "中文";
 
-            var prompt = $"For the given sentence, provide the following sections separated by ###:\r\n\t1. Translate the sentence into {_targetLanguage}.\r\n\t2. Analyze the grammar, phrases, and vocabulary used in the sentence.\r\n\t3.  Explain the potential context and emotion conveyed by the sentence.\r\nStrictly use the following format for the output:\r\n\r\nExample Input:\r\n\"I gotta take this thing head on.\"\r\nExample Output:\r\n\r\n###我必须正面应对这件事。### **I gotta: -\"Gotta\" 是 \"got to\" 的口语缩写，表示“必须”或“需要”。-在非正式语境中很常见，语气随意。**Take this thing: -\"Take\" 在这里表示“处理”或“应对”。-\"This thing\" 指代上下文中提到的某个问题、挑战或任务。3. **Head on: -\"Head on\" 是一个短语，意思是“正面地”或“直接地”。-表示一种不回避、不逃避的态度，直接面对问题或挑战。###这句话通常用在描述面对困难或挑战时的决心，语气中带有一种积极和不退缩的态度。适合表达勇气和承担责任的场景。\n" +
+            var prompt = $"For the given sentence, provide the following sections separated by ###:\r\n\t1. Translate the sentence into {targetLang}.\r\n\t2. Analyze the grammar, phrases, and vocabulary used in the sentence.\r\n\t3.  Explain the potential context and emotion conveyed by the sentence.\r\nStrictly use the following format for the output:\r\n\r\nExample Input:\r\n\"I gotta take this thing head on.\"\r\nExample Output:\r\n\r\n###我必须正面应对这件事。### **I gotta: -\"Gotta\" 是 \"got to\" 的口语缩写，表示“必须”或“需要”。-在非正式语境中很常见，语气随意。**Take this thing: -\"Take\" 在这里表示“处理”或“应对”。-\"This thing\" 指代上下文中提到的某个问题、挑战或任务。3. **Head on: -\"Head on\" 是一个短语，意思是“正面地”或“直接地”。-表示一种不回避、不逃避的态度，直接面对问题或挑战。###这句话通常用在描述面对困难或挑战时的决心，语气中带有一种积极和不退缩的态度。适合表达勇气和承担责任的场景。\n" +
                 $"The given sentence\n{subtitle}";
 
             var requestBody = new

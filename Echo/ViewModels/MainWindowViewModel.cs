@@ -528,6 +528,7 @@ namespace Echo.ViewModels
             if (_translationService != null && !_translationService.IsClickInsidePanel(clickPosition))
             {
                 _translationService.CloseTranslation();
+                //_wordPanelView.Close();
             }
 
             if(_sentencePanelView !=null && !_sentencePanelView.IsClickInsidePanel(clickPosition))
@@ -594,6 +595,10 @@ namespace Echo.ViewModels
             //Debug.WriteLine("SubtitleAreaMouseLeftButtonDown");
             if (e.LeftButton == MouseButtonState.Pressed && subtitleText.Length > 0)
             {
+                if(_translationService != null)
+                {
+                    _translationService.CloseTranslation();
+                }
                 if (_sentencePanelView != null)
                 {
                     _sentencePanelView.Close();

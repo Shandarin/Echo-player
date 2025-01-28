@@ -3,25 +3,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Echo.ViewModels"
              mc:Ignorable="d"
              Width="400" MinHeight="100" MaxHeight="400">
-    <Border Background="White" CornerRadius="3">
+
+    <UserControl.DataContext>
+        <vm:SentencePanelViewModel/>
+    </UserControl.DataContext>
+
+    <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" 
+           Background="White" >
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- 标题栏 -->
-
+            <Grid Grid.Row="0">
+                <!-- Sentence -->
+                <TextBlock Text="{Binding Sentence, Mode=OneWay}" 
+                        FontSize="18" 
+                        FontWeight="Bold"
+                        VerticalAlignment="Top"
+                           Margin ="10,10,10,8"/>
+                <!-- Favorite Button -->
+                <Button Grid.Column="1" BorderThickness="0"
+                   Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="0" Opacity="0"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Image Source="{Binding FavoriteIcon}" Width="28"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <!-- 鼠标悬浮触发器 -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="Gray" Opacity="0.5"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Background" Value="#FFECECEC"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
             <!-- 内容区域 -->
             <Grid Grid.Row="1">
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                            Margin="10,5">
-                    <TextBlock x:Name="ContentText"
-                               Text="Analyzing..."
-                               Foreground="#666666"
-                               TextWrapping="Wrap"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="10,5">
+                    <ItemsControl ItemsSource="{Binding ContentLines}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border  Background="white" CornerRadius="5" Padding="1">
+                                    <TextBlock Text="{Binding}" Foreground="#666666" TextWrapping="Wrap"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </ScrollViewer>
 
                 <!-- Loading状态 -->

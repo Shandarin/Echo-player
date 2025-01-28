@@ -29,8 +29,9 @@ namespace Echo.Services
             Console.WriteLine("=== API Tests Completed ===");
         }
 
-        public static async Task OpenAIRequest(string sentence, string sourcelanguagecode, string targetlanguagecode)
+        public static async Task<string> OpenAIRequest(string sentence, string sourcelanguagecode, string targetlanguagecode)
         {
+            Debug.WriteLine("OpenAIRequest");
             string endpoint = $"{BaseUrl}/api/openai";
             var payload = new
             {
@@ -43,6 +44,7 @@ namespace Echo.Services
             string result = await PostRequestAsync(endpoint, payload);
 
             Debug.WriteLine($"Response: {result}");
+            return result;
         }
 
         public static async Task<string> OxfordAPIRequest(string word,string sourcelanguagecode,string targetlanguagecode)
@@ -57,6 +59,7 @@ namespace Echo.Services
 
            
             string result = await PostRequestAsync(endpoint, payload);
+            //Debug.WriteLine(result.);
             //Debug.WriteLine(result);
 
             if (result != null)

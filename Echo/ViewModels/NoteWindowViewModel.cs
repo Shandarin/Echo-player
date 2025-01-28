@@ -63,8 +63,6 @@ namespace Echo.ViewModels
         private string _FavoriteIcon;
         
 
-
-
         // 构造函数
         public NoteWindowViewModel()
         {
