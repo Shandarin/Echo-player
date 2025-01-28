@@ -15,14 +15,6 @@ Echo Player 是一个基于 WPF 的视频播放器，专为语言学习者打造
 | France   |        |            |             |             |
 
 
-
-| Native\Learning  | English   | Chinese | Spanish |France |
-|:---------|------------|------------|------------|------------|
-| English   |        |            |             |             |
-| Chinese  | Tested|            |             |             |
-| Spanish   |        |            |             |             |
-| France   |        |            |             |             |
-
 ### 功能
 #### 字幕功能
 - 点击单词即可查询翻译
