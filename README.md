@@ -35,7 +35,7 @@ Echo Player is a WPF-based video player designed to simplify language learning t
 - Oxford Dictionary: Word lookups
 - OpenAI: Sentence analysis
 - Use your own API keys
-- Or our free API service (currently available at no cost)
+- Or our API service (currently free)
 
 #### Development
 Built using:
