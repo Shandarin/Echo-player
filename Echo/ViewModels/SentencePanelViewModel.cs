@@ -63,18 +63,6 @@ namespace Echo.ViewModels
             TargetLanguage = Properties.Settings.Default.YourLanguage;
 
             Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
-            ContentLines = new List<string>
-        {
-            "部落已经发声了。",
-            "1. \"The tribe\"",
-            "    ○ \"Tribe\" 指的是一个社会群体，通常是基于共同的文化、语言或历史背景。",
-            "    ○ 在某些情况下，\"tribe\" 也可以用于比喻，指代一个志同道合的人群或团体。",
-            "2. \"Has spoken\"",
-            "    ○ \"Has spoken\" 是现在完成时，表示过去的某个动作对现在产生了影响。",
-            "    ○ \"Spoken\" 是 \"speak\" 的过去分词，暗示一种表达、决策或表态的行为。",
-            "3. 整句的结构",
-            "    ○ 句子简洁而有力，强调部落的集体决策或意见，通常会在某种情况下用来表示一种权威或共识。"
-        };
         }
 
 
