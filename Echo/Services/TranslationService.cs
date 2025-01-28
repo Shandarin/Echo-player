@@ -39,7 +39,6 @@ namespace Echo.Services
 
             _container.Children.Add(_wordPanel);
             _wordPanel.Show(word, position);
-            //Debug.WriteLine("show");
         }
 
         public bool IsClickInsidePanel(Point clickPosition)

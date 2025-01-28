@@ -120,7 +120,7 @@ namespace Echo.ViewModels
         private async Task PlayPronunciation(string audioUrl)
         {
             if (string.IsNullOrEmpty(audioUrl)) return;
-            // TODO: Implement audio playback
+            await OnlineAudioPlayService.PlayAudioAsync(audioUrl);
         }
 
         [RelayCommand]
@@ -152,41 +152,54 @@ namespace Echo.ViewModels
                     return ;
                 }
 
-                // First API call to get head word and other details
-                var (headword, details) = await _oxfordService.GetWordDetailsAsync(word, sourceLang);
-                if (string.IsNullOrEmpty(headword))
+                WordModel wordModel = new ();
+                //请求Echo Server
+                if (Properties.Settings.Default.IsEchoAPIEnabled)
                 {
-                    ErrorMessage = "Word not found";
-                    
-                    return;
+                    var responseString= await EchoService.OxfordAPIRequest(word,sourceLang,targetLang);
+                    wordModel = await EchoService.ParseOxfordAsync(responseString);
+                }
+                else
+                {
+
+                    // First API call to get head word and other details
+                    var (headword, details) = await _oxfordService.GetWordDetailsAsync(word, sourceLang);
+                    if (string.IsNullOrEmpty(headword))
+                    {
+                        ErrorMessage = "Word not found";
+
+                        return;
+                    }
+
+                    wordLocal = await _databaseService.GetWordFromLocalAsync(headword.ToLower(), sourceLang, targetLang);
+                    if (wordLocal != null)
+                    {
+                        HeadwordOP = wordLocal.Word;
+                        Pronunciations = wordLocal.Pronounciations;
+                        Definitions = wordLocal.Definitions;
+                        CurrentWordModel = wordLocal;
+                        AddInfo();
+                        return;
+                    }
+                    //_wordDetails = details;
+
+                    // Second API call to get translations
+                    wordModel = await _oxfordService.GetTranslationsAsync(headword, sourceLang, targetLang);
+
+                    if (wordModel?.Definitions == null || !wordModel.Definitions.Any())
+                    {
+                        ErrorMessage = "Translation not found";
+
+                        return;
+                    }
+
                 }
 
-                wordLocal = await _databaseService.GetWordFromLocalAsync(headword.ToLower(), sourceLang, targetLang);
-                if (wordLocal != null)
+
+                string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
                 {
-                    HeadwordOP = wordLocal.Word;
-                    Pronunciations = wordLocal.Pronounciations;
-                    Definitions = wordLocal.Definitions;
-                    CurrentWordModel = wordLocal;
-                    AddInfo();
-                    return;
-                }
-                //_wordDetails = details;
-
-                // Second API call to get translations
-                var wordModel = await _oxfordService.GetTranslationsAsync(headword, sourceLang, targetLang);
-
-                if (wordModel?.Definitions == null || !wordModel.Definitions.Any())
-                {
-                    ErrorMessage = "Translation not found";
-                   
-                    return;
-                }
-
-                //string json = System.Text.Json.JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
-                //{
-                //    WriteIndented = true   // 缩进美化输出
-                //});
+                    WriteIndented = true   // 缩进美化输出
+                });
 
                 HeadwordOP = wordModel.Word;
 

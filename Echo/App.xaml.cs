@@ -1,8 +1,11 @@
-﻿using System.Configuration;
+﻿using Echo.Managers;
+using Microsoft.Win32;
+using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.Threading; 
 using System.Windows;
+using System.Windows.Media.Animation;
 
 namespace Echo
 {
@@ -13,6 +16,14 @@ namespace Echo
             // 程序启动默认语言（简体中文）
             Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-Hans");
             Thread.CurrentThread.CurrentCulture = new CultureInfo("zh-Hans");
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            // 获取或生成 API Key
+            string apiKey = APIKeyManager.GetOrCreateApiKey();
         }
 
         public void ChangeLanguage(string cultureCode)
@@ -32,5 +43,7 @@ namespace Echo
                 oldWindow.Content = newWindow.Content;
             }
         }
+
+      
     }
 }

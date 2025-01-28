@@ -11,66 +11,76 @@ namespace Echo.ViewModels
     public partial class MenuBarViewModel : ObservableObject
     {
         [ObservableProperty]
-        private bool isSubtitleVisible = true;
+        private bool _isSubtitleVisible;
 
         [ObservableProperty]
-        private bool isMouseHoverEnabled = true;
+        private bool _isMouseHoverEnabled;
 
         [ObservableProperty]
-        private bool isSentenceAnalysisEnabled = true;
+        private bool _isSentenceAnalysisEnabled;
 
         [ObservableProperty]
-        private bool isWordQueryEnabled = true;
+        private bool _isWordQueryEnabled;
+
+        //[ObservableProperty]
+        //private bool _isScrollSubtitleEnabled = true;
 
         [ObservableProperty]
-        private bool isScrollSubtitleEnabled = true;
+        private double _subtitleOpacity;
+
+        //[ObservableProperty]
+        //private string _softwareLanguage;
+
+        //[ObservableProperty]
+        //private string currentFontFamily = "Arial";
+
+        //[ObservableProperty]
+        //private double currentFontSize = 20;
+
+        //[ObservableProperty]
+        //private string currentSubtitleTrack = "Track 1";
+
+        //[ObservableProperty]
+        //private double currentScale = 1.0;
 
         [ObservableProperty]
-        private double subtitleOpacity = 0.5;
-
-        [ObservableProperty]
-        private string currentLanguage = "zh";
-
-        [ObservableProperty]
-        private string currentFontFamily = "Arial";
-
-        [ObservableProperty]
-        private double currentFontSize = 20;
-
-        [ObservableProperty]
-        private string currentSubtitleTrack = "Track 1";
-
-        [ObservableProperty]
-        private double currentScale = 1.0;
-
-        [ObservableProperty]
-        private string selectedAspectRatio = "Default";
+        private string _selectedAspectRatio;
 
         [ObservableProperty]
         private bool isMenuBarVisible = true;
 
-        [ObservableProperty]
-        private double textBlockMarginBottom = 10;
+        //[ObservableProperty]
+        //private double textBlockMarginBottom = 10;
 
         [ObservableProperty]
-        private string _selectedSoftwareLanguage = "zh-Hans";
+        private string _selectedSoftwareLanguage;
 
         [ObservableProperty]
-        private string _selectedYourLanguage = "zh";
+        private string _selectedYourLanguage;
 
         [ObservableProperty]
-        private string _selectedLearningLanguage = "en";
+        private string _selectedLearningLanguage;
 
         [ObservableProperty]
-        private int _backwardTime = 10;
+        private uint _backwardTime;
 
         [ObservableProperty]
-        private int _forwardTime = 10;
+        private uint _forwardTime;
 
         public MenuBarViewModel() 
 
         {
-            
+            IsSubtitleVisible = Properties.Settings.Default.IsSubtitleVisible;
+            IsMouseHoverEnabled = Properties.Settings.Default.IsMouseHoverEnabled;
+            IsSentenceAnalysisEnabled =  Properties.Settings.Default.IsSentenceAnalysisEnabled;
+            IsWordQueryEnabled = Properties.Settings.Default.IsWordQueryEnabled;
+            SubtitleOpacity =  Properties.Settings.Default.SubtitleOpacity;
+            SelectedSoftwareLanguage = Properties.Settings.Default.SoftwareLanguage;
+            SelectedAspectRatio = Properties.Settings.Default.AspectRatio;
+            SelectedYourLanguage = Properties.Settings.Default.YourLanguage;
+            SelectedLearningLanguage = Properties.Settings.Default.LearningLanguage;
+            BackwardTime = Properties.Settings.Default.BackwardTime;
+            ForwardTime = Properties.Settings.Default.ForwardTime;
         }
 
         // File Menu Commands
@@ -156,13 +166,6 @@ namespace Echo.ViewModels
             OnFontFamilyChanged?.Invoke(this, fontFamily);
         }
 
-        [RelayCommand]
-        private void ChangeSystemLanguage(string language)
-        {
-            //CurrentLanguage = language;
-            OnSystemLanguageChanged?.Invoke(this, language);
-        }
-
         // Dictionary Menu Commands
         [RelayCommand]
         private void ConfigureWordAPI()
@@ -184,9 +187,9 @@ namespace Echo.ViewModels
 
             if (mainWindow?.DataContext is MainWindowViewModel vm)
             {
-                IsScrollSubtitleEnabled = !IsScrollSubtitleEnabled;
+                //IsScrollSubtitleEnabled = !IsScrollSubtitleEnabled;
                 //Debug.WriteLine(IsScrollSubtitleEnabled);
-                vm.ToggleScrollingSubtitlesCommand.Execute(IsScrollSubtitleEnabled);
+                //vm.ToggleScrollingSubtitlesCommand.Execute(IsScrollSubtitleEnabled);
 
             }
         }
@@ -222,6 +225,24 @@ namespace Echo.ViewModels
             LearningLanguageChanged?.Invoke(this, lang);
         }
 
+        public void SaveSettings()
+        {
+            Properties.Settings.Default.IsSubtitleVisible = IsSubtitleVisible;
+            Properties.Settings.Default.IsMouseHoverEnabled = IsMouseHoverEnabled;
+            Properties.Settings.Default.IsSentenceAnalysisEnabled = IsSentenceAnalysisEnabled;
+            Properties.Settings.Default.IsWordQueryEnabled = IsWordQueryEnabled;
+            Properties.Settings.Default.SubtitleOpacity = SubtitleOpacity;
+            Properties.Settings.Default.SoftwareLanguage = SelectedSoftwareLanguage;
+            Properties.Settings.Default.AspectRatio = SelectedAspectRatio;
+            Properties.Settings.Default.YourLanguage = SelectedYourLanguage;
+            Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
+            Properties.Settings.Default.BackwardTime = BackwardTime;
+            Properties.Settings.Default.ForwardTime = ForwardTime;
+
+
+            Properties.Settings.Default.Save();
+        }
+
         partial void OnIsMouseHoverEnabledChanged(bool value)
         {
             MouseHoverEnabledChanged?.Invoke(this,value);
@@ -229,12 +250,19 @@ namespace Echo.ViewModels
 
         partial void OnIsSubtitleVisibleChanged(bool value)
         {
-            MouseHoverEnabledChanged?.Invoke(this, value);
+
+
+            SubtitleVisibleChanged?.Invoke(this, value);
         }
 
-        partial void OnBackwardTimeChanged(int value)
+        partial void OnBackwardTimeChanged(uint value)
         {
             BackwardTimeChanged?.Invoke(this, value);
+        }
+
+        partial void OnForwardTimeChanged(uint value)
+        {
+            ForwardTimeChanged?.Invoke(this, value);
         }
 
 
@@ -248,15 +276,15 @@ namespace Echo.ViewModels
         public event EventHandler<string> OnSubtitleTrackSelected;
         public event EventHandler<string> OnFontSizeChanged;
         public event EventHandler<string> OnFontFamilyChanged;
-        public event EventHandler<string> OnSystemLanguageChanged;
+        public event EventHandler<string> OnSoftwareLanguageChanged;
         public event EventHandler<string> OnChangeOpacity;
         public event EventHandler<string> YourLanguageChanged;
         public event EventHandler<string> LearningLanguageChanged;
 
         public event EventHandler<bool> SubtitleVisibleChanged;
         public event EventHandler<bool> MouseHoverEnabledChanged;
-        public event EventHandler<int> BackwardTimeChanged;
-        public event EventHandler<int> ForwardTimeChanged;
+        public event EventHandler<uint> BackwardTimeChanged;
+        public event EventHandler<uint> ForwardTimeChanged;
 
         // Additional commands can be added for other menu items
     }

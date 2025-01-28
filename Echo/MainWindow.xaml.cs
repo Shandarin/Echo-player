@@ -221,7 +221,7 @@ namespace Echo
         private void OnWindowClosed(object? sender, EventArgs e)
         {
             var vm = DataContext as MainWindowViewModel;
-            vm?.DisposeMedia();
+            vm?.Closed();
         }
         #endregion
 
@@ -253,7 +253,7 @@ namespace Echo
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                //Debug.WriteLine("Size Changed");
+                Debug.WriteLine($"Size Changed {e.NewSize}");
                 //vm.OnWindowSizeChanged(e.NewSize);
             }
         }

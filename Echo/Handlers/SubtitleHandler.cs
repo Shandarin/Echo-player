@@ -19,6 +19,8 @@ namespace Echo.Handlers
         private readonly Action<string> _updateSubtitleText;
         private long _currentTime;
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
+
+        private bool _isShowing;
         
         public bool IsLoaded = false;
 
@@ -26,13 +28,14 @@ namespace Echo.Handlers
 
         public event Action<List<SubtitleItem>> SubtitlesLoaded;
 
-        public SubtitleHandler(Action<string> updateSubtitleText, LibVLCSharp.Shared.MediaPlayer mediaPlayer)
+        public SubtitleHandler(Action<string> updateSubtitleText, LibVLCSharp.Shared.MediaPlayer mediaPlayer, bool isShowing)
         {
             _updateSubtitleText = updateSubtitleText;
             _subtitles = new List<SubtitleItem>();
             _mediaPlayer = mediaPlayer;
 
             mediaPlayer.TimeChanged += HandleMediaTimeChanged;
+            _isShowing = isShowing;
         }
 
         private void HandleMediaTimeChanged(object? sender, MediaPlayerTimeChangedEventArgs e)
@@ -56,11 +59,13 @@ namespace Echo.Handlers
 
         public void Show()
         {
+            _isShowing = true;
             CheckCurrentSubtitle(null,null);
         }
 
         public void Hide()
         {
+            _isShowing = false;
             _updateSubtitleText(string.Empty);
         }
 
@@ -74,7 +79,7 @@ namespace Echo.Handlers
         private void CheckCurrentSubtitle(object sender, EventArgs e)
         {
        
-            if (_subtitles == null || !_subtitles.Any())
+            if (_subtitles == null || !_subtitles.Any() || !_isShowing)
             {
                 _updateSubtitleText(string.Empty);
                 return;

@@ -135,10 +135,10 @@ namespace Echo.ViewModels
         private string _learningLanguage;
 
         [ObservableProperty]
-        private int _backwardTime ;
+        private uint _backwardTime ;
 
         [ObservableProperty]
-        private int _forwardTime;
+        private uint _forwardTime;
 
         [ObservableProperty]
         private string _playImage;
@@ -195,7 +195,7 @@ namespace Echo.ViewModels
             // Initialize services and handlers
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
-            _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer);
+            _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer,IsSubtitleVisible);
             //_scrollingSubtitleHandler = new ScrollingSubtitleHandler();
 
             _subtitleHandler.SubtitlesLoaded += subtitles =>
@@ -573,10 +573,11 @@ namespace Echo.ViewModels
 
         public void OnSubtitleAreaMouseEnter()
         {
-            if (IsMouseHoverEnabled)
-            {
-                ShowTextBlock();
-            }
+                if (IsSubtitleVisible)
+                {
+                    ShowTextBlock();
+                    ShowSubtitle();
+                }
         }
 
         public void OnSubtitleAreaMouseLeave()
@@ -584,6 +585,7 @@ namespace Echo.ViewModels
             if (IsMouseHoverEnabled)
             {
                 HideTextBlock();
+                HideSubtitle();
             }
         }
         public void OnSubtitleAreaMouseLeftButtonDown(System.Windows.Input.MouseEventArgs e)
@@ -693,31 +695,33 @@ namespace Echo.ViewModels
 
         }
 
+        private void ShowSubtitle()
+        {
+            _subtitleHandler.Show();
+        }
+
+        private void HideSubtitle()
+        {
+            _subtitleHandler.Hide();
+        }
 
         private void HideTextBlock()
         {
             if (_subtitleTextBlock != null)
             {
-                if (!IsSubtitleVisible)
-                {
-                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x01, 0x00, 0x00, 0x00));
-                }
+                _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x01, 0x00, 0x00, 0x00));
             }
         }
 
         private void ShowTextBlock()
         {
-            if (_subtitleTextBlock != null && IsSubtitleVisible)
+            if (_subtitleTextBlock != null)
             {
                 _subtitleTextBlock.Visibility = Visibility.Visible;
                 SetSubtitleBackground();
-
             }
         }
+
         private void SetSubtitleBackground()
         {
             string argbValue = "#80000000"; 
@@ -740,7 +744,6 @@ namespace Echo.ViewModels
                     break;
             }
             SubtitleBackgroud = argbValue;
-            //Debug.WriteLine(argbValue);
         }
 
         #endregion
@@ -798,6 +801,13 @@ namespace Echo.ViewModels
                         VideoControlVM.Volume = newVolume;
                     }
                     break;
+                case Key.Space:
+                    //payorpause
+                    if (MediaPlayer != null)
+                    {
+                        ToggleMediaPlay();
+                    }
+                    break;
             }
   
         }
@@ -815,6 +825,10 @@ namespace Echo.ViewModels
             MenuBarVM.IsMenuBarVisible = false;
         }
 
-        
+        public void Closed()
+        {
+            MenuBarVM?.SaveSettings();
+            DisposeMedia();
+        }
     }
 }
