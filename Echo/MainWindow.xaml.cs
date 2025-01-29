@@ -89,10 +89,7 @@ namespace Echo
 
             _lastMouseMoveTime = DateTime.Now;
 
-            
-
             this.Closed += OnWindowClosed;
-
         }
 
         #region Event Handlers

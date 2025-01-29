@@ -78,35 +78,32 @@ namespace Echo.Handlers
 
         private void CheckCurrentSubtitle(object sender, EventArgs e)
         {
-       
             if (_subtitles == null || !_subtitles.Any() || !_isShowing)
             {
                 _updateSubtitleText(string.Empty);
+                Debug.WriteLine("Empty");
                 return;
             }
 
+            Debug.WriteLine($"_currentTime {_currentTime}");
             var currentSubtitle = _subtitles.FirstOrDefault(s =>
                 s.StartTime <= _currentTime &&
                 s.EndTime >= _currentTime);
+            Debug.WriteLine($"currentSubtitle {currentSubtitle}");
 
             if (currentSubtitle != null)
             {
-                if (!ReferenceEquals(CurrentSubtitleItem, currentSubtitle))
-                {
-                    CurrentSubtitleItem = currentSubtitle;
-                    var text = string.Join("\n", currentSubtitle.Lines)
-                                     .Replace("\\N", "\n")
-                                     .Replace("\\n", "\n");
-                    _updateSubtitleText(text);
-                }
+                // 移除 ReferenceEquals 检查，直接更新字幕
+                CurrentSubtitleItem = currentSubtitle;
+                var text = string.Join("\n", currentSubtitle.Lines)
+                                .Replace("\\N", "\n")
+                                .Replace("\\n", "\n");
+                _updateSubtitleText(text);
             }
             else
             {
-                if (CurrentSubtitleItem != null)
-                {
-                    CurrentSubtitleItem = null;
-                    _updateSubtitleText(string.Empty);
-                }
+                CurrentSubtitleItem = null;
+                _updateSubtitleText(string.Empty);
             }
         }
 
