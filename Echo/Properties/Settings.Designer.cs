@@ -190,5 +190,17 @@ namespace Echo.Properties {
                 this["IsEchoAPIEnabled"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Hover")]
+        public string SubtitleDisplayMode {
+            get {
+                return ((string)(this["SubtitleDisplayMode"]));
+            }
+            set {
+                this["SubtitleDisplayMode"] = value;
+            }
+        }
     }
 }

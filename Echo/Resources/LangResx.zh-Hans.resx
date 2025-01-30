@@ -312,4 +312,13 @@
   <data name="Embedded_Subtitles" xml:space="preserve">
     <value>嵌入式字幕</value>
   </data>
+  <data name="Always_Show" xml:space="preserve">
+    <value>始终显示</value>
+  </data>
+  <data name="Show_on_Mouse_Hover" xml:space="preserve">
+    <value>鼠标悬停显示</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>隐藏</value>
+  </data>
 </root>

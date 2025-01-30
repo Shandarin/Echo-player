@@ -69,6 +69,9 @@ namespace Echo.ViewModels
         private uint _forwardTime;
 
         [ObservableProperty]
+        private string _subtitleDisplayMode;
+
+        [ObservableProperty]
         private ObservableCollection<string> _embeddedSubtitleFiles = new();
 
         public MenuBarViewModel() 
@@ -85,7 +88,8 @@ namespace Echo.ViewModels
             SelectedLearningLanguage = Properties.Settings.Default.LearningLanguage;
             BackwardTime = Properties.Settings.Default.BackwardTime;
             ForwardTime = Properties.Settings.Default.ForwardTime;
-        
+            SubtitleDisplayMode = Properties.Settings.Default.SubtitleDisplayMode;
+
         }
 
         // File Menu Commands
@@ -226,6 +230,12 @@ namespace Echo.ViewModels
             LearningLanguageChanged?.Invoke(this, lang);
         }
 
+        [RelayCommand]
+        public void SetSubtitleDisplayMode(string mode)
+        {
+            SubtitleDisplayModeChangedEvent?.Invoke(this, mode);
+        }
+
 
         public void UpdateSubtitle(ObservableCollection<string> ES,bool HasES)
         {
@@ -247,7 +257,7 @@ namespace Echo.ViewModels
             Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
             Properties.Settings.Default.BackwardTime = BackwardTime;
             Properties.Settings.Default.ForwardTime = ForwardTime;
-
+            Properties.Settings.Default.SubtitleDisplayMode = SubtitleDisplayMode;
 
             Properties.Settings.Default.Save();
         }
@@ -294,6 +304,8 @@ namespace Echo.ViewModels
         public event EventHandler<bool> MouseHoverEnabledChanged;
         public event EventHandler<uint> BackwardTimeChanged;
         public event EventHandler<uint> ForwardTimeChanged;
+
+        public event EventHandler<string> SubtitleDisplayModeChangedEvent;
 
         // Additional commands can be added for other menu items
     }

@@ -19,7 +19,15 @@ namespace Echo.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            // 如果是从复选框状态转换回来
+            if (value is bool boolValue && boolValue && parameter != null)
+            {
+                // 当选中时返回参数值
+                return parameter.ToString();
+            }
+
+            // 当未选中时返回null或默认值
+            return null;
         }
     }
 }

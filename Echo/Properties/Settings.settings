@@ -44,5 +44,8 @@
     <Setting Name="IsEchoAPIEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="SubtitleDisplayMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Hover</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

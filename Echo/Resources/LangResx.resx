@@ -312,4 +312,13 @@
   <data name="Embedded_Subtitles" xml:space="preserve">
     <value>Embedded Subtitles</value>
   </data>
+  <data name="Always_Show" xml:space="preserve">
+    <value>Always Show</value>
+  </data>
+  <data name="Show_on_Mouse_Hover" xml:space="preserve">
+    <value>Show on Mouse Hover</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
 </root>

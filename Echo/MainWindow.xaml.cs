@@ -271,7 +271,7 @@ namespace Echo
 
             double subtitleAreaTop = MouseDetectionLayer.ActualHeight - _subtitle_area_height;
             double subtitleAreaBottom = MouseDetectionLayer.ActualHeight - 10;
-            Debug.WriteLine(_subtitle_area_height);
+
             if (SubtitleTextBlock.Visibility == Visibility.Collapsed)
             {
                 _subtitle_area_width = 300;

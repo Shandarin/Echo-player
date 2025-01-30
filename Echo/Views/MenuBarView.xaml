@@ -157,10 +157,26 @@
 
         <!-- 字幕菜单 -->
         <MenuItem Header="{x:Static resx:LangResx.Subtitles}" Style="{StaticResource MenuItemStyle}">
-            <MenuItem Header="{x:Static resx:LangResx.Show_Subtitles}" 
-                      IsCheckable="True"
-                      IsChecked="{Binding IsSubtitleVisible}"
-                      Style="{StaticResource MenuItemStyle}"/>
+            <MenuItem Header="{x:Static resx:LangResx.Show_Subtitles}" Style="{StaticResource MenuItemStyle}">
+                <MenuItem Header="{x:Static resx:LangResx.Always_Show}"
+                          IsCheckable="True"
+                          IsChecked="{Binding SubtitleDisplayMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Always'}"
+                          Command="{Binding SetSubtitleDisplayModeCommand}"
+                          CommandParameter="Always"
+                          Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Show_on_Mouse_Hover}"
+                          IsCheckable="True"
+                          IsChecked="{Binding SubtitleDisplayMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Hover'}"
+                          Command="{Binding SetSubtitleDisplayModeCommand}"
+                          CommandParameter="Hover"
+                          Style="{StaticResource MenuItemStyle}"/>
+                <MenuItem Header="{x:Static resx:LangResx.Hide}"
+                          IsCheckable="True"
+                          IsChecked="{Binding SubtitleDisplayMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Hide'}"
+                          Command="{Binding SetSubtitleDisplayModeCommand}"
+                          CommandParameter="Hide"
+                          Style="{StaticResource MenuItemStyle}"/>
+            </MenuItem>
             <MenuItem Header="{x:Static resx:LangResx.Open_Subtitles}" 
                       Command="{Binding OpenSubtitleCommand}"
                       Style="{StaticResource MenuItemStyle}">
@@ -191,10 +207,6 @@
             </MenuItem>
 
             <Separator Style="{StaticResource SeparatorStyle}"/>
-            <MenuItem Header="{x:Static resx:LangResx.Show_Subtitles_on_Mouse_Hover}" 
-                      IsCheckable="True"
-                      IsChecked="{Binding IsMouseHoverEnabled}"
-                      Style="{StaticResource MenuItemStyle}"/>
             <MenuItem Header="{x:Static resx:LangResx.Sentence_Analysis}" 
                       IsCheckable="True"
                       IsChecked="{Binding IsSentenceAnalysisEnabled}"

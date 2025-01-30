@@ -312,4 +312,13 @@
   <data name="Embedded_Subtitles" xml:space="preserve">
     <value>Вбудовані субтитри</value>
   </data>
+  <data name="Always_Show" xml:space="preserve">
+    <value>Завжди показувати</value>
+  </data>
+  <data name="Show_on_Mouse_Hover" xml:space="preserve">
+    <value>Показати при наведенні миші</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>Сховати</value>
+  </data>
 </root>

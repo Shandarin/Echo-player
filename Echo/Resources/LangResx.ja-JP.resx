@@ -312,4 +312,13 @@
   <data name="Embedded_Subtitles" xml:space="preserve">
     <value>埋め込み字幕</value>
   </data>
+  <data name="Always_Show" xml:space="preserve">
+    <value>常に表示</value>
+  </data>
+  <data name="Show_on_Mouse_Hover" xml:space="preserve">
+    <value>マウスオーバーで表示</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>隠す</value>
+  </data>
 </root>

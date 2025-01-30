@@ -174,8 +174,18 @@
                                          MaxWidth="800"
                                          VerticalAlignment="Bottom"
                                          Margin="0,0,0,10"     
-                                         Text="{Binding SubtitleText}"
-                                   />
+                                         Text="{Binding SubtitleText}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
                             <!-- Next subtitle -->
                             <TextBlock x:Name="NextSubtitleBlock"
                                           Foreground="White" 

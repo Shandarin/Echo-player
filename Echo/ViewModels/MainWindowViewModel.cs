@@ -150,6 +150,9 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> _embeddedSubtitleFiles = new();
 
+        [ObservableProperty]
+        private string _subtitleDisplayMode;
+
 
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
@@ -194,6 +197,7 @@ namespace Echo.ViewModels
             MenuBarVM.BackwardTimeChanged += (s, e) => BackwardTime = e;
             MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
             MenuBarVM.OnSubtitleTrackSelected += HandleSubtitleTrackSelected;
+            MenuBarVM.SubtitleDisplayModeChangedEvent += HandleSubtitleDisplayModeChanged;
 
             MediaPlayer.Playing += OnMediaPlaying;
 
@@ -231,6 +235,7 @@ namespace Echo.ViewModels
             BackwardTime = MenuBarVM.BackwardTime;
             ForwardTime = MenuBarVM.ForwardTime;
 
+            SubtitleDisplayMode = MenuBarVM.SubtitleDisplayMode;
         }
 
         #region Callbacks 
@@ -251,20 +256,20 @@ namespace Echo.ViewModels
             VideoFilePathChanged?.Invoke(this, value);
         }
 
-        partial void OnIsSubtitleVisibleChanged(bool value)
-        {
-            if (value)
-            {
-                HideSubtitle();
-            }
-            else
-            {
-                if (IsSubtitleVisible)
-                {
-                    ShowSubtitle();
-                }
-            }
-        }
+        //partial void OnIsSubtitleVisibleChanged(bool value)
+        //{
+        //    if (value)
+        //    {
+        //        HideSubtitle();
+        //    }
+        //    else
+        //    {
+        //        if (IsSubtitleVisible)
+        //        {
+        //            ShowSubtitle();
+        //        }
+        //    }
+        //}
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
@@ -419,9 +424,23 @@ namespace Echo.ViewModels
         {
             LoadSubtitle(track);
         }
+        
+        private void HandleSubtitleDisplayModeChanged(object? sender, string mode)
+        {
+            SubtitleDisplayMode = mode;
 
+            if(SubtitleDisplayMode == "Always")
+            {
+                SetSubtitleBackground();
+                ShowSubtitle();
+            }
+            else if (SubtitleDisplayMode == "Hide")
+            {
+                HideTextBlock();
+                HideSubtitle();
+            }
 
-
+        }
 
         #endregion
 
@@ -431,17 +450,16 @@ namespace Echo.ViewModels
         private void LoadSubtitle(string subtitlePath)
         {
             _subtitleHandler.LoadSubtitle(subtitlePath);
-            SetSubtitleBackground();
-            if (!IsSubtitleVisible) {
+            if (SubtitleDisplayMode == "Hide" | SubtitleDisplayMode == "Hover")
+            {
                 HideSubtitle();
-                SetSubtitleBackground();
+
             }
             else
             {
+                SetSubtitleBackground();
                 ShowSubtitle();
             }
-
-
         }
 
         private void UpdateSubtitleText(string newText)
@@ -605,7 +623,7 @@ namespace Echo.ViewModels
 
         public void OnSubtitleAreaMouseEnter()
         {
-                if (IsSubtitleVisible)
+                if (SubtitleDisplayMode != "Hide")
                 {
                     //ShowTextBlock();
                     
@@ -616,14 +634,14 @@ namespace Echo.ViewModels
 
         public void OnSubtitleAreaMouseLeave()
         {
-            if (IsMouseHoverEnabled)
+            if (SubtitleDisplayMode == "Hover")
             {
               
                 HideSubtitle();
             }
             else
             {
-                SetSubtitleBackground();
+                //SetSubtitleBackground();
             }
         }
 
@@ -740,6 +758,7 @@ namespace Echo.ViewModels
 
         private void ShowSubtitle()
         {
+            if (_subtitleTextBlock != null)
             ShowTextBlock();
             _subtitleHandler.Show();
             

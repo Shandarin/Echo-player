@@ -88,6 +88,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Always Show 的本地化字符串。
+        /// </summary>
+        public static string Always_Show {
+            get {
+                return ResourceManager.GetString("Always_Show", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Aspect Ratio 的本地化字符串。
         /// </summary>
         public static string Aspect_Ratio {
@@ -304,6 +313,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Hide 的本地化字符串。
+        /// </summary>
+        public static string Hide {
+            get {
+                return ResourceManager.GetString("Hide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Input 的本地化字符串。
         /// </summary>
         public static string Input {
@@ -489,6 +507,15 @@ namespace Echo.Resources {
         public static string Shortcuts {
             get {
                 return ResourceManager.GetString("Shortcuts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Show on Mouse Hover 的本地化字符串。
+        /// </summary>
+        public static string Show_on_Mouse_Hover {
+            get {
+                return ResourceManager.GetString("Show_on_Mouse_Hover", resourceCulture);
             }
         }
         
