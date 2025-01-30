@@ -241,30 +241,6 @@ namespace Echo.ViewModels
         //    //MediaPlayer.ToggleFullscreen();
         //}
 
-        partial void OnIsSubtitleVisibleChanged(bool value)
-        {
-            if (!IsSubtitleVisible)
-            {
-                // 字幕不可见时
-                if (_subtitleTextBlock != null)
-                {
-                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
-
-                }
-            }
-            else
-            {
-                // 字幕可见时
-                if (_subtitleTextBlock != null)
-                {
-                    _subtitleTextBlock.Visibility = Visibility.Visible;
-                    if (!IsMouseHoverEnabled)
-                    {
-                    }
-                }
-            }
-        }
-
         partial void OnSubtitleOpacityChanged(string op)
         {
             SetSubtitleBackground();
@@ -273,6 +249,21 @@ namespace Echo.ViewModels
         partial void OnVideoFilePathChanged(string value)
         {
             VideoFilePathChanged?.Invoke(this, value);
+        }
+
+        partial void OnIsSubtitleVisibleChanged(bool value)
+        {
+            if (value)
+            {
+                HideSubtitle();
+            }
+            else
+            {
+                if (IsSubtitleVisible)
+                {
+                    ShowSubtitle();
+                }
+            }
         }
 
         private void OnMediaPlaying(object? sender, EventArgs e)
@@ -311,7 +302,7 @@ namespace Echo.ViewModels
 
             VideoViewWidth = vvWidth.ToString();
             VideoViewHeight = vvHeight.ToString();
-            Debug.WriteLine($"vvWidth:{vvWidth} vvHeight:{vvHeight} MainWindowLeft:{MainWindowLeft} MainWindowTop:{MainWindowTop}");
+            //Debug.WriteLine($"vvWidth:{vvWidth} vvHeight:{vvHeight} MainWindowLeft:{MainWindowLeft} MainWindowTop:{MainWindowTop}");
 
             AspectRatio = ratio;
 
@@ -440,6 +431,17 @@ namespace Echo.ViewModels
         private void LoadSubtitle(string subtitlePath)
         {
             _subtitleHandler.LoadSubtitle(subtitlePath);
+            SetSubtitleBackground();
+            if (!IsSubtitleVisible) {
+                HideSubtitle();
+                SetSubtitleBackground();
+            }
+            else
+            {
+                ShowSubtitle();
+            }
+
+
         }
 
         private void UpdateSubtitleText(string newText)
@@ -513,7 +515,6 @@ namespace Echo.ViewModels
                     {
                         foreach (var file in EmbeddedSubtitleFiles)
                         {
-                            Debug.WriteLine($"file {file}");
                             if (file.Contains("OriginalLang") & !file.Contains("SDH"))
                             {
                                 LoadSubtitle(file);
@@ -539,7 +540,6 @@ namespace Echo.ViewModels
             {
                 var filePath = dialog.FileName;
                 var extension = Path.GetExtension(filePath).ToLower();
-                Debug.WriteLine($"extension {extension}");
                 if (extension != ".srt" & extension != ".ass")
                 {
                     MessageBox.Show("This is not a subtitle file");
@@ -607,17 +607,23 @@ namespace Echo.ViewModels
         {
                 if (IsSubtitleVisible)
                 {
-                    ShowTextBlock();
+                    //ShowTextBlock();
+                    
                     ShowSubtitle();
-                }
+                    SetSubtitleBackground();
+            }
         }
 
         public void OnSubtitleAreaMouseLeave()
         {
             if (IsMouseHoverEnabled)
             {
-                HideTextBlock();
+              
                 HideSubtitle();
+            }
+            else
+            {
+                SetSubtitleBackground();
             }
         }
 
@@ -725,7 +731,7 @@ namespace Echo.ViewModels
                 MenuBarVM.IsMenuBarVisible = true;
                 //VideoViewHeight = PreviousVideoViewHeight;
                 //VideoViewWidth = PreviousVideoViewWidth;
-                Debug.WriteLine($"VideoViewWidth {VideoViewWidth}");
+                //Debug.WriteLine($"VideoViewWidth {VideoViewWidth}");
             }
             
            // _mediaPlayer.ToggleFullscreen();
@@ -734,28 +740,31 @@ namespace Echo.ViewModels
 
         private void ShowSubtitle()
         {
+            ShowTextBlock();
             _subtitleHandler.Show();
+            
         }
 
         private void HideSubtitle()
         {
             _subtitleHandler.Hide();
+            HideTextBlock();
         }
 
         private void HideTextBlock()
         {
             if (_subtitleTextBlock != null)
             {
-                _subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x01, 0x00, 0x00, 0x00));
+                //_subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x02, 0x02, 0x06, 0x00));
+                _subtitleTextBlock.Visibility = Visibility.Collapsed;
             }
         }
 
         private void ShowTextBlock()
         {
-            if (_subtitleTextBlock != null)
+            if (_subtitleHandler.IsAnySubtitle())
             {
                 _subtitleTextBlock.Visibility = Visibility.Visible;
-                SetSubtitleBackground();
             }
         }
 
@@ -813,7 +822,7 @@ namespace Echo.ViewModels
                         long newTime = MediaPlayer.Time + ForwardTime*1000;
                         if (newTime > MediaPlayer.Length) newTime = MediaPlayer.Length;
                         MediaPlayer.Time = newTime;
-                        Debug.WriteLine($"MediaPlayer.Time {ForwardTime}");
+                        //Debug.WriteLine($"MediaPlayer.Time {ForwardTime}");
                     }
                     break;
 

@@ -7,37 +7,7 @@ using System.Windows.Media;
 using System.Windows.Input;
 using System.Diagnostics;
 
-//namespace Echo.Handlers
-//{
-//    public class SubtitleStyleHandler
-//    {
-//        private static readonly Regex ItalicRegex = new Regex(@"<i>(.*?)</i>", RegexOptions.Singleline);
-//        private static readonly Regex BoldRegex = new Regex(@"<b>(.*?)</b>", RegexOptions.Singleline);
-//        private static readonly Regex ColorRegex = new Regex(@"<font color=""?(#?\w+)""?>(.*?)</font>", RegexOptions.Singleline);
 
-//        private static readonly char[] separators = new[]
-//        {
-//            // 通用分隔符
-//            ' ', '\t', ',', '.', ';', ':', '!', '?', '_', '(', ')',
-//            '[', ']', '{', '}', '<', '>', '"', '/', '\\', '|', '~', '·', '…',
-//            '—', '+', '=', '@', '#', '$', '%', '^', '&', '*', '`',
-
-//            // 中文和繁体中文
-//            '。', '，', '、', '；', '：', '！', '？', '“', '”', '‘', '’', '（', '）',
-//            '《', '》', '〈', '〉', '【', '】', '—', '～',
-
-//            // 日语
-//            '。', '、', '「', '」', '『', '』', '（', '）', '【', '】', '〜', 'ー', '！', '？',
-
-//            // 俄语
-//            '«', '»', '„', '“', '”', ',', ':', ';', '!', '?',
-
-//            // 法语、西班牙语、德语、意大利语、葡萄牙语
-//            '«', '»', '„', '“', '”', ',', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}',
-
-//            // 阿拉伯语
-//            '،', '؛', '؟', '«', '»', '(', ')', '[', ']', '{', '}', 'ـ',
-//        };
 namespace Echo.Handlers
     {
         public class SubtitleStyleHandler
@@ -116,7 +86,6 @@ namespace Echo.Handlers
                     processedInlines.AddRange(segmentInlines);
 
                     // 3) 在斜体后面如果紧跟着下一段是普通文字，则插一个空格
-                    //    - 如果您还想“粗体后面、颜色后面”遇到普通文字也插空格，也可加上判断
                     if (segment.Type == SegmentType.Italic
                         && i < segments.Count - 1
                         && segments[i + 1].Type == SegmentType.Normal)
@@ -343,7 +312,7 @@ namespace Echo.Handlers
                 return nextMatch;
             }
 
-            // 我们加一个更直观的名字：Normal = -1, Italic=0, Bold=1, Color=2
+            // ：Normal = -1, Italic=0, Bold=1, Color=2
             private enum SegmentType
             {
                 Normal = -1,

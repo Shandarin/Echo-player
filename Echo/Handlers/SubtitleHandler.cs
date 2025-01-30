@@ -75,6 +75,16 @@ namespace Echo.Handlers
                 _currentTime = currentTimeMs;
             }
 
+        public void AlwaysShow()
+        {
+
+        }
+
+        public bool IsAnySubtitle()
+        {
+             return CurrentSubtitleItem is not null;
+        }
+
 
         private void CheckCurrentSubtitle(object sender, EventArgs e)
         {
@@ -86,16 +96,16 @@ namespace Echo.Handlers
             }
 
             //Debug.WriteLine($"_currentTime {_currentTime}");
-            var currentSubtitle = _subtitles.FirstOrDefault(s =>
+            var _currentSubtitle = _subtitles.FirstOrDefault(s =>
                 s.StartTime <= _currentTime &&
                 s.EndTime >= _currentTime);
             //Debug.WriteLine($"currentSubtitle {currentSubtitle}");
 
-            if (currentSubtitle != null)
+            if (_currentSubtitle != null)
             {
                 // 移除 ReferenceEquals 检查，直接更新字幕
-                CurrentSubtitleItem = currentSubtitle;
-                var text = string.Join("\n", currentSubtitle.Lines)
+                CurrentSubtitleItem = _currentSubtitle;
+                var text = string.Join("\n", _currentSubtitle.Lines)
                                 .Replace("\\N", "\n")
                                 .Replace("\\n", "\n");
                 _updateSubtitleText(text);
@@ -106,6 +116,8 @@ namespace Echo.Handlers
                 _updateSubtitleText(string.Empty);
             }
         }
+
+
 
         public void Dispose()
         {

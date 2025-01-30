@@ -23,6 +23,8 @@ namespace Echo
 
         private double _subtitle_area_height;
 
+        private double _subtitle_area_width;
+
         private bool _isInSubtitleArea = false;
 
         public MainWindow()
@@ -58,6 +60,11 @@ namespace Echo
                         if (mainSubtitleBlock.ActualHeight != _subtitle_area_height)
                         {
                             _subtitle_area_height = mainSubtitleBlock.ActualHeight +10;
+                        }
+
+                        if(mainSubtitleBlock.ActualWidth != _subtitle_area_width)
+                        {
+                            _subtitle_area_width = mainSubtitleBlock.ActualWidth;
                         }
                     };
                 }
@@ -140,18 +147,29 @@ namespace Echo
 
             // 判断是否进入或离开字幕区
             bool isCurrentlyInSubtitleArea = IsInSubtitleArea(currentPosition);
-            if (isCurrentlyInSubtitleArea != _isInSubtitleArea)
+            //Debug.WriteLine($"isCurrentlyInSubtitleArea {isCurrentlyInSubtitleArea}");
+            if (isCurrentlyInSubtitleArea)
             {
-                _isInSubtitleArea = isCurrentlyInSubtitleArea;
-                if (_isInSubtitleArea)
-                {
-                    vm.OnSubtitleAreaMouseEnter();
-                }
-                else
-                {
-                    vm.OnSubtitleAreaMouseLeave();
-                }
+                vm.OnSubtitleAreaMouseEnter();
             }
+            else
+            {
+                vm.OnSubtitleAreaMouseLeave();
+            }
+
+
+            //if (isCurrentlyInSubtitleArea != _isInSubtitleArea)
+            //{
+            //    _isInSubtitleArea = isCurrentlyInSubtitleArea;
+            //    if (_isInSubtitleArea)
+            //    {
+            //        vm.OnSubtitleAreaMouseEnter();
+            //    }
+            //    else
+            //    {
+            //        vm.OnSubtitleAreaMouseLeave();
+            //    }
+            //}
 
             // 3) 全屏模式下，若移动距离大于一定阈值则显示控制栏
             if (vm.IsFullScreen)
@@ -230,13 +248,6 @@ namespace Echo
             }
         }
 
-        private void OnSubtitleAreaMouseLeave(object sender, MouseEventArgs e)
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.OnSubtitleAreaMouseLeave();
-            }
-        }
 
         private void OnSubtitleMouseLeftButtonDown(object sender, MouseEventArgs e)
         {
@@ -257,10 +268,26 @@ namespace Echo
 
         private bool IsInSubtitleArea(Point mousePosition)
         {
+
             double subtitleAreaTop = MouseDetectionLayer.ActualHeight - _subtitle_area_height;
             double subtitleAreaBottom = MouseDetectionLayer.ActualHeight - 10;
-            return mousePosition.Y >= subtitleAreaTop & mousePosition.Y<= subtitleAreaBottom;
-        }
+            Debug.WriteLine(_subtitle_area_height);
+            if (SubtitleTextBlock.Visibility == Visibility.Collapsed)
+            {
+                _subtitle_area_width = 300;
+                _subtitle_area_height = 100;
+            }
 
+            double subtitleAreaLeft = MouseDetectionLayer.ActualWidth / 2 - _subtitle_area_width / 2;
+            double subtitleAreaRight = subtitleAreaLeft + _subtitle_area_width;
+
+            bool isTop = mousePosition.Y >= subtitleAreaTop;
+            bool isBottom = mousePosition.Y <= subtitleAreaBottom;
+            bool isLeft = mousePosition.X > subtitleAreaLeft;
+            bool isRight = mousePosition.X < subtitleAreaRight;
+
+            return isTop && isBottom && isLeft && isRight;
+
+        }
     }
 }
