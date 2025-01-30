@@ -306,4 +306,10 @@
   <data name="Seconds" xml:space="preserve">
     <value>ثواني</value>
   </data>
+  <data name="No_Subtitles" xml:space="preserve">
+    <value>بدون ترجمات</value>
+  </data>
+  <data name="Embedded_Subtitles" xml:space="preserve">
+    <value>ترجمة مدمجة</value>
+  </data>
 </root>

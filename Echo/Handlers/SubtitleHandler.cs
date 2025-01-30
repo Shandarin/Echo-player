@@ -81,15 +81,15 @@ namespace Echo.Handlers
             if (_subtitles == null || !_subtitles.Any() || !_isShowing)
             {
                 _updateSubtitleText(string.Empty);
-                Debug.WriteLine("Empty");
+                //Debug.WriteLine("Empty");
                 return;
             }
 
-            Debug.WriteLine($"_currentTime {_currentTime}");
+            //Debug.WriteLine($"_currentTime {_currentTime}");
             var currentSubtitle = _subtitles.FirstOrDefault(s =>
                 s.StartTime <= _currentTime &&
                 s.EndTime >= _currentTime);
-            Debug.WriteLine($"currentSubtitle {currentSubtitle}");
+            //Debug.WriteLine($"currentSubtitle {currentSubtitle}");
 
             if (currentSubtitle != null)
             {

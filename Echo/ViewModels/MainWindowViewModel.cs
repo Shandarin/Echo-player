@@ -22,6 +22,7 @@ using Echo.Managers;
 using SubtitlesParser.Classes;
 using System.Reflection;
 using LibVLCSharp.WPF;
+using System.Collections.ObjectModel;
 
 namespace Echo.ViewModels
 {
@@ -146,6 +147,10 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _aspectRatio = "Default";
 
+        [ObservableProperty]
+        private ObservableCollection<string> _embeddedSubtitleFiles = new();
+
+
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -188,6 +193,7 @@ namespace Echo.ViewModels
             MenuBarVM.LearningLanguageChanged += HandleLearningLanguageChanged;
             MenuBarVM.BackwardTimeChanged += (s, e) => BackwardTime = e;
             MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
+            MenuBarVM.OnSubtitleTrackSelected += HandleSubtitleTrackSelected;
 
             MediaPlayer.Playing += OnMediaPlaying;
 
@@ -417,6 +423,15 @@ namespace Echo.ViewModels
         {
             _learningLanguage = language;
         }
+
+        private void HandleSubtitleTrackSelected(object? sender, string track)
+        {
+            LoadSubtitle(track);
+        }
+
+
+
+
         #endregion
 
         #region commands
@@ -478,46 +493,62 @@ namespace Echo.ViewModels
                         LoadSubtitle(assPath);
                     }
 
-                    var EmbeddedSubtitleFiles = new List<string>();
+                    //var EmbeddedSubtitleFiles = new List<string>();
                     //step 2: check extracted embedded subtitles
-                    EmbeddedSubtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
+
+                    var subtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
+                    EmbeddedSubtitleFiles = new ObservableCollection<string>(subtitleFiles);
+                    //EmbeddedSubtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
 
                     //step 3: extract embedded subtitles(not always there)
                     if (!EmbeddedSubtitleFiles.Any() | EmbeddedSubtitleFiles is null)
                     {
-                        EmbeddedSubtitleFiles = await SubtitleExtractHandler.ExtractEmbeddedSubtitlesAsync(filePath);
+                        subtitleFiles.Clear();
+
+                        subtitleFiles = await SubtitleExtractHandler.ExtractEmbeddedSubtitlesAsync(filePath);
+                        EmbeddedSubtitleFiles = new ObservableCollection<string>(subtitleFiles);
                     }
 
                     if (EmbeddedSubtitleFiles.Any())
                     {
                         foreach (var file in EmbeddedSubtitleFiles)
                         {
+                            Debug.WriteLine($"file {file}");
                             if (file.Contains("OriginalLang") & !file.Contains("SDH"))
                             {
                                 LoadSubtitle(file);
+                                
                             }
                         }
                         if (!_subtitleHandler.IsLoaded)
                             LoadSubtitle(EmbeddedSubtitleFiles[0]);
                     }
+                    MenuBarVM.UpdateSubtitle(EmbeddedSubtitleFiles, EmbeddedSubtitleFiles.Any());
                 }
             }
         }
 
         [RelayCommand]
-        private void OpenSubtitle()
+        public void OpenSubtitle()
         {
             var dialog = new OpenFileDialog
             {
-                Filter = "Subtitle Files|*.srt;*.ass;*.ssa|All Files|*.*"
+                Filter = "Subtitle Files|*.srt;*.ass;"
             };
-
             if (dialog.ShowDialog() == true)
             {
                 var filePath = dialog.FileName;
                 var extension = Path.GetExtension(filePath).ToLower();
-                //MessageBox.Show($"Loaded subtitle: {dialog.FileName}");
-                LoadSubtitle(filePath);
+                Debug.WriteLine($"extension {extension}");
+                if (extension != ".srt" & extension != ".ass")
+                {
+                    MessageBox.Show("This is not a subtitle file");
+                }
+                else
+                {
+                    LoadSubtitle(filePath);
+                }
+                
             }
         }
 
@@ -589,6 +620,7 @@ namespace Echo.ViewModels
                 HideSubtitle();
             }
         }
+
         public void OnSubtitleAreaMouseLeftButtonDown(System.Windows.Input.MouseEventArgs e)
         {
 

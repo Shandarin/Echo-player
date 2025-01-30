@@ -5,11 +5,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sysconv="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
              xmlns:vm="clr-namespace:Echo.ViewModels"
-             xmlns:converters="clr-namespace:Echo.Converters" 
+             xmlns:converters ="clr-namespace:Echo.Converters"
              xmlns:resx="clr-namespace:Echo.Resources"
              mc:Ignorable="d"
              Height="30"
              Background="#F5F5F5"
+             x:Name="Root"
              >
 
     <UserControl.DataContext>
@@ -19,7 +20,11 @@
     <UserControl.Resources>
         <sysconv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:AspectRatioConverter x:Key="AspectRatioConverter"/>
-        <converters:AspectRatioConverter x:Key="LanguageConverter"/>
+        <converters:LanguageConverter x:Key="LanguageConverter"/>
+        <converters:StringEqualsConverter x:Key="StringEqualsConverter"/>
+        <converters:ZeroToEnableConverter x:Key="ZeroToEnableConverter"/>
+        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter"/>
+
         <!-- MenuItem 基础样式 -->
         <Style x:Key="MenuItemStyle" TargetType="MenuItem">
             <Setter Property="Background" Value="#F5F5F5"/>
@@ -101,6 +106,7 @@
                     <TextBlock Text="📸" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <!--
             <MenuItem Header="{x:Static resx:LangResx.Aspect_Ratio}" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="{x:Static resx:LangResx.Default}" 
               IsCheckable="True" 
@@ -133,7 +139,7 @@
               CommandParameter="1:1" 
               Style="{StaticResource MenuItemStyle}"/>
             </MenuItem>
-
+-->
             <!-- 
             <MenuItem Header="缩放" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="50%" Command="{Binding ChangeScaleCommand}" CommandParameter="0.5" Style="{StaticResource MenuItemStyle}"/>
@@ -162,11 +168,28 @@
                     <TextBlock Text="📝" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="{x:Static resx:LangResx.Select_Subtitles}" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="选择字幕轨" 
-                          Command="{Binding SelectSubtitleTrackCommand}"
-                          Style="{StaticResource MenuItemStyle}"/>
+
+            <MenuItem Header="{x:Static resx:LangResx.Select_Subtitles}">
+                <!-- 字幕列表 -->
+                <MenuItem Header="{x:Static resx:LangResx.Embedded_Subtitles}" 
+              ItemsSource="{Binding EmbeddedSubtitleFiles}"
+                          IsEnabled="{Binding EmbeddedSubtitleFiles.Count,
+                                   Converter={StaticResource ZeroToEnableConverter}}"
+                          >
+                    <!-- 让每个string变成MenuItem并显示文字 -->
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Converter={StaticResource PathToFileNameConverter}}" />
+                            <Setter Property="Command"
+                        Value="{Binding DataContext.SelectSubtitleTrackCommand,
+                                        RelativeSource={RelativeSource AncestorType=MenuItem}}"/>
+                            <Setter Property="CommandParameter" Value="{Binding}"
+                                    />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
             </MenuItem>
+
             <Separator Style="{StaticResource SeparatorStyle}"/>
             <MenuItem Header="{x:Static resx:LangResx.Show_Subtitles_on_Mouse_Hover}" 
                       IsCheckable="True"

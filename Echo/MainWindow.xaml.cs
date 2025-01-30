@@ -258,7 +258,8 @@ namespace Echo
         private bool IsInSubtitleArea(Point mousePosition)
         {
             double subtitleAreaTop = MouseDetectionLayer.ActualHeight - _subtitle_area_height;
-            return mousePosition.Y >= subtitleAreaTop;
+            double subtitleAreaBottom = MouseDetectionLayer.ActualHeight - 10;
+            return mousePosition.Y >= subtitleAreaTop & mousePosition.Y<= subtitleAreaBottom;
         }
 
     }

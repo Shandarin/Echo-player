@@ -306,4 +306,10 @@
   <data name="Seconds" xml:space="preserve">
     <value>초</value>
   </data>
+  <data name="No_Subtitles" xml:space="preserve">
+    <value>자막 없음</value>
+  </data>
+  <data name="Embedded_Subtitles" xml:space="preserve">
+    <value>자막 삽입</value>
+  </data>
 </root>

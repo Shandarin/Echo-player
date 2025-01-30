@@ -306,4 +306,10 @@
   <data name="Seconds" xml:space="preserve">
     <value>秒 (びょう)</value>
   </data>
+  <data name="No_Subtitles" xml:space="preserve">
+    <value>字幕なし</value>
+  </data>
+  <data name="Embedded_Subtitles" xml:space="preserve">
+    <value>埋め込み字幕</value>
+  </data>
 </root>

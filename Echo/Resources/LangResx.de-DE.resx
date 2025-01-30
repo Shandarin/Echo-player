@@ -306,4 +306,10 @@
   <data name="Seconds" xml:space="preserve">
     <value>Sekunden</value>
   </data>
+  <data name="No_Subtitles" xml:space="preserve">
+    <value>Keine Untertitel</value>
+  </data>
+  <data name="Embedded_Subtitles" xml:space="preserve">
+    <value>Eingebettete Untertitel</value>
+  </data>
 </root>

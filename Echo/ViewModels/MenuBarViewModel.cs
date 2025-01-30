@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Echo.Views;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
 
@@ -67,6 +68,9 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private uint _forwardTime;
 
+        [ObservableProperty]
+        private ObservableCollection<string> _embeddedSubtitleFiles = new();
+
         public MenuBarViewModel() 
 
         {
@@ -81,8 +85,7 @@ namespace Echo.ViewModels
             SelectedLearningLanguage = Properties.Settings.Default.LearningLanguage;
             BackwardTime = Properties.Settings.Default.BackwardTime;
             ForwardTime = Properties.Settings.Default.ForwardTime;
-
-
+        
         }
 
         // File Menu Commands
@@ -132,14 +135,10 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void OpenSubtitle()
         {
-            var dialog = new OpenFileDialog
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow?.DataContext is MainWindowViewModel vm)
             {
-                Filter = "Subtitle Files|*.srt;*.ass;*.ssa|All Files|*.*"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                OnSubtitleFileSelected?.Invoke(this, dialog.FileName);
+                vm.OpenSubtitle();
             }
         }
 
@@ -226,6 +225,14 @@ namespace Echo.ViewModels
             SelectedLearningLanguage = lang;
             LearningLanguageChanged?.Invoke(this, lang);
         }
+
+
+        public void UpdateSubtitle(ObservableCollection<string> ES,bool HasES)
+        {
+            //HasEmbeddedSubtitles = HasES;
+            EmbeddedSubtitleFiles = ES;
+        }
+
 
         public void SaveSettings()
         {

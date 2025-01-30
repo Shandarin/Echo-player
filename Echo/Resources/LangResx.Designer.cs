@@ -187,6 +187,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Embedded Subtitles 的本地化字符串。
+        /// </summary>
+        public static string Embedded_Subtitles {
+            get {
+                return ResourceManager.GetString("Embedded_Subtitles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Exit 的本地化字符串。
         /// </summary>
         public static string Exit {
@@ -354,6 +363,15 @@ namespace Echo.Resources {
         public static string Next_Sentence {
             get {
                 return ResourceManager.GetString("Next_Sentence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No Subtitles 的本地化字符串。
+        /// </summary>
+        public static string No_Subtitles {
+            get {
+                return ResourceManager.GetString("No_Subtitles", resourceCulture);
             }
         }
         
