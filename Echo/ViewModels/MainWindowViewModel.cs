@@ -199,6 +199,8 @@ namespace Echo.ViewModels
             MenuBarVM.OnSubtitleTrackSelected += HandleSubtitleTrackSelected;
             MenuBarVM.SubtitleDisplayModeChangedEvent += HandleSubtitleDisplayModeChanged;
 
+           
+
             MediaPlayer.Playing += OnMediaPlaying;
 
 
@@ -207,6 +209,12 @@ namespace Echo.ViewModels
             _wordClickHandler = new WordClickHandler( _translationService);
             _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer,IsSubtitleVisible);
             //_scrollingSubtitleHandler = new ScrollingSubtitleHandler();
+
+
+            _wordClickHandler.OnWordClickEvent += (s,e) =>
+            {
+                _sentencePanelView.Close();
+            };
 
             _subtitleHandler.SubtitlesLoaded += subtitles =>
             {
@@ -584,8 +592,6 @@ namespace Echo.ViewModels
 
         public void OnSubtitleAreaMouseLeftButtonDown(System.Windows.Input.MouseEventArgs e)
         {
-
-            //Debug.WriteLine("SubtitleAreaMouseLeftButtonDown");
             if (e.LeftButton == MouseButtonState.Pressed && subtitleText.Length > 0)
             {
                 if(_translationService != null)

@@ -44,7 +44,7 @@ namespace Echo.Handlers
         {
             word = TrimAllCharacters(word);
             _translationService?.ShowTranslation(word, position);
-            
+            OnWordClickEvent?.Invoke(this, EventArgs.Empty);
         }
 
         private static string TrimAllCharacters(string word)
@@ -59,5 +59,6 @@ namespace Echo.Handlers
             _textBlock = textBlock;
         }
 
+        public event EventHandler OnWordClickEvent;
     }
 }

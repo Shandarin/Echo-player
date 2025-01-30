@@ -177,10 +177,14 @@
                                          Text="{Binding SubtitleText}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Visible" />
                                         <Style.Triggers>
-                                            <Trigger Property="Text" Value="">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Trigger>
+                                            <DataTrigger Binding="{Binding SubtitleText}" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding SubtitleText}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </TextBlock.Style>
