@@ -14,70 +14,94 @@ namespace Echo.Handlers
 
         public static async Task<List<string>> ExtractEmbeddedSubtitlesAsync(string videoPath)
         {
-            var appRootDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var mkvExtractPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvextract.exe");
-            var mkvInfoPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvinfo.exe");
-            var outputDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Echo", "Subtitles");
-            Directory.CreateDirectory(outputDir);
-
-            // Get track info
-            var trackInfo = GetTrackInfo(mkvInfoPath, videoPath);
-            if (string.IsNullOrEmpty(trackInfo))
+            try
             {
-                return null;
-            }
+                var appRootDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                var mkvExtractPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvextract.exe");
+                var mkvInfoPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvinfo.exe");
 
-            // Parse subtitle tracks
-            var subtitleTracks = ParseTracks(trackInfo);
-            if (!subtitleTracks.Any())
-            {
-                return null;
-            }
+                // 调试信息
+                Debug.WriteLine($"Current Directory: {Environment.CurrentDirectory}");
+                Debug.WriteLine($"MKVInfo Path: {mkvInfoPath}");
+                Debug.WriteLine($"MKVExtract Path: {mkvExtractPath}");
+                Debug.WriteLine($"File exists - MKVInfo: {File.Exists(mkvInfoPath)}");
+                Debug.WriteLine($"File exists - MKVExtract: {File.Exists(mkvExtractPath)}");
 
-            // Get video filename without extension for naming subtitle files
-            var videoFileName = Path.GetFileNameWithoutExtension(videoPath);
+                // 设置工作目录
+                Environment.CurrentDirectory = Path.Combine(appRootDirectory, "mkvtoolnix");
 
-            var subtitleFiles = new List<string>();
-            foreach (var track in subtitleTracks)
-            {
-                // Generate subtitle filename
-                string subtitleFileName = GenerateSubtitleFileName(videoFileName, track);
-                string outputPath = Path.Combine(outputDir, subtitleFileName);
+                var outputDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Echo", "Subtitles");
+                Directory.CreateDirectory(outputDir);
 
-                // Extract subtitle using mkvextract
-                using (var process = new Process())
+                // Get track info
+                var trackInfo = GetTrackInfo(mkvInfoPath, videoPath);
+                if (string.IsNullOrEmpty(trackInfo))
                 {
-                    process.StartInfo = new ProcessStartInfo
-                    {
-                        FileName = mkvExtractPath,
-                        Arguments = $"\"{videoPath}\" tracks {track.TrackId}:\"{outputPath}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
+                    Debug.WriteLine("Failed to get track info");
+                    return null;
+                }
 
-                    try
-                    {
-                        process.Start();
-                        await process.WaitForExitAsync();
+                // Parse subtitle tracks
+                var subtitleTracks = ParseTracks(trackInfo);
+                if (!subtitleTracks.Any())
+                {
+                    Debug.WriteLine("No subtitle tracks found");
+                    return null;
+                }
 
-                        if (process.ExitCode != 0)
+                // Get video filename without extension for naming subtitle files
+                var videoFileName = Path.GetFileNameWithoutExtension(videoPath);
+
+                var subtitleFiles = new List<string>();
+                foreach (var track in subtitleTracks)
+                {
+                    // Generate subtitle filename
+                    string subtitleFileName = GenerateSubtitleFileName(videoFileName, track);
+                    string outputPath = Path.Combine(outputDir, subtitleFileName);
+
+                    // Extract subtitle using mkvextract
+                    using (var process = new Process())
+                    {
+                        process.StartInfo = new ProcessStartInfo
                         {
-                            var errorMessage = process.StandardError.ReadToEnd();
-                            throw new Exception($"Failed to extract subtitle track {track.TrackId}: {errorMessage}");
+                            FileName = mkvExtractPath,
+                            Arguments = $"\"{videoPath}\" tracks {track.TrackId}:\"{outputPath}\"",
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WorkingDirectory = Path.GetDirectoryName(mkvExtractPath)
+                        };
+
+                        try
+                        {
+                            process.Start();
+                            await process.WaitForExitAsync();
+
+                            if (process.ExitCode != 0)
+                            {
+                                var errorMessage = await process.StandardError.ReadToEndAsync();
+                                Debug.WriteLine($"MKVExtract Error: {errorMessage}");
+                                throw new Exception($"Failed to extract subtitle track {track.TrackId}: {errorMessage}");
+                            }
+                            subtitleFiles.Add(outputPath);
                         }
-                        subtitleFiles.Add(outputPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception($"Error executing mkvextract: {ex.Message}");
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Process error: {ex.Message}");
+                            throw new Exception($"Error executing mkvextract: {ex.Message}");
+                        }
                     }
                 }
+                return subtitleFiles;
             }
-            return subtitleFiles;
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ExtractEmbeddedSubtitlesAsync error: {ex.Message}");
+                throw;
+            }
         }
 
         private static string GetTrackInfo(string mkvInfoPath, string videoPath)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,6 +11,7 @@ using Echo.Handlers;
 using Echo.Services;
 using Echo.ViewModels;
 using Echo.Views;
+using LibVLCSharp.Shared;
 
 
 namespace Echo
@@ -288,6 +290,62 @@ namespace Echo
 
             return isTop && isBottom && isLeft && isRight;
 
+        }
+
+        private void OnDragOver(object sender, DragEventArgs e)
+        {
+            // Check if the dragged data contains file(s)
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+        private async void OnFileDrop(object sender, DragEventArgs e)
+        {
+            try
+            {
+                // 保存当前工作目录
+                string originalDirectory = Environment.CurrentDirectory;
+
+                try
+                {
+                    // 设置正确的工作目录
+                    string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    Environment.CurrentDirectory = baseDirectory;
+
+                    Debug.WriteLine($"Original Directory: {originalDirectory}");
+                    Debug.WriteLine($"Set Directory to: {baseDirectory}");
+
+                    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                    {
+                        string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                        if (files.Length > 0)
+                        {
+                            string filePath = Path.GetFullPath(files[0]);
+                            if (DataContext is MainWindowViewModel vm)
+                            {
+                                await vm.HandleFileOpenAsync(filePath);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    // 恢复原始工作目录
+                    Environment.CurrentDirectory = originalDirectory;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"OnFileDrop error: {ex.Message}");
+                Debug.WriteLine($"Current Directory: {Environment.CurrentDirectory}");
+                MessageBox.Show($"打开文件时发生错误：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

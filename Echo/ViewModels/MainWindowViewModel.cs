@@ -479,71 +479,8 @@ namespace Echo.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 var filePath = dialog.FileName;
-                var extension = Path.GetExtension(filePath).ToLower();
-
-                if (extension == ".srt" || extension == ".ass")
-                {
-                    LoadSubtitle(filePath);
-                }
-                else
-                {
-                    _hasAdjustedAspectRatio = false;
-                    // 打开视频文件
-
-                    _mediaPlayer.Media?.Dispose();
-                    _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
-                    _mediaPlayer.Play();
-
-                    //_isMouseLoaded = true;
-
-                    VideoFilePath = filePath;
-
-                    // step 1: check same dir for subtitles
-                    _subtitleHandler.Dispose();
-                    var srtPath = Path.ChangeExtension(filePath, ".srt");
-                    var assPath = Path.ChangeExtension(filePath, ".ass");
-                    if (File.Exists(srtPath))
-                    {
-                        //MessageBox.Show($"Found subtitle: {srtPath}");
-                        LoadSubtitle(srtPath);
-                    }
-                    else if (File.Exists(assPath))
-                    {
-                        //MessageBox.Show($"Found subtitle: {assPath}");
-                        LoadSubtitle(assPath);
-                    }
-
-                    //var EmbeddedSubtitleFiles = new List<string>();
-                    //step 2: check extracted embedded subtitles
-
-                    var subtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
-                    EmbeddedSubtitleFiles = new ObservableCollection<string>(subtitleFiles);
-                    //EmbeddedSubtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
-
-                    //step 3: extract embedded subtitles(not always there)
-                    if (!EmbeddedSubtitleFiles.Any() | EmbeddedSubtitleFiles is null)
-                    {
-                        subtitleFiles.Clear();
-
-                        subtitleFiles = await SubtitleExtractHandler.ExtractEmbeddedSubtitlesAsync(filePath);
-                        EmbeddedSubtitleFiles = new ObservableCollection<string>(subtitleFiles);
-                    }
-
-                    if (EmbeddedSubtitleFiles.Any())
-                    {
-                        foreach (var file in EmbeddedSubtitleFiles)
-                        {
-                            if (file.Contains("OriginalLang") & !file.Contains("SDH"))
-                            {
-                                LoadSubtitle(file);
-                                
-                            }
-                        }
-                        if (!_subtitleHandler.IsLoaded)
-                            LoadSubtitle(EmbeddedSubtitleFiles[0]);
-                    }
-                    MenuBarVM.UpdateSubtitle(EmbeddedSubtitleFiles, EmbeddedSubtitleFiles.Any());
-                }
+                
+                await HandleFileOpenAsync(filePath);
             }
         }
 
@@ -754,6 +691,77 @@ namespace Echo.ViewModels
             
            // _mediaPlayer.ToggleFullscreen();
 
+        }
+
+
+        public async Task HandleFileOpenAsync(string filePath)
+        {
+            Debug.WriteLine($"filePath {filePath}");
+            var extension = Path.GetExtension(filePath).ToLower();
+
+            if (extension == ".srt" || extension == ".ass")
+            {
+                LoadSubtitle(filePath);
+            }
+            else
+            {
+                _hasAdjustedAspectRatio = false;
+                // 打开视频文件
+
+                _mediaPlayer.Media?.Dispose();
+                _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
+                _mediaPlayer.Play();
+
+                //_isMouseLoaded = true;
+
+                VideoFilePath = filePath;
+
+                // step 1: check same dir for subtitles
+                _subtitleHandler.Dispose();
+                var srtPath = Path.ChangeExtension(filePath, ".srt");
+                var assPath = Path.ChangeExtension(filePath, ".ass");
+                if (File.Exists(srtPath))
+                {
+                    //MessageBox.Show($"Found subtitle: {srtPath}");
+                    LoadSubtitle(srtPath);
+                }
+                else if (File.Exists(assPath))
+                {
+                    //MessageBox.Show($"Found subtitle: {assPath}");
+                    LoadSubtitle(assPath);
+                }
+
+                //var EmbeddedSubtitleFiles = new List<string>();
+                //step 2: check extracted embedded subtitles
+
+                var subtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
+                EmbeddedSubtitleFiles = new ObservableCollection<string>(subtitleFiles);
+                //EmbeddedSubtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
+
+                //step 3: extract embedded subtitles(not always there)
+                if (!EmbeddedSubtitleFiles.Any() | EmbeddedSubtitleFiles is null)
+                {
+                    subtitleFiles.Clear();
+
+                    subtitleFiles = await SubtitleExtractHandler.ExtractEmbeddedSubtitlesAsync(filePath);
+                    EmbeddedSubtitleFiles = new ObservableCollection<string>(subtitleFiles);
+                }
+
+                if (EmbeddedSubtitleFiles.Any())
+                {
+                    foreach (var file in EmbeddedSubtitleFiles)
+                    {
+                        if (file.Contains("OriginalLang") & !file.Contains("SDH"))
+                        {
+                            LoadSubtitle(file);
+
+                        }
+                    }
+                    if (!_subtitleHandler.IsLoaded)
+                        LoadSubtitle(EmbeddedSubtitleFiles[0]);
+                }
+                MenuBarVM.UpdateSubtitle(EmbeddedSubtitleFiles, EmbeddedSubtitleFiles.Any());
+            }
         }
 
         private void ShowSubtitle()
