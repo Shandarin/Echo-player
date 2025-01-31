@@ -22,8 +22,6 @@
         Top="{Binding MainWindowTop,Mode=TwoWay}"
         SizeChanged="OnWindowSizeChanged"
         >
-
-
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>
@@ -173,21 +171,8 @@
                                          TextAlignment="Center"
                                          MaxWidth="800"
                                          VerticalAlignment="Bottom"
-                                         Margin="0,0,0,10"     
-                                         Text="{Binding SubtitleText}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SubtitleText}" Value="">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding SubtitleText}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
+                                         Margin="0,0,0,10"     >
+
                             </TextBlock>
 
                             <!-- Next subtitle -->
@@ -201,7 +186,7 @@
                                           MaxWidth="800"
                                           Visibility="Collapsed"/>
 
-                        </StackPanel>
+                     </StackPanel>
                         </Grid>
                     <!-- 单词翻译面板容器 -->
                     <Canvas x:Name="TranslationContainer" 

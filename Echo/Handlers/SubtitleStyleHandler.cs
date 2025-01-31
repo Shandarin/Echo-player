@@ -191,12 +191,11 @@ namespace Echo.Handlers
 
             private static void OnWordMouseEnter(Run run)
             {
-                run.SetValue(Run.TagProperty, run.Foreground);
+            run.SetValue(Run.TagProperty, run.Foreground);
                 run.TextDecorations = TextDecorations.Underline;
                 run.Foreground = new SolidColorBrush(Colors.Yellow);
                 Mouse.OverrideCursor = Cursors.Hand;
-
-                DependencyObject current = run;
+            DependencyObject current = run;
                 while (current != null)
                 {
                     if (current is TextBlock tb && tb.Name == "SubtitleTextBlock")
