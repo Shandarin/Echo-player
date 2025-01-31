@@ -149,14 +149,17 @@ namespace Echo
 
             // 判断是否进入或离开字幕区
             bool isCurrentlyInSubtitleArea = IsInSubtitleArea(currentPosition);
-            //Debug.WriteLine($"isCurrentlyInSubtitleArea {isCurrentlyInSubtitleArea}");
-            if (isCurrentlyInSubtitleArea)
+            if (isCurrentlyInSubtitleArea != _isInSubtitleArea)
             {
-                vm.OnSubtitleAreaMouseEnter();
-            }
-            else
-            {
-                vm.OnSubtitleAreaMouseLeave();
+                _isInSubtitleArea = isCurrentlyInSubtitleArea;
+                if (_isInSubtitleArea)
+                {
+                    vm.OnSubtitleAreaMouseEnter();
+                }
+                else
+                {
+                    vm.OnSubtitleAreaMouseLeave();
+                }
             }
 
 
