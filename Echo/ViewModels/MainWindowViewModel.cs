@@ -37,10 +37,14 @@ namespace Echo.ViewModels
         //private readonly ScrollingSubtitleHandler _scrollingSubtitleHandler;
 
         private bool _hasAdjustedAspectRatio = false;
+        private bool _isSentenceAnalysisEnabled;
+        
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
         private SentencePanelView _sentencePanelView;
-        
+
+        private bool _isWordQueryEnabled;
+
         //private TextBlock _prevSubtitleBlock;
         //private TextBlock _nextSubtitleBlock;
 
@@ -182,6 +186,7 @@ namespace Echo.ViewModels
 
             _yourLanguage = MenuBarVM.SelectedYourLanguage;
             _learningLanguage = MenuBarVM.SelectedLearningLanguage;
+            _isWordQueryEnabled = MenuBarVM.IsWordQueryEnabled;
 
             // Subscribe to events
             MenuBarVM.OnScreenshotRequested += HandleScreenshotRequested;
@@ -198,23 +203,16 @@ namespace Echo.ViewModels
             MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
             MenuBarVM.OnSubtitleTrackSelected += HandleSubtitleTrackSelected;
             MenuBarVM.SubtitleDisplayModeChangedEvent += HandleSubtitleDisplayModeChanged;
-
-           
+            MenuBarVM.IsSentenceAnalysisEnabledChanged += HandleIsSentenceAnalysisEnabledChanged;
+            MenuBarVM.IsWordQueryEnabledChanged += HandleIsWordQueryEnabledChanged;
 
             MediaPlayer.Playing += OnMediaPlaying;
-
 
             // Initialize services and handlers
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
             _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer,IsSubtitleVisible);
             //_scrollingSubtitleHandler = new ScrollingSubtitleHandler();
-
-
-            _wordClickHandler.OnWordClickEvent += (s,e) =>
-            {
-                _sentencePanelView.Close();
-            };
 
             _subtitleHandler.SubtitlesLoaded += subtitles =>
             {
@@ -244,6 +242,9 @@ namespace Echo.ViewModels
             ForwardTime = MenuBarVM.ForwardTime;
 
             SubtitleDisplayMode = MenuBarVM.SubtitleDisplayMode;
+            _isSentenceAnalysisEnabled = MenuBarVM.IsSentenceAnalysisEnabled;
+            _wordClickHandler.OnWordClickEvent += HandleWordClickEvent;
+
         }
 
         #region Callbacks 
@@ -447,8 +448,18 @@ namespace Echo.ViewModels
                 HideTextBlock();
                 HideSubtitle();
             }
-
         }
+
+        private void HandleIsSentenceAnalysisEnabledChanged(object? sender, bool value)
+        {
+            _isSentenceAnalysisEnabled = value;
+        }
+
+        private void HandleIsWordQueryEnabledChanged(object? sender, bool value)
+        {
+            _isWordQueryEnabled = value;
+        }
+
 
         #endregion
 
@@ -604,14 +615,17 @@ namespace Echo.ViewModels
                     _sentenceContainer.Children.Remove(_sentencePanelView);
                 }
 
-                _sentencePanelView = new SentencePanelView();
-                _sentencePanelView.CloseRequested += (s, args) =>
+                if (_isSentenceAnalysisEnabled)
                 {
-                    _sentenceContainer.Children.Remove(_sentencePanelView);
-                    _sentencePanelView = null;
-                };
-                _sentenceContainer.Children.Add(_sentencePanelView);
-                _sentencePanelView.Show(subtitleText, e.GetPosition(_sentenceContainer));
+                    _sentencePanelView = new SentencePanelView();
+                    _sentencePanelView.CloseRequested += (s, args) =>
+                    {
+                        _sentenceContainer.Children.Remove(_sentencePanelView);
+                        _sentencePanelView = null;
+                    };
+                    _sentenceContainer.Children.Add(_sentencePanelView);
+                    _sentencePanelView.Show(subtitleText, e.GetPosition(_sentenceContainer));
+                }
             }
         }
 
@@ -824,6 +838,21 @@ namespace Echo.ViewModels
             }
             SubtitleBackgroud = argbValue;
         }
+
+        private void HandleWordClickEvent(object sender, WordClickEventArgs e)
+        {
+            if(_sentencePanelView != null)
+            {
+                _sentencePanelView.Close();
+                _sentenceContainer.Children.Remove(_sentencePanelView);
+            }
+
+            if (_translationService != null & _isWordQueryEnabled)
+            {
+                _translationService?.ShowTranslation(e.Word, e.Position);
+            }
+        }
+
 
         #endregion
 

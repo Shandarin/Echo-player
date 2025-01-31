@@ -284,6 +284,16 @@ namespace Echo.ViewModels
             ForwardTimeChanged?.Invoke(this, value);
         }
 
+        partial void OnIsSentenceAnalysisEnabledChanged(bool value)
+        {
+            IsSentenceAnalysisEnabledChanged?.Invoke(this,value);
+        }
+
+        partial void OnIsWordQueryEnabledChanged(bool value)
+        {
+            IsWordQueryEnabledChanged?.Invoke(this, value);
+        }
+
 
         // Events
         public event EventHandler<string> OnFileSelected;
@@ -306,6 +316,8 @@ namespace Echo.ViewModels
         public event EventHandler<uint> ForwardTimeChanged;
 
         public event EventHandler<string> SubtitleDisplayModeChangedEvent;
+        public event EventHandler<bool> IsSentenceAnalysisEnabledChanged;
+        public event EventHandler<bool> IsWordQueryEnabledChanged;
 
         // Additional commands can be added for other menu items
     }

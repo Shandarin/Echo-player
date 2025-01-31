@@ -43,8 +43,8 @@ namespace Echo.Handlers
         private void OnWordClick(string word, Point position)
         {
             word = TrimAllCharacters(word);
-            _translationService?.ShowTranslation(word, position);
-            OnWordClickEvent?.Invoke(this, EventArgs.Empty);
+           // _translationService?.ShowTranslation(word, position);
+            OnWordClickEvent?.Invoke(this, new WordClickEventArgs(word,position));
         }
 
         private static string TrimAllCharacters(string word)
@@ -59,6 +59,19 @@ namespace Echo.Handlers
             _textBlock = textBlock;
         }
 
-        public event EventHandler OnWordClickEvent;
+        public event EventHandler<WordClickEventArgs> OnWordClickEvent;
+       // public event EventHandler<string,Point> OnWordClickEvent;
+    }
+
+    public class WordClickEventArgs : EventArgs
+    {
+        public string Word { get; }
+        public Point Position { get; }
+
+        public WordClickEventArgs(string word, Point position)
+        {
+            Word = word;
+            Position = position;
+        }
     }
 }
