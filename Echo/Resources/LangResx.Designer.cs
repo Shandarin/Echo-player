@@ -88,6 +88,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 All Collections 的本地化字符串。
+        /// </summary>
+        public static string All_Collections {
+            get {
+                return ResourceManager.GetString("All_Collections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Always Show 的本地化字符串。
         /// </summary>
         public static string Always_Show {

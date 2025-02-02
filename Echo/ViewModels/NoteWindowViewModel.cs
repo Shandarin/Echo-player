@@ -103,7 +103,7 @@ namespace Echo.ViewModels
         /// </summary>
         private async Task LoadCollections()
         {
-            string allText = LanguageManager.GetString("All");
+            string allText = LanguageManager.GetString("All_Collections");
 
             var collectionList = await _databaseService.GetAllCollections();
             Collections.Clear();

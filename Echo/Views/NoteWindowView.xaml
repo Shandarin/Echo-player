@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Echo.ViewModels"
         xmlns:converters="clr-namespace:Echo.Converters"
+        xmlns:resx="clr-namespace:Echo.Resources"
         mc:Ignorable="d"
         Title="Vocabulary" 
         Height="600" Width="600"
@@ -90,10 +91,11 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TabControl  Grid.Column="0"  Grid.ColumnSpan="1" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
-                <TabItem Header="单词" IsSelected="True" FontSize="16"/>
-                <TabItem Header="句子" FontSize="16"/>
+                <TabItem Header="{x:Static resx:LangResx.Words}"  IsSelected="True" FontSize="16"/>
+                <TabItem Header="{x:Static resx:LangResx.Sentences}"  FontSize="16"/>
             </TabControl>
             <!-- 搜索框 -->
+            <!--todo
             <Border Grid.Column="1" 
                     Background="#F5F5F5" 
                     CornerRadius="15" 
@@ -130,6 +132,7 @@
                     </TextBlock>
                 </Grid>
             </Border>
+            -->
         </Grid>
 
 
@@ -143,7 +146,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- 收藏夹列表 -->
-            <StackPanel Orientation="Horizontal" Margin="10,0" Height="25">
+            <StackPanel Orientation="Horizontal" Margin="15,0" Height="25">
                 <ComboBox Width="120" ItemsSource="{Binding Collections}" SelectedItem="{Binding SelectedCollection}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -159,16 +162,25 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
+
+                <!--todo
                 <ComboBox Width="120" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}" Margin="5,0"/>
                 <ComboBox Width="100" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilterOption}" Margin="5,0"/>
+            -->
             </StackPanel>
 
-            <!-- 中间按钮组-设置 -->
+            <!-- 中间按钮组-设置 
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="⏵" />
             </StackPanel>
-
+            -->
+            <Border Grid.Column="1"
+            Background="#FFB5B5B5"
+            Height="1"
+            Margin="10,43,10,-4"/>
         </Grid>
+
+
 
         <!-- 主内容区 -->
         <Grid Grid.Row="2">
@@ -179,17 +191,17 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <!-- 单词列表ListView -->
-            <ListView ItemsSource="{Binding Words}" 
+                <ListView ItemsSource="{Binding Words}" 
                       SelectedItem="{Binding SelectedWord}"
                       BorderThickness="0"
                       Background="Transparent"
                        Width="120" Margin="1,10,1,-10"
                       AlternationCount="9999"
                       >
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3,3,3,3">
-                            <TextBlock  
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3,3,3,3">
+                                <TextBlock  
                                 Foreground="#999"
                                 Margin="0,0,6,0" 
                                 Width="30"
@@ -197,186 +209,187 @@
                                               Path=(ItemsControl.AlternationIndex), 
                                               Converter={StaticResource IndexConverter}}"
                             />
-                            <TextBlock Text="{Binding Word}" 
+                                <TextBlock Text="{Binding Word}" 
                                          FontSize="12"/>
-                        </StackPanel>
+                            </StackPanel>
 
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
 
-                    <!-- 分割线 -->
-            <Border Grid.Column="1"
-            Background="Gray"
+                <!-- 分割线 -->
+                <Border Grid.Column="1"
+            Background="#FFB5B5B5"
             Width="1"
             VerticalAlignment="Stretch"
             Margin="0,10,0,10"/>
 
-            <!-- 右侧单词详情 -->
-            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
-            <Grid  Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                <!-- 右侧单词详情 -->
+                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                    <Grid  Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                <!-- 单词标题区 -->
-                <Grid Grid.Row="0"  >
-                    <TextBlock Text="{Binding CurrentWord.Word}" 
+                        <!-- 单词标题区 -->
+                        <Grid Grid.Row="0"  >
+                            <TextBlock Text="{Binding CurrentWord.Word}" 
                              FontSize="24" 
                              FontWeight="Bold"/>
-                        <!-- 收藏按钮 -->
-                        <Button Grid.Column="1" BorderThickness="0"
+                            <!-- 收藏按钮 -->
+                            <Button Grid.Column="1" BorderThickness="0"
                             Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Setter Property="BorderThickness" Value="0"/>
-                                    <Setter Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect ShadowDepth="0" BlurRadius="0" Opacity="0"/>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Grid>
-                                                    <Image Source="{Binding FavoriteIcon}" Width="23"/>
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <!-- 鼠标悬浮触发器 -->
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Effect">
-                                                <Setter.Value>
-                                                    <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="Gray" Opacity="0.5"/>
-                                                </Setter.Value>
-                                            </Setter>
-                                            <Setter Property="Background" Value="#FFECECEC"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                    </Grid>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect ShadowDepth="0" BlurRadius="0" Opacity="0"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Grid>
+                                                        <Image Source="{Binding FavoriteIcon}" Width="23"/>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <!-- 鼠标悬浮触发器 -->
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="Gray" Opacity="0.5"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="Background" Value="#FFECECEC"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
 
 
-                <!-- 音标区 -->
-                <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,10">
-                    <!-- 使用ItemsControl绑定多个发音 -->
-                    <ItemsControl ItemsSource="{Binding CurrentWord.Pronounciations}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="0,10,12,0">
-                                    <!-- 显示发音的方言名称 -->
-                                    <TextBlock Text="{Binding Dialect}" VerticalAlignment="Center" Margin="0,0,5,0" />
-                                    <!-- 显示音标 -->
-                                    <TextBlock Text="{Binding PhoneticSpelling, StringFormat='/{0}/'}" VerticalAlignment="Center" Margin="0,0,5,0" />
-                                    <!-- 播放音频按钮 -->
-                                    <Button Content="🔊"
+                        <!-- 音标区 -->
+                        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,10">
+                            <!-- 使用ItemsControl绑定多个发音 -->
+                            <ItemsControl ItemsSource="{Binding CurrentWord.Pronounciations}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,12,0">
+                                            <!-- 显示发音的方言名称 -->
+                                            <TextBlock Text="{Binding Dialect}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                            <!-- 显示音标 -->
+                                            <TextBlock Text="{Binding PhoneticSpelling, StringFormat='/{0}/'}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                            <!-- 播放音频按钮 -->
+                                            <Button Content="🔊"
                             Command="{Binding DataContext.PlayAudioCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             CommandParameter="{Binding AudioFile}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
 
 
 
-                <!-- 释义区 -->
-                <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,10">
-                    <ItemsControl ItemsSource="{Binding CurrentWord.GroupedSenses}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Vertical" Margin="0,0,0,15">
+                        <!-- 释义区 -->
+                        <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,10">
+                            <ItemsControl ItemsSource="{Binding CurrentWord.GroupedSenses}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Vertical" Margin="0,0,0,15">
 
-                                    <!-- 分组头：显示语言 + 词性，只出现一次 -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                        <!--<TextBlock Text="{Binding ExplanationLanguageCode}"
+                                            <!-- 分组头：显示语言 + 词性，只出现一次 -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                <!--<TextBlock Text="{Binding ExplanationLanguageCode}"
                                FontWeight="Bold"
                                Margin="0,0,10,0"/>-->
-                                        <TextBlock Text="{Binding Category}"
+                                                <TextBlock Text="{Binding Category}"
                                FontWeight="Bold" Margin="10,0,0,0" FontSize="12"/>
-                                    </StackPanel>
+                                            </StackPanel>
 
-                                    <!-- 内层 ItemsControl：显示这个分组内的多个释义 -->
-                                    <ItemsControl ItemsSource="{Binding Senses}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <!-- 每条释义显示区域 -->
-                                                <StackPanel Orientation="Vertical" Margin="20,0,0,5">
-                                                    <!-- Definition -->
-                                                        <TextBlock Text="{Binding Definition, StringFormat={}{0} ;}"
+                                            <!-- 内层 ItemsControl：显示这个分组内的多个释义 -->
+                                            <ItemsControl ItemsSource="{Binding Senses}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <!-- 每条释义显示区域 -->
+                                                        <StackPanel Orientation="Vertical" Margin="20,0,0,5">
+                                                            <!-- Definition -->
+                                                            <TextBlock Text="{Binding Definition, StringFormat={}{0} ;}"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,5"
                                                                FontSize="14"/>
 
-                                                    <!-- 如果 Examples 不为空，就显示例句+翻译 -->
-                                                        <ItemsControl ItemsSource="{Binding LimitedExamples}">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <!-- key:例句，value:翻译，一次显示两行 -->
-                                                                <StackPanel Orientation="Vertical" Margin="0,0,0,5">
-                                                                    <TextBlock Text="{Binding Key}"
+                                                            <!-- 如果 Examples 不为空，就显示例句+翻译 -->
+                                                            <ItemsControl ItemsSource="{Binding LimitedExamples}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <!-- key:例句，value:翻译，一次显示两行 -->
+                                                                        <StackPanel Orientation="Vertical" Margin="0,0,0,5">
+                                                                            <TextBlock Text="{Binding Key}"
                                                            TextWrapping="Wrap" 
                                                            Foreground="Gray"/>
-                                                                        <TextBlock Text="{Binding Value}"
+                                                                            <TextBlock Text="{Binding Value}"
                                                                                TextWrapping="Wrap"
                                                                                Foreground="Gray">
-                                                                            <TextBlock.Style>
-                                                                                <Style TargetType="TextBlock">
-                                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                                    <Style.Triggers>
-                                                                                        <!-- 如果 Value 为 null 或 空字符串，则隐藏 TextBlock -->
-                                                                                        <DataTrigger Binding="{Binding Value}" Value="">
-                                                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                                                        </DataTrigger>
-                                                                                        <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
-                                                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </TextBlock.Style>
-                                                                        </TextBlock>
-                                                                    </StackPanel>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                        <Style.Triggers>
+                                                                                            <!-- 如果 Value 为 null 或 空字符串，则隐藏 TextBlock -->
+                                                                                            <DataTrigger Binding="{Binding Value}" Value="">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            </DataTrigger>
+                                                                                            <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                        </StackPanel>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
 
-                                                        <!-- 给内层item一些间距(可选) -->
-                                                        <ItemsControl.ItemContainerStyle>
-                                                            <Style TargetType="ContentPresenter">
-                                                                <Setter Property="Margin" Value="0,0,0,3"/>
-                                                            </Style>
-                                                        </ItemsControl.ItemContainerStyle>
-                                                    </ItemsControl>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+                                                                <!-- 给内层item一些间距(可选) -->
+                                                                <ItemsControl.ItemContainerStyle>
+                                                                    <Style TargetType="ContentPresenter">
+                                                                        <Setter Property="Margin" Value="0,0,0,3"/>
+                                                                    </Style>
+                                                                </ItemsControl.ItemContainerStyle>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
             </Grid>
-            </ScrollViewer>
-                </Grid>
             <!-- 句子视图（当标签页选中索引为 1 时显示） -->
             <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource TabIndexToVisibilityConverter}, ConverterParameter=1}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="1"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="146*"/>
+                    <ColumnDefinition Width="301*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- 句子列表 -->
@@ -384,7 +397,7 @@
                   SelectedItem="{Binding SelectedSentence}"
                   BorderThickness="0"
                   Background="Transparent"
-                  Width="120" Margin="1,10,1,-10">
+                  Width="120" Margin="15,10,15,-10">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="3">
@@ -396,13 +409,12 @@
 
                 <!-- 分割线 -->
                 <Border Grid.Column="1"
-                Background="Gray"
+                Background="#FFB5B5B5"
                 Width="1"
-                VerticalAlignment="Stretch"
                 Margin="0,10,0,10"/>
 
                 <!-- 右侧句子详情 -->
-                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
                     <StackPanel Margin="10">
                         <Grid>
                             <TextBlock Text="{Binding SelectedSentence.Sentence}" FontSize="22" FontWeight="Bold" Margin="5,10,5,5"/>
@@ -442,7 +454,7 @@
                                 </Button.Style>
                             </Button>
                         </Grid>
-                            <TextBlock Text="{Binding SelectedSentence.Translation}" FontSize="14" Margin="5,20,20,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedSentence.Translation}" FontSize="14" Margin="5,20,20,10" TextWrapping="Wrap"/>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

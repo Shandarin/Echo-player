@@ -330,4 +330,7 @@
   <data name="Words" xml:space="preserve">
     <value>Слова</value>
   </data>
+  <data name="All_Collections" xml:space="preserve">
+    <value>Все коллекции</value>
+  </data>
 </root>

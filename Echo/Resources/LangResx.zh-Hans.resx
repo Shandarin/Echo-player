@@ -330,4 +330,7 @@
   <data name="Words" xml:space="preserve">
     <value>单词</value>
   </data>
+  <data name="All_Collections" xml:space="preserve">
+    <value>所有收藏</value>
+  </data>
 </root>
