@@ -283,7 +283,7 @@
     <value>Feedback</value>
   </data>
   <data name="Check_for_Updates" xml:space="preserve">
-    <value>About</value>
+    <value>Check for Updates</value>
   </data>
   <data name="About" xml:space="preserve">
     <value>About</value>
@@ -320,5 +320,14 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>Hide</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>Set up API</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>Sentences</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>Words</value>
   </data>
 </root>

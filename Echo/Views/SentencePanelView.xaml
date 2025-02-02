@@ -17,15 +17,17 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
                 <!-- Sentence -->
                 <TextBlock Text="{Binding Sentence, Mode=OneWay}" 
-                        FontSize="18" 
+                        FontSize="17" 
                         FontWeight="Bold"
                         VerticalAlignment="Top"
-                           Margin ="10,10,10,8"/>
+                           Margin ="15,8,10,8"/>
+
                 <!-- Favorite Button -->
                 <Button Grid.Column="1" BorderThickness="0"
                    Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
@@ -62,14 +64,15 @@
                     </Button.Style>
                 </Button>
             </Grid>
+            <Border Grid.Row="1" Height="1" Margin="10,0,10,0" Background="#E0E0E0"/>
             <!-- 内容区域 -->
-            <Grid Grid.Row="1">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="10,5">
+            <Grid Grid.Row="2">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15,8,10,10">
                     <ItemsControl ItemsSource="{Binding ContentLines}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border  Background="white" CornerRadius="5" Padding="1">
-                                    <TextBlock Text="{Binding}" Foreground="#666666" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding}" Foreground="#666666" FontSize="13" TextWrapping="Wrap"/>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

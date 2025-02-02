@@ -282,9 +282,6 @@
   <data name="Feedback" xml:space="preserve">
     <value>用户反馈</value>
   </data>
-  <data name="Check_for_Updates" xml:space="preserve">
-    <value>检查更新</value>
-  </data>
   <data name="About" xml:space="preserve">
     <value>关于</value>
   </data>
@@ -320,5 +317,17 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>隐藏</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>设置 API</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>句子</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>单词</value>
   </data>
 </root>

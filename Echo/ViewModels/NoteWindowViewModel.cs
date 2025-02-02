@@ -16,6 +16,8 @@ namespace Echo.ViewModels
     {
         private readonly DatabaseService _databaseService;
 
+        public ObservableCollection<SentenceModel> Sentences { get; } = new();
+
         // 搜索文字
         [ObservableProperty]
         private string _searchText;
@@ -61,7 +63,13 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private string _FavoriteIcon;
-        
+
+        [ObservableProperty]
+        private int _selectedTabIndex;
+
+        [ObservableProperty]
+        private SentenceModel selectedSentence;
+
 
         // 构造函数
         public NoteWindowViewModel()
@@ -71,6 +79,9 @@ namespace Echo.ViewModels
             // 初始化集合
             //Collections = new ObservableCollection<CollectionModel>();
             //Words = new ObservableCollection<WordModel>();
+            //Sentences = new ObservableCollection<SentenceModel>();
+
+            SelectedTabIndex = 0;
 
             // 准备选项
             SortOptions = new ObservableCollection<string> { "按时间", "按字母" };
@@ -123,6 +134,11 @@ namespace Echo.ViewModels
             {
                 Words.Add(w);
             }
+            if (Words.Count > 0)
+            {
+                SelectedWord = Words[0];
+            }
+            
         }
 
         [RelayCommand]
@@ -139,12 +155,12 @@ namespace Echo.ViewModels
             {
                 IsFavorite = !IsFavorite;
                 FavoriteIcon = IsFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
-                string json = System.Text.Json.JsonSerializer.Serialize(CurrentWord, new JsonSerializerOptions
-                {
-                    WriteIndented = true   // 缩进美化输出
-                });
-                Debug.WriteLine("ToggleFavoriteAsync");
-                Debug.WriteLine(json);
+                //string json = System.Text.Json.JsonSerializer.Serialize(CurrentWord, new JsonSerializerOptions
+                //{
+                //    WriteIndented = true   // 缩进美化输出
+                //});
+                //Debug.WriteLine("ToggleFavoriteAsync");
+                //Debug.WriteLine(json);
                 if (IsFavorite)
                 {
                     await _databaseService.CollectionLinkAsync(CurrentWord, CurrentWord.CollectionId);
@@ -159,6 +175,45 @@ namespace Echo.ViewModels
                 MessageBox.Show($"Error toggling favorite: {ex.Message}");
             }
         }
+
+
+        [RelayCommand]
+        private async Task ToggleSentenceFavorite()
+        {
+
+            if (string.IsNullOrWhiteSpace(SelectedSentence.Sentence))
+            {
+                MessageBox.Show("No sentence selected to toggle favorite status.");
+                return;
+            }
+
+            try
+            {
+                IsFavorite = !IsFavorite;
+                FavoriteIcon = IsFavorite ? "/Assets/images/collect-active.png" : "/Assets/images/collect.png";
+                //string json = System.Text.Json.JsonSerializer.Serialize(CurrentWord, new JsonSerializerOptions
+                //{
+                //    WriteIndented = true   // 缩进美化输出
+                //});
+                //Debug.WriteLine("ToggleFavoriteAsync");
+                //Debug.WriteLine(json);
+                if (IsFavorite)
+                {
+                    await _databaseService.CollectSentenceAsync(SelectedSentence, SelectedSentence.CollectionId);
+                }
+                else
+                {
+                    Debug.WriteLine($"SelectedSentence {SelectedSentence.Id}");
+                    Debug.WriteLine($"SelectedCollection.Id {SelectedSentence.CollectionId}");
+                    await _databaseService.RemoveSentenceFromCollectionAsync(SelectedSentence, SelectedSentence.CollectionId);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error toggling favorite: {ex.Message}");
+            }
+        }
+        
 
         [RelayCommand]
         private async Task PlayAudio(string AudioPath)
@@ -182,6 +237,28 @@ namespace Echo.ViewModels
             }
         }
 
+        [RelayCommand]
+        private async Task LoadSentencesAsync()
+        {
+            if (SelectedCollection.Id == null)
+            {
+                SelectedCollection.Id = 0;
+            }
+
+            var sentencesList = await _databaseService.GetAllSentenceAsync(SelectedCollection.Id);
+            Sentences.Clear();
+            foreach (var sentence in sentencesList)
+            {
+                Sentences.Add(sentence);
+            }
+
+            // 默认选择第一条句子（如果存在）
+            if (Sentences.Count > 0)
+            {
+                SelectedSentence = Sentences[0];
+            }
+        }
+
         // 选中单词时，加载详细数据
         partial void OnSelectedWordChanged(WordBasicModel? value)
         {
@@ -191,6 +268,26 @@ namespace Echo.ViewModels
             }
             CheckIfCollected(CurrentWord).ConfigureAwait(false);
         }
+
+        partial void OnSelectedSentenceChanged(SentenceModel value)
+        {
+            if (value != null)
+            {
+               // LoadSentencesAsync().ConfigureAwait(false);
+            }
+
+            CheckIfSentenceCollected(value).ConfigureAwait(false);
+        }
+
+        partial void OnSelectedTabIndexChanged(int value)
+        {
+            // 切换到句子页（假设句子页的索引为1）
+            if (value == 1)
+            {
+                LoadSentencesAsync();
+            }
+        }
+
 
         private async Task LoadWordDetailsAsync(WordBasicModel basicWord)
         {
@@ -320,6 +417,23 @@ namespace Echo.ViewModels
             {
                 IsFavorite = true;
                 FavoriteIcon = "/Assets/images/collect-active.png";
+            }
+            else
+            {
+                IsFavorite = false;
+                FavoriteIcon = "/Assets/images/collect.png";
+            }
+        }
+
+        private async Task CheckIfSentenceCollected(SentenceModel sentenceModel)
+        {
+            var result = await _databaseService.CheckSentenceCollectedAsync(sentenceModel);
+
+            if (result is not null)
+            {
+                IsFavorite = true;
+                FavoriteIcon = "/Assets/images/collect-active.png";
+                SelectedSentence.CollectionId = (long)result;
             }
             else
             {

@@ -6,6 +6,8 @@ using Echo.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,13 +20,15 @@ namespace Echo.ViewModels
         private readonly DatabaseService _databaseService;
         private readonly OpenAIService _openAiService;
 
+        private SentenceModel _sentenceModel;
+        private string _collectionName;
+
+        private string _translationText;
+
         //private MessageManager _messageManager = new()
 
         [ObservableProperty]
         private bool _isFavorite;
-
-        [ObservableProperty]
-        private string _contentText;
 
         [ObservableProperty]
         private bool _isLoading;
@@ -59,23 +63,21 @@ namespace Echo.ViewModels
             FavoriteIcon = "/Assets/images/collect.png";//要有预设值否则会出错
             _openAiService = new OpenAIService();
 
-            SourceLanguage = Properties.Settings.Default.LearningLanguage;
-            TargetLanguage = Properties.Settings.Default.YourLanguage;
+            //SourceLanguage = Properties.Settings.Default.LearningLanguage;
+            //TargetLanguage = Properties.Settings.Default.YourLanguage;
 
-            Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
+            //Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
+
+            MainWindowViewModel MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
+            SourceLanguage = MainWindowVM.LearningLanguage;
+            TargetLanguage = MainWindowVM.YourLanguage;
+            _collectionName = Path.GetFileName(MainWindowVM.VideoFilePath);
         }
 
 
         [RelayCommand]
         private async Task ToggleFavoriteAsync()
         {
-
-            if (string.IsNullOrWhiteSpace(ContentText))
-            {
-                MessageBox.Show("No sentence selected to toggle favorite status.");
-                return;
-            }
-
             try
             {
                 IsFavorite = !IsFavorite;
@@ -86,11 +88,11 @@ namespace Echo.ViewModels
                 // Save to database
                 if (IsFavorite)
                 {
-                    await _databaseService.CollectionSentenceAsync(Sentence, ContentText, SourceLanguage, TargetLanguage);
+                    await _databaseService.CollectSentenceAsync(_sentenceModel, _collectionName);
                 }
                 else
                 {
-                    await _databaseService.RemoveSentenceAsync(Sentence, SourceLanguage, TargetLanguage);
+                    await _databaseService.RemoveSentenceAsync(_sentenceModel);
                 }
 
             }
@@ -114,7 +116,24 @@ namespace Echo.ViewModels
 
         public async Task SentenceTranslateAsync(string text)
         {
-            var sText = TextManager.RemoveHtmlTags(text);
+
+            _sentenceModel = await _databaseService.GetSentenceAsync(text,SourceLanguage, TargetLanguage);
+            if (_sentenceModel != null)
+            {
+                _translationText = _sentenceModel.Translation;
+                ContentLines = TextManager.SplitRows(_translationText);
+
+               var result = await _databaseService.CheckSentenceCollectedAsync(_sentenceModel);
+                if (result is not null)
+                {
+                    IsFavorite = true;
+                    FavoriteIcon = "/Assets/images/collect-active.png";
+                }
+                return;
+            }
+
+
+            var sText = TextManager.RemoveHtmlTags(text).Trim(); ;
 
 
             if (Properties.Settings.Default.IsEchoAPIEnabled)
@@ -123,7 +142,7 @@ namespace Echo.ViewModels
                 var jObj = Newtonsoft.Json.Linq.JObject.Parse(responseString);
 
                 var result = jObj["resp_content"]?.ToString();
-
+                _translationText = result;
                 ContentLines = TextManager.SplitRows(result);
             }
             else
@@ -132,6 +151,19 @@ namespace Echo.ViewModels
 
                 ContentLines = TextManager.SplitRows(analysis);
             }
+
+            if (string.IsNullOrWhiteSpace(_translationText))
+            {
+                return;
+            }
+
+            _sentenceModel = new SentenceModel();
+            _sentenceModel.Sentence = sText;
+            _sentenceModel.Translation = _translationText;
+            _sentenceModel.SourceLanguageCode = SourceLanguage;
+            _sentenceModel.TargetLanguageCode = TargetLanguage;
+
+            await _databaseService.GetOrSaveSentenceAsync(_sentenceModel);
 
         }
 

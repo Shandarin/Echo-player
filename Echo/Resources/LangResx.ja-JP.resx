@@ -282,9 +282,6 @@
   <data name="Feedback" xml:space="preserve">
     <value>フィードバック</value>
   </data>
-  <data name="Check_for_Updates" xml:space="preserve">
-    <value>について</value>
-  </data>
   <data name="About" xml:space="preserve">
     <value>について</value>
   </data>
@@ -320,5 +317,17 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>隠す</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>APIを設定する</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>更新を確認する</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>文 (ぶん)</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>言葉</value>
   </data>
 </root>

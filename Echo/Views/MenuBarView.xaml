@@ -499,12 +499,12 @@
             <MenuItem Header="API" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="{x:Static resx:LangResx.Dictionary_API}" Style="{StaticResource MenuItemStyle}">
                     <MenuItem Header="{x:Static resx:LangResx.Oxford_Dictionary}" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="{x:Static resx:LangResx.Configure_Token}" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="{x:Static resx:LangResx.Set_up_API}" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="{x:Static resx:LangResx.Sentence_Analysis_API}" Style="{StaticResource MenuItemStyle}">
                     <MenuItem Header="OpenAI" Command="{Binding SelectSentenceAPICommand}" CommandParameter="openai" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="{x:Static resx:LangResx.Configure_Token}" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
+                        <MenuItem Header="{x:Static resx:LangResx.Set_up_API}" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
                     </MenuItem>
                 </MenuItem>
                 <!-- todo 

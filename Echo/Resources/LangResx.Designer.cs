@@ -142,7 +142,7 @@ namespace Echo.Resources {
         }
         
         /// <summary>
-        ///   查找类似 About 的本地化字符串。
+        ///   查找类似 Check for Updates 的本地化字符串。
         /// </summary>
         public static string Check_for_Updates {
             get {
@@ -502,6 +502,24 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Sentences 的本地化字符串。
+        /// </summary>
+        public static string Sentences {
+            get {
+                return ResourceManager.GetString("Sentences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Set up API 的本地化字符串。
+        /// </summary>
+        public static string Set_up_API {
+            get {
+                return ResourceManager.GetString("Set_up_API", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Shortcuts 的本地化字符串。
         /// </summary>
         public static string Shortcuts {
@@ -660,6 +678,15 @@ namespace Echo.Resources {
         public static string Word_Click {
             get {
                 return ResourceManager.GetString("Word_Click", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Words 的本地化字符串。
+        /// </summary>
+        public static string Words {
+            get {
+                return ResourceManager.GetString("Words", resourceCulture);
             }
         }
         

@@ -282,9 +282,6 @@
   <data name="Feedback" xml:space="preserve">
     <value>تغذية راجعة</value>
   </data>
-  <data name="Check_for_Updates" xml:space="preserve">
-    <value>حول</value>
-  </data>
   <data name="About" xml:space="preserve">
     <value>حول</value>
   </data>
@@ -320,5 +317,17 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>إخفاء</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>إعداد واجهة برمجة التطبيقات</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>تحقق من التحديثات</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>جمل</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>كلمات</value>
   </data>
 </root>

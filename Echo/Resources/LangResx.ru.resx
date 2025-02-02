@@ -282,9 +282,6 @@
   <data name="Feedback" xml:space="preserve">
     <value>Обратная связь</value>
   </data>
-  <data name="Check_for_Updates" xml:space="preserve">
-    <value>О программе</value>
-  </data>
   <data name="About" xml:space="preserve">
     <value>О программе</value>
   </data>
@@ -320,5 +317,17 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>Скрыть</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>Настроить API</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>Проверить обновления</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>Предложения</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>Слова</value>
   </data>
 </root>

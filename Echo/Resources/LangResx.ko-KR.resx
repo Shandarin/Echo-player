@@ -282,9 +282,6 @@
   <data name="Feedback" xml:space="preserve">
     <value>피드백</value>
   </data>
-  <data name="Check_for_Updates" xml:space="preserve">
-    <value>정보</value>
-  </data>
   <data name="About" xml:space="preserve">
     <value>정보</value>
   </data>
@@ -320,5 +317,17 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>숨기다</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>API 설정하기</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>업데이트 확인</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>문장들</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>단어들</value>
   </data>
 </root>

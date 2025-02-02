@@ -282,9 +282,6 @@
   <data name="Feedback" xml:space="preserve">
     <value>Відгук</value>
   </data>
-  <data name="Check_for_Updates" xml:space="preserve">
-    <value>Про програму</value>
-  </data>
   <data name="About" xml:space="preserve">
     <value>Про програму</value>
   </data>
@@ -320,5 +317,17 @@
   </data>
   <data name="Hide" xml:space="preserve">
     <value>Сховати</value>
+  </data>
+  <data name="Set_up_API" xml:space="preserve">
+    <value>Налаштувати API</value>
+  </data>
+  <data name="Check_for_Updates" xml:space="preserve">
+    <value>Перевірити наявність оновлень</value>
+  </data>
+  <data name="Sentences" xml:space="preserve">
+    <value>Речення</value>
+  </data>
+  <data name="Words" xml:space="preserve">
+    <value>Слова</value>
   </data>
 </root>

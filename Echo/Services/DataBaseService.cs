@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Transactions;
 using System.Windows;
 
 namespace Echo.Services
@@ -142,14 +143,15 @@ namespace Echo.Services
                         Sentence        TEXT NOT NULL,
                         Translation     TEXT,
                         AudioFilePath   TEXT,
-                        LanguageCode    TEXT,
+                        SourceLanguageCode    TEXT,
+                        TargetLanguageCode    TEXT,
                         Analysis        TEXT,
                         IsDeleted       BOOLEAN DEFAULT 0,
                         SourceId        INTEGER,
                         CreateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
                         UpdateTime      DATETIME DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY(SourceId) REFERENCES Sources(Id),
-                        UNIQUE(Sentence, LanguageCode)
+                        UNIQUE(Sentence, SourceLanguageCode)
                     );
 
                     CREATE TABLE IF NOT EXISTS Collections (
@@ -1187,24 +1189,483 @@ namespace Echo.Services
             }
         }
 
-        public async Task CollectionSentenceAsync(string Sentence, string ContentText, string SourceLanguage, string TargetLanguage)
-        {
 
+        public async Task<SentenceModel?> GetOrSaveSentenceAsync(SentenceModel sentenceModel)
+        {
+            if (sentenceModel == null || string.IsNullOrWhiteSpace(sentenceModel.Sentence))
+                throw new ArgumentException("句子模型不能为空");
+
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // 先检查句子是否存在
+                var checkCommand = new SQLiteCommand(@"
+            SELECT Id, Sentence, Translation, TargetLanguageCode 
+            FROM Sentences 
+            WHERE Sentence = @Sentence 
+            AND SourceLanguageCode = @SourceLanguageCode 
+            AND TargetLanguageCode = @TargetLanguageCode;
+        ", connection);
+
+                checkCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                checkCommand.Parameters.AddWithValue("@SourceLanguageCode", sentenceModel.SourceLanguageCode);
+                checkCommand.Parameters.AddWithValue("@TargetLanguageCode", sentenceModel.TargetLanguageCode);
+
+                using var reader = await checkCommand.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    // 如果存在，直接返回现有数据
+                    return new SentenceModel
+                    {
+                        Id = reader.GetInt64(reader.GetOrdinal("Id")),
+                        Sentence = reader.GetString(reader.GetOrdinal("Sentence")),
+                        Translation = reader.GetString(reader.GetOrdinal("Translation")),
+                        TargetLanguageCode = reader.GetString(reader.GetOrdinal("TargetLanguageCode"))
+                    };
+                }
+
+                // 如果不存在，插入新句子
+                var insertCommand = new SQLiteCommand(@"
+                    INSERT INTO Sentences (
+                        Sentence, 
+                        Translation, 
+                        SourceLanguageCode,
+                        TargetLanguageCode
+                    ) VALUES (
+                        @Sentence,
+                        @Translation,
+                        @SourceLanguageCode,
+                        @TargetLanguageCode
+                    );
+                    SELECT last_insert_rowid();
+                ", connection);
+
+                insertCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                insertCommand.Parameters.AddWithValue("@Translation", sentenceModel.Translation);
+                insertCommand.Parameters.AddWithValue("@SourceLanguageCode", sentenceModel.SourceLanguageCode);
+                insertCommand.Parameters.AddWithValue("@TargetLanguageCode", sentenceModel.TargetLanguageCode);
+
+                var newId = Convert.ToInt64(await insertCommand.ExecuteScalarAsync());
+
+                Debug.WriteLine($"newId {newId}");
+
+                transaction.Commit();
+
+                // 返回新插入的数据，包含新的ID
+                sentenceModel.Id = newId;
+                return sentenceModel;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"保存句子时发生错误: {ex.Message}", ex);
+            }
         }
 
-        public async Task RemoveSentenceAsync(string Sentence, string SourceLanguage, string TargetLanguage)
+        public async Task RemoveSentenceAsync(SentenceModel sentenceModel)
         {
+            if (string.IsNullOrWhiteSpace(sentenceModel.Sentence))
+                throw new ArgumentException("句子不能为空");
 
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // 先获取句子ID
+                var selectCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Sentences 
+                    WHERE Sentence = @Sentence 
+                    AND SourceLanguageCode = @SourceLanguage
+                    AND TargetLanguageCode = @TargetLanguage;
+                ", connection);
+
+                selectCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                selectCommand.Parameters.AddWithValue("@SourceLanguage", sentenceModel.SourceLanguageCode);
+                selectCommand.Parameters.AddWithValue("@TargetLanguage", sentenceModel.TargetLanguageCode);
+
+                var sentenceId = await selectCommand.ExecuteScalarAsync();
+
+                if (sentenceId == null)
+                {
+                    throw new Exception("未找到要删除的句子");
+                }
+
+                // 删除 WordSentenceCollectionLink 中的关联记录
+                var deleteLinkCommand = new SQLiteCommand(@"
+                    DELETE FROM WordSentenceCollectionLink 
+                    WHERE SentenceId = @SentenceId;
+                ", connection);
+
+                deleteLinkCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+                await deleteLinkCommand.ExecuteNonQueryAsync();
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"删除句子关联记录时发生错误: {ex.Message}", ex);
+            }
         }
 
-        public async Task GetSentenceAsync(string Sentence, string SourceLanguage, string TargetLanguage)
+        public async Task<SentenceModel> GetSentenceAsync(string sentence,string SourceLanguageCode,string TargetLanguageCode)
         {
+            if (string.IsNullOrWhiteSpace(sentence))
+                throw new ArgumentException("句子不能为空");
 
+            using var connection = GetConnection();
+
+            var command = new SQLiteCommand(@"
+                SELECT 
+                    Id,
+                    Sentence,
+                    Translation,
+                    SourceLanguageCode,
+                    TargetLanguageCode
+                FROM Sentences 
+                WHERE Sentence = @Sentence 
+                AND SourceLanguageCode = @SourceLanguageCode
+                AND TargetLanguageCode = @TargetLanguageCode;
+            ", connection);
+
+            command.Parameters.AddWithValue("@Sentence", sentence);
+            command.Parameters.AddWithValue("@SourceLanguageCode", SourceLanguageCode);
+            command.Parameters.AddWithValue("@TargetLanguageCode", TargetLanguageCode);
+
+            try
+            {
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new SentenceModel
+                    {
+                        Id = reader.GetInt64(reader.GetOrdinal("Id")),
+                        Sentence = reader.GetString(reader.GetOrdinal("Sentence")),
+                        Translation = reader["Translation"]?.ToString(),
+                        //AudioFilePath = reader["AudioFilePath"]?.ToString(),
+                        SourceLanguageCode = reader["SourceLanguageCode"]?.ToString(),
+                        TargetLanguageCode = reader["TargetLanguageCode"]?.ToString(),
+                        //Analysis = reader["Analysis"]?.ToString()
+                    };
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"查询句子时发生错误: {ex.Message}", ex);
+            }
         }
 
+
+        public async Task CollectSentenceAsync(SentenceModel sentenceModel, string collectionName)
+        {
+            if (string.IsNullOrWhiteSpace(sentenceModel.Sentence))
+                throw new ArgumentException("句子不能为空");
+
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // 获取句子ID
+                var selectSentenceCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Sentences 
+                    WHERE Sentence = @Sentence 
+                    AND SourceLanguageCode = @SourceLanguage 
+                    AND TargetLanguageCode = @TargetLanguage ;
+                     ", connection);
+
+                selectSentenceCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                selectSentenceCommand.Parameters.AddWithValue("@SourceLanguage", sentenceModel.SourceLanguageCode);
+                selectSentenceCommand.Parameters.AddWithValue("@TargetLanguage", sentenceModel.TargetLanguageCode);
+
+                var sentenceId = await selectSentenceCommand.ExecuteScalarAsync();
+
+                if (sentenceId == null)
+                {
+                    throw new Exception("未找到要收藏的句子");
+                }
+
+                // 检查是否已经存在收藏记录
+                var checkLinkCommand = new SQLiteCommand(@"
+                    SELECT COUNT(1) 
+                    FROM WordSentenceCollectionLink 
+                    WHERE SentenceId = @SentenceId;
+                ", connection);
+
+                checkLinkCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+
+                var existingCount = Convert.ToInt32(await checkLinkCommand.ExecuteScalarAsync());
+
+                if (existingCount > 0)
+                {
+                    return; // 已经收藏过，直接返回
+                }
+
+                var collectionId = await GetOrCreateCollectionIdAsync(connection, collectionName);
+
+                // 创建新的收藏记录
+                var insertLinkCommand = new SQLiteCommand(@"
+                    INSERT INTO WordSentenceCollectionLink (
+                        SentenceId,
+                        CollectionId
+                    ) VALUES (
+                        @SentenceId,
+                        @CollectionId
+                    );
+                ", connection);
+
+                insertLinkCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+                insertLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId); // 默认收藏集ID为1
+
+                await insertLinkCommand.ExecuteNonQueryAsync();
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"收藏句子时发生错误: {ex.Message}", ex);
+            }
+        }
+
+        public async Task RemoveSentenceFromCollectionAsync(SentenceModel sentenceModel, long collectionId)
+        {
+            if (sentenceModel == null || string.IsNullOrWhiteSpace(sentenceModel.Sentence))
+                throw new ArgumentException("句子不能为空");
+
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // 根据句子文本和语言信息查找对应句子的ID
+                var selectSentenceCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Sentences 
+                    WHERE Sentence = @Sentence 
+                      AND SourceLanguageCode = @SourceLanguage 
+                      AND TargetLanguageCode = @TargetLanguage;
+                ", connection);
+
+                selectSentenceCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                selectSentenceCommand.Parameters.AddWithValue("@SourceLanguage", sentenceModel.SourceLanguageCode);
+                selectSentenceCommand.Parameters.AddWithValue("@TargetLanguage", sentenceModel.TargetLanguageCode);
+
+                var sentenceId = await selectSentenceCommand.ExecuteScalarAsync();
+                if (sentenceId == null)
+                {
+                    throw new Exception("未找到对应的句子，无法删除收藏记录");
+                }
+
+                // 删除收藏记录：根据句子ID和集合ID删除关联记录
+                var deleteLinkCommand = new SQLiteCommand(@"
+                    DELETE FROM WordSentenceCollectionLink 
+                    WHERE SentenceId = @SentenceId AND CollectionId = @CollectionId;
+                ", connection);
+
+                deleteLinkCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+                deleteLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                await deleteLinkCommand.ExecuteNonQueryAsync();
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"删除句子收藏记录时发生错误: {ex.Message}", ex);
+            }
+        }
+
+        public async Task CollectSentenceAsync(SentenceModel sentenceModel, long collectionId)
+        {
+            if (sentenceModel == null || string.IsNullOrWhiteSpace(sentenceModel.Sentence))
+                throw new ArgumentException("句子不能为空");
+
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // 获取句子ID
+                var selectSentenceCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Sentences 
+                    WHERE Sentence = @Sentence 
+                      AND SourceLanguageCode = @SourceLanguage 
+                      AND TargetLanguageCode = @TargetLanguage;
+                ", connection);
+
+                selectSentenceCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                selectSentenceCommand.Parameters.AddWithValue("@SourceLanguage", sentenceModel.SourceLanguageCode);
+                selectSentenceCommand.Parameters.AddWithValue("@TargetLanguage", sentenceModel.TargetLanguageCode);
+
+                var sentenceId = await selectSentenceCommand.ExecuteScalarAsync();
+
+                if (sentenceId == null)
+                {
+                    throw new Exception("未找到要收藏的句子");
+                }
+
+                // 检查当前集合中是否已存在该句子的收藏记录
+                var checkLinkCommand = new SQLiteCommand(@"
+                    SELECT COUNT(1) 
+                    FROM WordSentenceCollectionLink 
+                    WHERE SentenceId = @SentenceId AND CollectionId = @CollectionId;
+                ", connection);
+
+                checkLinkCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+                checkLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                var existingCount = Convert.ToInt32(await checkLinkCommand.ExecuteScalarAsync());
+
+                if (existingCount > 0)
+                {
+                    // 已经收藏过该句子在该集合中，直接返回
+                    return;
+                }
+
+                // 插入新的收藏记录
+                var insertLinkCommand = new SQLiteCommand(@"
+                    INSERT INTO WordSentenceCollectionLink (
+                        SentenceId,
+                        CollectionId
+                    ) VALUES (
+                        @SentenceId,
+                        @CollectionId
+                    );
+                ", connection);
+
+                insertLinkCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+                insertLinkCommand.Parameters.AddWithValue("@CollectionId", collectionId);
+
+                await insertLinkCommand.ExecuteNonQueryAsync();
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"收藏句子时发生错误: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<long?> CheckSentenceCollectedAsync(SentenceModel sentenceModel)
+        {
+            if (sentenceModel == null || string.IsNullOrWhiteSpace(sentenceModel.Sentence))
+                throw new ArgumentException("句子不能为空");
+
+            using var connection = GetConnection();
+
+            try
+            {
+                // 首先获取句子的 ID
+                var selectSentenceCommand = new SQLiteCommand(@"
+                    SELECT Id 
+                    FROM Sentences 
+                    WHERE Sentence = @Sentence 
+                      AND SourceLanguageCode = @SourceLanguage 
+                      AND TargetLanguageCode = @TargetLanguage
+                      AND IsDeleted = 0;
+                ", connection);
+
+                selectSentenceCommand.Parameters.AddWithValue("@Sentence", sentenceModel.Sentence);
+                selectSentenceCommand.Parameters.AddWithValue("@SourceLanguage", sentenceModel.SourceLanguageCode);
+                selectSentenceCommand.Parameters.AddWithValue("@TargetLanguage", sentenceModel.TargetLanguageCode);
+
+                var sentenceId = await selectSentenceCommand.ExecuteScalarAsync();
+                if (sentenceId == null)
+                {
+                    // 句子不存在
+                    return null;
+                }
+
+                // 查询收藏记录，返回第一个匹配的 CollectionId
+                var selectCollectionCommand = new SQLiteCommand(@"
+                    SELECT CollectionId 
+                    FROM WordSentenceCollectionLink 
+                    WHERE SentenceId = @SentenceId
+                    LIMIT 1;
+                ", connection);
+                selectCollectionCommand.Parameters.AddWithValue("@SentenceId", sentenceId);
+
+                var collectionIdObject = await selectCollectionCommand.ExecuteScalarAsync();
+                if (collectionIdObject != null)
+                {
+                    return Convert.ToInt64(collectionIdObject);
+                }
+
+                // 如果没有收藏记录，则返回 null
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"检查句子收藏状态时发生错误: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<List<SentenceModel>> GetAllSentenceAsync(int CollectionId)
+        {
+            var sentences = new List<SentenceModel>();
+            using var connection = GetConnection();
+            string sql;
+            if (CollectionId == 0)
+            {
+                // 如果 CollectionId 为 0，则查询所有在WordSentenceCollectionLink中关联的句子，
+                // 前提是该表中的SentenceId不为0（即存在句子关联记录）
+                sql = @"
+                    SELECT s.Id, s.Sentence, s.Translation, s.SourceLanguageCode, s.TargetLanguageCode, s.AudioFilePath
+                    FROM Sentences s
+                    INNER JOIN WordSentenceCollectionLink wscl ON wscl.SentenceId = s.Id
+                    WHERE wscl.SentenceId IS NOT NULL AND wscl.SentenceId <> 0
+                    ORDER BY wscl.UpdateTime DESC;";
+            }
+            else
+            {
+                // 根据传入的CollectionId查询关联的句子记录
+                sql = @"
+                    SELECT s.Id, s.Sentence, s.Translation, s.SourceLanguageCode, s.TargetLanguageCode, s.AudioFilePath
+                    FROM Sentences s
+                    INNER JOIN WordSentenceCollectionLink wscl ON wscl.SentenceId = s.Id
+                    WHERE wscl.CollectionId = @CollectionId
+                    ORDER BY wscl.UpdateTime DESC;";
+            }
+
+            using var command = new SQLiteCommand(sql, connection);
+            if (CollectionId != 0)
+            {
+                command.Parameters.AddWithValue("@CollectionId", CollectionId);
+            }
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var sentenceModel = new SentenceModel
+                {
+                    Id = reader.GetInt64(reader.GetOrdinal("Id")),
+                    Sentence = reader["Sentence"]?.ToString(),
+                    Translation = reader["Translation"]?.ToString(),
+                    SourceLanguageCode = reader["SourceLanguageCode"]?.ToString(),
+                    TargetLanguageCode = reader["TargetLanguageCode"]?.ToString(),
+                    //AudioFilePath = reader["AudioFilePath"]?.ToString()
+                };
+                sentences.Add(sentenceModel);
+            }
+
+            return sentences;
+        }
         public void Dispose()
         {
             _connection?.Dispose();
         }
+
+
+    
     }
 }
