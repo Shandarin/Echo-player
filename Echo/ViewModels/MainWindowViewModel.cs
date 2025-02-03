@@ -38,7 +38,10 @@ namespace Echo.ViewModels
 
         private bool _hasAdjustedAspectRatio = false;
         private bool _isSentenceAnalysisEnabled;
-        
+        private bool _isVideoLoading = false;
+
+        private long _sizeChangingTimer;
+
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
         private SentencePanelView _sentencePanelView;
@@ -173,7 +176,6 @@ namespace Echo.ViewModels
 
         public MainWindowViewModel( )
         {
-            
             Core.Initialize();
             _libVLC = new LibVLC();
             _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
@@ -282,8 +284,6 @@ namespace Echo.ViewModels
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
-            
-
             VideoAreaContainerBackground = "Transparent";
 
             PlayImage = "⏸";
@@ -295,6 +295,8 @@ namespace Echo.ViewModels
                 _hasAdjustedAspectRatio = true;
             }  
             _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
+            _isVideoLoading = false;
+            _sizeChangingTimer = _mediaPlayer.Time;
         }
 
         #endregion
@@ -566,16 +568,24 @@ namespace Echo.ViewModels
             Debug.WriteLine($"size {e}");
         }
 
-        //public void OnWindowSizeChanged(Size newSize)
-        //{
-        //    if (_mediaPlayer.Media != null & !IsFullScreen & _hasAdjustedAspectRatio & _mediaPlayer.IsPlaying)
-        //    {
-        //        var result = _windowSizeHandler.CalculateResizedVideoSize(newSize.Width, newSize.Height, double.Parse(VideoViewWidth), double.Parse(VideoViewHeight));
+        public void OnWindowSizeChanged(Size newSize)
+        {
+            //防止视频载入的尺寸变化触发
+            if (_isVideoLoading) {
+                return;
+                    };
+            var currentTime = _mediaPlayer.Time;
+            if (currentTime - _sizeChangingTimer > 500)
+            {
+                if (_mediaPlayer.Media != null & !IsFullScreen & _hasAdjustedAspectRatio)
+                {
+                    var result = _windowSizeHandler.CalculateResizedVideoSize(newSize.Width, newSize.Height, double.Parse(VideoViewWidth), double.Parse(VideoViewHeight));
 
-        //        VideoViewWidth = result.Item1.ToString();
-        //        VideoViewHeight = result.Item2.ToString();
-        //    }
-        //}
+                    VideoViewWidth = (result.Item1).ToString();
+                    VideoViewHeight = (result.Item2).ToString();
+                }
+            }
+        }
 
         public void OnSubtitleAreaMouseEnter()
         {
@@ -716,7 +726,6 @@ namespace Echo.ViewModels
 
         public async Task HandleFileOpenAsync(string filePath)
         {
-            Debug.WriteLine($"filePath {filePath}");
             var extension = Path.GetExtension(filePath).ToLower();
 
             if (extension == ".srt" || extension == ".ass")
@@ -726,6 +735,7 @@ namespace Echo.ViewModels
             else
             {
                 _hasAdjustedAspectRatio = false;
+                _isVideoLoading = true;
                 // 打开视频文件
 
                 _mediaPlayer.Media?.Dispose();

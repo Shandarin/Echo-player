@@ -266,8 +266,7 @@ namespace Echo
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                Debug.WriteLine($"Size Changed {e.NewSize}");
-                //vm.OnWindowSizeChanged(e.NewSize);
+                vm.OnWindowSizeChanged(e.NewSize);
             }
         }
 

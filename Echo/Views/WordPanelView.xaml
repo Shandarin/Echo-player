@@ -83,7 +83,7 @@
                                          FontSize="14"
                                          Foreground="#666666"
                                          Margin="0,0,10,0"/>
-                                <Button Command="{Binding DataContext.PlayPronunciationCommand, 
+                                <Button Command="{Binding PlayPronunciationCommand, 
                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding AudioFile,Mode=OneWay}"
                                         >
