@@ -714,13 +714,19 @@ namespace Echo.Services
                 var selectWordCommand = new SQLiteCommand(@"
                     SELECT Id 
                     FROM Words 
-                    WHERE Word = @Word AND SourceLanguageCode = @SourceLanguageCode;
+                    WHERE Word = @Word COLLATE NOCASE 
+                    AND SourceLanguageCode = @SourceLanguageCode COLLATE NOCASE 
+                    AND TargetLanguageCode = @TargetLanguageCode COLLATE NOCASE 
+                    AND IsDeleted = 0
+                    LIMIT 1;
                 ", connection);
 
-                selectWordCommand.Parameters.AddWithValue("@Word", word.Word);
-                selectWordCommand.Parameters.AddWithValue("@SourceLanguageCode", word.SourceLanguageCode);
+                selectWordCommand.Parameters.AddWithValue("@Word", word.Word.Trim());
+                selectWordCommand.Parameters.AddWithValue("@SourceLanguageCode", word.SourceLanguageCode.Trim());
+                selectWordCommand.Parameters.AddWithValue("@TargetLanguageCode", word.TargetLanguageCode.Trim());
 
                 var wordIdResult = await selectWordCommand.ExecuteScalarAsync();
+
                 //MessageBox.Show(Convert.ToString(wordIdResult));
                 if (wordIdResult == null)
                 {
@@ -742,8 +748,6 @@ namespace Echo.Services
                 selectLinkCommand.Parameters.AddWithValue("@WordId", wordId);
 
                 var linkExistsResult = await selectLinkCommand.ExecuteScalarAsync();
-
-                //Debug.WriteLine($"Convert.ToInt32(linkExistsResult):{linkExistsResult}");
                 return Convert.ToInt32(linkExistsResult) == 1; // Returns true if the link exists
             }
             catch (Exception ex)

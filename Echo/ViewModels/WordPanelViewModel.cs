@@ -149,6 +149,7 @@ namespace Echo.ViewModels
                     Definitions = wordLocal.Definitions;
                     CurrentWordModel = wordLocal;
                     AddInfo();
+                    await CheckIfCollected(wordLocal);
                     return ;
                 }
 
@@ -179,6 +180,7 @@ namespace Echo.ViewModels
                         Definitions = wordLocal.Definitions;
                         CurrentWordModel = wordLocal;
                         AddInfo();
+                        await CheckIfCollected(wordLocal);
                         return;
                     }
                     //_wordDetails = details;
@@ -251,6 +253,7 @@ namespace Echo.ViewModels
         private async Task CheckIfCollected(WordModel wordM)
         {
             if (await _databaseService.CheckCollectionLinkExistAsync(wordM))
+
             {
                 IsFavorite = true;
                 FavoriteIcon = "/Assets/images/collect-active.png";
@@ -260,6 +263,7 @@ namespace Echo.ViewModels
                 IsFavorite = false;
                 FavoriteIcon = "/Assets/images/collect.png";
             }
+            Debug.WriteLine($"IsFavorite {IsFavorite}");
         }
 
         [RelayCommand]
