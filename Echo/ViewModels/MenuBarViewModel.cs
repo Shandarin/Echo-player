@@ -74,6 +74,9 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> _embeddedSubtitleFiles = new();
 
+        [ObservableProperty]
+        private string _detectedLanguage ;
+
         public MenuBarViewModel() 
 
         {
@@ -89,7 +92,12 @@ namespace Echo.ViewModels
             BackwardTime = Properties.Settings.Default.BackwardTime;
             ForwardTime = Properties.Settings.Default.ForwardTime;
             SubtitleDisplayMode = Properties.Settings.Default.SubtitleDisplayMode;
+            DetectedLanguage = null;
+        }
 
+        partial void OnDetectedLanguageChanged(string value)
+        {
+            Debug.WriteLine($"DetectedLanguage {DetectedLanguage}");
         }
 
         // File Menu Commands

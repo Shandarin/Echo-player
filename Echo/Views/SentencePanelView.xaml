@@ -7,10 +7,6 @@
              mc:Ignorable="d"
              Width="400" MinHeight="100" MaxHeight="400">
 
-    <UserControl.DataContext>
-        <vm:SentencePanelViewModel/>
-    </UserControl.DataContext>
-
     <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" 
            Background="White" >
         <Grid>

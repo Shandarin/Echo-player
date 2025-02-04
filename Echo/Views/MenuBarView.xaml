@@ -24,6 +24,7 @@
         <converters:StringEqualsConverter x:Key="StringEqualsConverter"/>
         <converters:ZeroToEnableConverter x:Key="ZeroToEnableConverter"/>
         <converters:PathToFileNameConverter x:Key="PathToFileNameConverter"/>
+        <converters:AutoDetectLanguageConverter x:Key="AutoDetectLanguageConverter"/>
 
         <!-- MenuItem 基础样式 -->
         <Style x:Key="MenuItemStyle" TargetType="MenuItem">
@@ -363,11 +364,17 @@
                               Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
                 <MenuItem Header="{x:Static resx:LangResx.Learning_Language}" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="{x:Static resx:LangResx.Auto_Detect}" 
-                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='Auto'}" 
-                              Command="{Binding ChangeLearningLanguageCommand}" CommandParameter="Auto" Style="{StaticResource MenuItemStyle}"/>
                     
-                    <MenuItem Header="简体中文" 
+                    <MenuItem Command="{Binding ChangeLearningLanguageCommand}" 
+                              CommandParameter="Auto" 
+                              Style="{StaticResource MenuItemStyle}"
+                              IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='Auto'}">
+                        <MenuItem.Header>
+                            <TextBlock Text="{Binding DetectedLanguage, Converter={StaticResource AutoDetectLanguageConverter}}" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                    
+                    <MenuItem Header="中文" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="zh" 

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,10 +20,17 @@
     <None Remove="Assets\images\collect-active.png" />
     <None Remove="Assets\images\collect.png" />
     <None Remove="Config.json" />
+    <None Remove="logo.png" />
+    <None Remove="Resources\Icon\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="logo.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="LanguageDetection.Ai" Version="1.1.0" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SubtitlesParser" Version="1.5.1" />
@@ -59,6 +67,8 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Assets\images\collect.png" />
+    <Resource Include="logo.png" />
+    <Resource Include="Resources\Icon\logo.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +76,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Storage\" />
   </ItemGroup>
 
 </Project>

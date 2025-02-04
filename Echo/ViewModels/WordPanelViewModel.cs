@@ -47,7 +47,7 @@ namespace Echo.ViewModels
         private bool _isLoading;
 
         [ObservableProperty]
-        private string _errorMessage;
+        private string errorMessage;
 
         [ObservableProperty]
         private bool _isVisible;
@@ -158,6 +158,12 @@ namespace Echo.ViewModels
                 if (Properties.Settings.Default.IsEchoAPIEnabled)
                 {
                     var responseString= await EchoService.OxfordAPIRequest(word,sourceLang,targetLang);
+                    if (responseString is null)
+                    {
+                        ErrorMessage = "Word not found";
+                        return;
+                    }
+
                     wordModel = await EchoService.ParseOxfordAsync(responseString);
                 }
                 else
@@ -168,7 +174,6 @@ namespace Echo.ViewModels
                     if (string.IsNullOrEmpty(headword))
                     {
                         ErrorMessage = "Word not found";
-
                         return;
                     }
 

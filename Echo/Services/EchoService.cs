@@ -19,19 +19,9 @@ namespace Echo.Services
         private static readonly string BaseUrl = "http://echo-player.com";
         private static readonly string ApiKey = APIKeyManager.GetOrCreateApiKey();
 
-        static async Task Main(string[] args)
-        {
-            Console.WriteLine("=== Starting API Tests ===");
-
-            // 测试 Oxford API
-            // await TestOxfordAPI();
-
-            Console.WriteLine("=== API Tests Completed ===");
-        }
 
         public static async Task<string> OpenAIRequest(string sentence, string sourcelanguagecode, string targetlanguagecode)
         {
-            Debug.WriteLine("OpenAIRequest");
             string endpoint = $"{BaseUrl}/api/openai";
             var payload = new
             {
@@ -39,11 +29,7 @@ namespace Echo.Services
                 sourcelanguagecode = sourcelanguagecode,
                 targetlanguagecode = targetlanguagecode
             };
-
-            //Debug.WriteLine($"Testing OpenAI API: {endpoint}");
             string result = await PostRequestAsync(endpoint, payload);
-
-            Debug.WriteLine($"Response: {result}");
             return result;
         }
 
@@ -59,18 +45,17 @@ namespace Echo.Services
 
            
             string result = await PostRequestAsync(endpoint, payload);
-            //Debug.WriteLine(result.);
-            //Debug.WriteLine(result);
 
-            if (result != null)
-            {
-                return result;
-            }
-            else
-            {
-                throw new Exception("Oxford API request failed.");
-            }
-            
+            return result;
+
+            //if (result != null)
+            //{
+            //    return result;
+            //}
+            //else
+            //{
+            //    throw new Exception("Oxford API request failed.");
+            //}
         }
 
         private static async Task<string> PostRequestAsync(string url, object payload)

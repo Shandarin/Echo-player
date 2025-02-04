@@ -20,7 +20,7 @@ namespace Echo.Views
         public SentencePanelView()
         {
             InitializeComponent();
-            
+            DataContext = new SentencePanelViewModel();
         }
 
         public async void Show(string text, Point position)

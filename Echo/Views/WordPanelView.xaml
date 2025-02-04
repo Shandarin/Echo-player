@@ -4,16 +4,39 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Echo.ViewModels"
+             xmlns:conv="clr-namespace:Echo.Converters"
              mc:Ignorable="d"
              Width="354" MinHeight="100" MaxHeight="400" Height="204">
+
+    <UserControl.Resources>
+        <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <Style x:Key="FavoriteButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="AudioButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </UserControl.Resources>
 
     <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" 
             Background="White" >
         <Grid Margin="15">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <!-- Word Header -->
                 <RowDefinition Height="Auto"/>
+                <!-- Pronunciations -->
+                <RowDefinition Height="Auto"/>
+                <!-- 错误信息显示 -->
                 <RowDefinition Height="*"/>
+                <!-- Definitions -->
             </Grid.RowDefinitions>
 
             <!-- Word Header -->
@@ -29,7 +52,8 @@
                          VerticalAlignment="Center"/>
 
                 <Button Grid.Column="1" BorderThickness="0"
-                    Command="{Binding ToggleFavoriteCommand}">
+                    Command="{Binding ToggleFavoriteCommand}"
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="Transparent"/>
@@ -65,7 +89,7 @@
             </Grid>
 
             <!-- Pronunciations -->
-            <StackPanel Grid.Row="1" Margin="0,10" Orientation="Horizontal">
+            <StackPanel Grid.Row="1" Margin="0,10" Orientation="Horizontal" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
                 <ItemsControl ItemsSource="{Binding Pronunciations, Mode=OneWay}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -95,10 +119,22 @@
                 </ItemsControl>
             </StackPanel>
 
+            <!-- 查询失败的错误信息显示 -->
+            <TextBlock Grid.Row="2"
+                       Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       FontSize="19"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,0"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
+
             <!-- Definitions -->
-            <ScrollViewer Grid.Row="2" 
+            <ScrollViewer Grid.Row="3" 
                          VerticalScrollBarVisibility="Auto"
-                         Margin="0,10,0,0">
+                         Margin="0,10,0,0"
+                          Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+                          
                 <ItemsControl ItemsSource="{Binding Definitions,Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -116,21 +152,5 @@
         </Grid>
     </Border>
 
-    <UserControl.Resources>
-        <Style x:Key="FavoriteButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
 
-        <Style x:Key="AudioButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-
-
-    </UserControl.Resources>
 </UserControl>

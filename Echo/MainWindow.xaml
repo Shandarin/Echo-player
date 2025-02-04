@@ -21,6 +21,7 @@
         Left="{Binding MainWindowLeft,Mode=TwoWay}"
         Top="{Binding MainWindowTop,Mode=TwoWay}"
         SizeChanged="OnWindowSizeChanged"
+        Icon="/logo.png"
         >
     <Window.DataContext>
         <local:MainWindowViewModel />
@@ -28,7 +29,7 @@
 
     <Window.Resources>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
-        
+
         <!-- 通用按钮样式 -->
         <Style x:Key="ControlButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#FF2D2D2D"/>
@@ -68,6 +69,10 @@
     </Window.Resources>
 
     <Grid Background="Black">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="14*"/>
+            <ColumnDefinition Width="131*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- 顶部控制栏 -->
@@ -78,9 +83,9 @@
         </Grid.RowDefinitions>
 
         <!-- 顶部菜单栏-->
-        <views:MenuBarView Grid.Row="0" DataContext="{Binding MenuBarVM}" Focusable="True"/>
+        <views:MenuBarView Grid.Row="0" DataContext="{Binding MenuBarVM}" Focusable="True" Grid.ColumnSpan="2"/>
         <!-- 视频区域 -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Grid.ColumnSpan="2">
             <!-- 视频播放器 -->
             <vlc:VideoView x:Name="VideoView" 
                            Background="Black"
@@ -149,7 +154,7 @@
 -->
 
                         <!-- 字幕容器 -->
-                    <StackPanel x:Name="SubtitleBorder"
+                        <StackPanel x:Name="SubtitleBorder"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom">
 
@@ -188,8 +193,8 @@
                                           MaxWidth="800"
                                           Visibility="Collapsed"/>
 
-                     </StackPanel>
-                        </Grid>
+                        </StackPanel>
+                    </Grid>
                     <!-- 单词翻译面板容器 -->
                     <Canvas x:Name="TranslationContainer" 
                             IsHitTestVisible="True" 
@@ -206,7 +211,7 @@
         </Grid>
 
         <!-- 底部控制栏 -->
-        <views:VideoControlView x:Name="VideoControlView" DataContext="{Binding VideoControlVM}"  Grid.Row="2"/>
+        <views:VideoControlView x:Name="VideoControlView" DataContext="{Binding VideoControlVM}"  Grid.Row="2" Grid.ColumnSpan="2"/>
 
     </Grid>
 </Window>

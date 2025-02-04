@@ -216,10 +216,13 @@ namespace Echo.ViewModels
             _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer,IsSubtitleVisible);
             //_scrollingSubtitleHandler = new ScrollingSubtitleHandler();
 
-            _subtitleHandler.SubtitlesLoaded += subtitles =>
-            {
-                //_scrollingSubtitleHandler?.SetSubtitles(subtitles);
-            };
+            //_subtitleHandler.SubtitlesLoaded += (s,e) =>
+            //{
+            //    Debug.WriteLine($"SubtitlesLoaded ");
+            //    MenuBarVM.DetectedLanguage = _subtitleHandler.Language;
+            //    _learningLanguage = _subtitleHandler.Language;
+            //    MessageBox.Show("ok");
+            //};//无效
 
             _mediaPlayer.Paused += (sender, e) =>
             {
@@ -238,7 +241,7 @@ namespace Echo.ViewModels
                     //_scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
                 }
             };
-            LanguageManager.SetLanguage("zh-Hans");
+            //LanguageManager.SetLanguage("zh-Hans");
 
             BackwardTime = MenuBarVM.BackwardTime;
             ForwardTime = MenuBarVM.ForwardTime;
@@ -481,6 +484,9 @@ namespace Echo.ViewModels
                 SetSubtitleBackground();
                 ShowSubtitle();
             }
+
+            MenuBarVM.DetectedLanguage = _subtitleHandler.Language;
+            _learningLanguage = _subtitleHandler.Language;
         }
 
         private void UpdateSubtitleText(string newText)
