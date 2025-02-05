@@ -333,4 +333,40 @@
   <data name="All_Collections" xml:space="preserve">
     <value>Все коллекции</value>
   </data>
+  <data name="Failed_to_connect" xml:space="preserve">
+    <value>Не удалось подключиться</value>
+  </data>
+  <data name="Failed_to_update" xml:space="preserve">
+    <value>Не удалось обновить</value>
+  </data>
+  <data name="New_version_found" xml:space="preserve">
+    <value>Найдена новая версия</value>
+  </data>
+  <data name="Current_version" xml:space="preserve">
+    <value>Текущая версия</value>
+  </data>
+  <data name="Installed_version" xml:space="preserve">
+    <value>Установленная версия</value>
+  </data>
+  <data name="Change_log" xml:space="preserve">
+    <value>Журнал изменений</value>
+  </data>
+  <data name="Update_now" xml:space="preserve">
+    <value>Обновить сейчас?</value>
+  </data>
+  <data name="Download _completed" xml:space="preserve">
+    <value>Загрузка завершена, перезагрузка...</value>
+  </data>
+  <data name="Error_updating" xml:space="preserve">
+    <value>Ошибка при обновлении</value>
+  </data>
+  <data name="Error_during_updating" xml:space="preserve">
+    <value>Ошибка во время обновления</value>
+  </data>
+  <data name="You_are_already_on_the_latest_version" xml:space="preserve">
+    <value>Вы уже на последней версии</value>
+  </data>
+  <data name="Update_completeed" xml:space="preserve">
+    <value>Обновление завершено</value>
+  </data>
 </root>

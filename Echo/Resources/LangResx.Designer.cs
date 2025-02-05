@@ -151,6 +151,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Change log 的本地化字符串。
+        /// </summary>
+        public static string Change_log {
+            get {
+                return ResourceManager.GetString("Change_log", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Check for Updates 的本地化字符串。
         /// </summary>
         public static string Check_for_Updates {
@@ -178,6 +187,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Current version 的本地化字符串。
+        /// </summary>
+        public static string Current_version {
+            get {
+                return ResourceManager.GetString("Current_version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Default 的本地化字符串。
         /// </summary>
         public static string Default {
@@ -196,6 +214,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Download completed, restarting ... 的本地化字符串。
+        /// </summary>
+        public static string Download__completed {
+            get {
+                return ResourceManager.GetString("Download _completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Echo Token 的本地化字符串。
         /// </summary>
         public static string Echo_Token {
@@ -210,6 +237,24 @@ namespace Echo.Resources {
         public static string Embedded_Subtitles {
             get {
                 return ResourceManager.GetString("Embedded_Subtitles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Error during updating 的本地化字符串。
+        /// </summary>
+        public static string Error_during_updating {
+            get {
+                return ResourceManager.GetString("Error_during_updating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Error updating 的本地化字符串。
+        /// </summary>
+        public static string Error_updating {
+            get {
+                return ResourceManager.GetString("Error_updating", resourceCulture);
             }
         }
         
@@ -246,6 +291,24 @@ namespace Echo.Resources {
         public static string Export_as_SQLite_File {
             get {
                 return ResourceManager.GetString("Export_as_SQLite_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Failed to connect 的本地化字符串。
+        /// </summary>
+        public static string Failed_to_connect {
+            get {
+                return ResourceManager.GetString("Failed_to_connect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Failed to update 的本地化字符串。
+        /// </summary>
+        public static string Failed_to_update {
+            get {
+                return ResourceManager.GetString("Failed_to_update", resourceCulture);
             }
         }
         
@@ -340,6 +403,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Installed version 的本地化字符串。
+        /// </summary>
+        public static string Installed_version {
+            get {
+                return ResourceManager.GetString("Installed_version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Language 的本地化字符串。
         /// </summary>
         public static string Language {
@@ -381,6 +453,15 @@ namespace Echo.Resources {
         public static string Medium {
             get {
                 return ResourceManager.GetString("Medium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 New version found 的本地化字符串。
+        /// </summary>
+        public static string New_version_found {
+            get {
+                return ResourceManager.GetString("New_version_found", resourceCulture);
             }
         }
         
@@ -655,6 +736,24 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似 Update completed 的本地化字符串。
+        /// </summary>
+        public static string Update_completeed {
+            get {
+                return ResourceManager.GetString("Update_completeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Update now? 的本地化字符串。
+        /// </summary>
+        public static string Update_now {
+            get {
+                return ResourceManager.GetString("Update_now", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Video 的本地化字符串。
         /// </summary>
         public static string Video {
@@ -696,6 +795,15 @@ namespace Echo.Resources {
         public static string Words {
             get {
                 return ResourceManager.GetString("Words", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 You are already on the latest version 的本地化字符串。
+        /// </summary>
+        public static string You_are_already_on_the_latest_version {
+            get {
+                return ResourceManager.GetString("You_are_already_on_the_latest_version", resourceCulture);
             }
         }
         

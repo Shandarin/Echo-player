@@ -333,4 +333,40 @@
   <data name="All_Collections" xml:space="preserve">
     <value>Todas as Coleções</value>
   </data>
+  <data name="Failed_to_connect" xml:space="preserve">
+    <value>Falha ao conectar</value>
+  </data>
+  <data name="Failed_to_update" xml:space="preserve">
+    <value>Falha na atualização</value>
+  </data>
+  <data name="New_version_found" xml:space="preserve">
+    <value>Nova versão encontrada</value>
+  </data>
+  <data name="Current_version" xml:space="preserve">
+    <value>Versão atual</value>
+  </data>
+  <data name="Installed_version" xml:space="preserve">
+    <value>Versão instalada</value>
+  </data>
+  <data name="Change_log" xml:space="preserve">
+    <value>Registro de alterações</value>
+  </data>
+  <data name="Update_now" xml:space="preserve">
+    <value>Atualizar agora?</value>
+  </data>
+  <data name="Download _completed" xml:space="preserve">
+    <value>Download concluído, reiniciando...</value>
+  </data>
+  <data name="Error_updating" xml:space="preserve">
+    <value>Erro ao atualizar</value>
+  </data>
+  <data name="Error_during_updating" xml:space="preserve">
+    <value>Erro durante a atualização</value>
+  </data>
+  <data name="You_are_already_on_the_latest_version" xml:space="preserve">
+    <value>Você já está na versão mais recente</value>
+  </data>
+  <data name="Update_completeed" xml:space="preserve">
+    <value>Atualização concluída</value>
+  </data>
 </root>

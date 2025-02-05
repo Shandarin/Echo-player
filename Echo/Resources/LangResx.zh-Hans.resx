@@ -333,4 +333,40 @@
   <data name="All_Collections" xml:space="preserve">
     <value>所有收藏</value>
   </data>
+  <data name="Failed_to_connect" xml:space="preserve">
+    <value>连接失败</value>
+  </data>
+  <data name="Failed_to_update" xml:space="preserve">
+    <value>更新失败</value>
+  </data>
+  <data name="New_version_found" xml:space="preserve">
+    <value>发现新版本</value>
+  </data>
+  <data name="Current_version" xml:space="preserve">
+    <value>当前版本</value>
+  </data>
+  <data name="Installed_version" xml:space="preserve">
+    <value>已安装版本</value>
+  </data>
+  <data name="Change_log" xml:space="preserve">
+    <value>更新日志</value>
+  </data>
+  <data name="Update_now" xml:space="preserve">
+    <value>立即更新？</value>
+  </data>
+  <data name="Download _completed" xml:space="preserve">
+    <value>下载完成，正在重启...</value>
+  </data>
+  <data name="Error_updating" xml:space="preserve">
+    <value>更新错误</value>
+  </data>
+  <data name="Error_during_updating" xml:space="preserve">
+    <value>更新时出错</value>
+  </data>
+  <data name="You_are_already_on_the_latest_version" xml:space="preserve">
+    <value>已经是最新版本</value>
+  </data>
+  <data name="Update_completeed" xml:space="preserve">
+    <value>更新完成</value>
+  </data>
 </root>

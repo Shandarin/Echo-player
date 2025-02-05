@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Echo.Services;
 using Echo.Views;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
@@ -76,6 +77,8 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private string _detectedLanguage ;
+
+        private readonly UpdateService _updateService = new("https://echo-player.com/updates/update.xml");
 
         public MenuBarViewModel() 
 
@@ -242,6 +245,12 @@ namespace Echo.ViewModels
         public void SetSubtitleDisplayMode(string mode)
         {
             SubtitleDisplayModeChangedEvent?.Invoke(this, mode);
+        }
+
+        [RelayCommand]
+        public void CheckUpdates()
+        {
+           _updateService.CheckForUpdates();
         }
 
 

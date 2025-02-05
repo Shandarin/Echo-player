@@ -652,20 +652,11 @@
         <!-- 帮助菜单 -->
         <MenuItem Header="{x:Static resx:LangResx.Help}">
             <MenuItem Header="{x:Static resx:LangResx.Feedback}" Command="{Binding FeedbackCommand}">
-                <MenuItem.Icon>
-                    <TextBlock Text="💬" FontSize="14"/>
-                </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="{x:Static resx:LangResx.Check_for_Updates}" Command="{Binding CheckUpdatesCommand}">
-                <MenuItem.Icon>
-                    <TextBlock Text="🔄" FontSize="14"/>
-                </MenuItem.Icon>
+            <MenuItem Header="{x:Static resx:LangResx.Check_for_Updates}" Command="{Binding CheckUpdatesCommand}" IsEnabled="True">
             </MenuItem>
             <Separator/>
             <MenuItem Header="{x:Static resx:LangResx.About}" Command="{Binding AboutCommand}">
-                <MenuItem.Icon>
-                    <TextBlock Text="ℹ" FontSize="14"/>
-                </MenuItem.Icon>
             </MenuItem>
         </MenuItem>
     </Menu>
