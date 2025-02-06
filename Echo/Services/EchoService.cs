@@ -99,7 +99,7 @@ namespace Echo.Services
         }
 
         //以后改成强类型解析
-        public static async Task<WordModel> ParseOxfordAsync(string json)
+        public static async Task<WordModel?> ParseOxfordAsync(string json)
         {
             var root = JObject.Parse(json);
 
@@ -117,11 +117,17 @@ namespace Echo.Services
             };
 
             // 1. 先读最外层
-            model.Word = root["headword"]?.ToString() ?? "";
+            model.Word = root["headword"]?.ToString() ?? string.Empty;
             model.SourceLanguageCode = root["source_lang"]?.ToString() ?? "";
             model.TargetLanguageCode = root["target_lang"]?.ToString() ?? "";
 
             // 如果解析失败，model.IsSuccess = false; 视情况而定
+            if (string.IsNullOrEmpty(model.Word) || string.IsNullOrEmpty(model.SourceLanguageCode) || string.IsNullOrEmpty(model.TargetLanguageCode))
+            {
+                model.IsSuccess = false;
+                return null;
+            }
+
 
             // 2. 解析 entry_json (原文的 Oxford 信息)，准备填充 OriginalSenses / OriginalDefinitions / Inflections / Pronounciations
             var entryJson = root["entry_json"] as JObject;
@@ -354,6 +360,7 @@ namespace Echo.Services
                 }
             }
 
+            Utils.Utils.PrintModel(model,"echo: ");
             return model;
         }
     }

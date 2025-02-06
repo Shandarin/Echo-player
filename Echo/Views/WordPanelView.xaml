@@ -107,10 +107,8 @@
                                          FontSize="14"
                                          Foreground="#666666"
                                          Margin="0,0,10,0"/>
-                                <Button Command="{Binding PlayPronunciationCommand, 
-                                         RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding AudioFile,Mode=OneWay}"
-                                        >
+                                <Button Command="{Binding DataContext.PlayPronunciationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         CommandParameter="{Binding AudioFile,Mode=OneWay}">
                                     <TextBlock Text="🔊" FontSize="14"/>
                                 </Button>
                             </StackPanel>

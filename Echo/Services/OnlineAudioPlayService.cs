@@ -13,34 +13,39 @@ namespace Echo.Services
 
         public static async Task PlayAudioAsync(string audioUrl)
         {
-            // 如果URL无效，直接返回
-            if (string.IsNullOrEmpty(audioUrl)) return;
+            if (string.IsNullOrEmpty(audioUrl))
+                return;
 
             try
             {
-                // 创建MediaPlayer对象（WPF命名空间：System.Windows.Media）
                 var mediaPlayer = new MediaPlayer();
 
-                // 打开指定URL（需要是可访问的URL，或者本地文件绝对路径）
+                // 设置音量（如果需要的话）
+                mediaPlayer.Volume = 1.0;
+
+                // 订阅 MediaOpened 事件，媒体加载完成后等待一段时间再播放
+                mediaPlayer.MediaOpened += async (s, e) =>
+                {
+                    // 延时300毫秒，等待蓝牙耳机唤醒，以免开头播放不出声音
+                    await Task.Delay(300);
+                    mediaPlayer.Play();
+                };
+
+                // 打开指定URL
                 mediaPlayer.Open(new Uri(audioUrl, UriKind.RelativeOrAbsolute));
 
-                // 播放
-                mediaPlayer.Play();
-
-                // 如果需要在播放完毕后做一些操作，可以订阅MediaEnded事件：
                 mediaPlayer.MediaEnded += (s, e) =>
                 {
-                    // 播放完成后的处理逻辑
                     mediaPlayer.Close();
                 };
+
+                // 注意：确保 mediaPlayer 的引用在播放期间不会被GC回收
             }
             catch (Exception ex)
             {
-                // 处理异常，比如提示用户或记录日志
                 Console.WriteLine($"播放音频失败: {ex.Message}");
             }
         }
     }
 
-
-}
+    }

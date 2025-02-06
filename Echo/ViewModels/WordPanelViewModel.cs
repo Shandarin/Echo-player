@@ -119,6 +119,7 @@ namespace Echo.ViewModels
         [RelayCommand]
         private async Task PlayPronunciation(string audioUrl)
         {
+            Debug.WriteLine($"audioUrl {audioUrl}");
             if (string.IsNullOrEmpty(audioUrl)) return;
             await OnlineAudioPlayService.PlayAudioAsync(audioUrl);
         }
@@ -153,7 +154,7 @@ namespace Echo.ViewModels
                     return ;
                 }
 
-                WordModel wordModel = new ();
+                WordModel? wordModel = new ();
                 //请求Echo Server
                 if (Properties.Settings.Default.IsEchoAPIEnabled)
                 {
@@ -165,6 +166,11 @@ namespace Echo.ViewModels
                     }
 
                     wordModel = await EchoService.ParseOxfordAsync(responseString);
+                    if (wordModel == null)
+                    {
+                        ErrorMessage = "Word not found";
+                        return;
+                    }
                 }
                 else
                 {
