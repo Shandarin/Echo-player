@@ -450,6 +450,7 @@ namespace Echo.ViewModels
         partial void OnSelectedCollectionChanged(CollectionModel value)
         {
             LoadBasicWordsAsync();
+            LoadSentencesAsync();
         }
 
         partial void OnSelectedFilterOptionChanged(string value)

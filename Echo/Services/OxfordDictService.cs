@@ -74,7 +74,7 @@ namespace Echo.Services
             }
         }
 
-        public async Task<(List<string> headwords, JObject details)> GetWordDetailsAsync(string word, string sourceLang)
+        public async Task<(string headword, JObject details)> GetWordDetailsAsync(string word, string sourceLang)
         {
             try
             {
@@ -89,19 +89,15 @@ namespace Echo.Services
                     return (null, null);
                 }
 
-                // 遍历所有 results 获取 headword（有可能不同结果存在不同 headword，这里用 List 收集）
-                var headwords = new List<string>();
+                //var headwords = new List<string>();
                 var results = json["results"] as JArray;
-                if (results != null)
+                string selectedHeadword = string.Empty;
+                if (results != null && results.Count > 0)
                 {
-                    foreach (var result in results)
-                    {
-                        var hw = result["id"]?.ToString();
-                        if (!string.IsNullOrEmpty(hw) && !headwords.Contains(hw))
-                        {
-                            headwords.Add(hw);
-                        }
-                    }
+                    var selectedResult = results
+                        .OrderByDescending(result => result.ToString().Length)
+                        .First();
+                    selectedHeadword = selectedResult["id"]?.ToString() ?? string.Empty;
                 }
 
                 // 遍历所有 results 聚合 Inflections 与 OriginalSenses
@@ -198,10 +194,11 @@ namespace Echo.Services
                 }
 
                 // 更新 wordModel 中相应的字段（可继续扩展其它字段）
+                wordModel.Word = selectedHeadword;
                 wordModel.Inflections = inflections;
                 wordModel.OriginalSenses = originalSenses;
 
-                return (headwords, json);
+                return (selectedHeadword, json);
             }
             finally
             {

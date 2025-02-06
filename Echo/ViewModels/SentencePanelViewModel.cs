@@ -147,7 +147,7 @@ namespace Echo.ViewModels
             }
             else
             {
-                var analysis = await _openAiService.AnalyzeSubtitleAsync(sText, TargetLanguage);
+                var analysis = await _openAiService.AnalyzeSubtitleAsync(sText, SourceLanguage,TargetLanguage);
                 _translationText = analysis.Replace("\t", " ");
                 ContentLines = TextManager.SplitRows(analysis);
             }

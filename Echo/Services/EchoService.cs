@@ -94,7 +94,7 @@ namespace Echo.Services
                         }
                         else
                         {
-                            MessageBox.Show("Request failed: " + response.StatusCode);
+                            //MessageBox.Show("Request failed: " + response.StatusCode);
                         }
                         return null;
 
