@@ -84,10 +84,20 @@ namespace Echo.Services
                         return responseString;
                     }
                     else
-                    {
-                        Debug.WriteLine($"Error: {response.StatusCode}");
-                        Debug.WriteLine($"Response: {responseString}");
+                    { 
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)//401
+                        {
+                            MessageBox.Show(responseString);
+                        }else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError | response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable | response.StatusCode == System.Net.HttpStatusCode.GatewayTimeout)//500,502,504
+                        {
+                            MessageBox.Show("Server error, please try later");
+                        }
+                        else
+                        {
+                            MessageBox.Show("Request failed: " + response.StatusCode);
+                        }
                         return null;
+
                     }
                 }
                 catch (Exception ex)
@@ -347,16 +357,52 @@ namespace Echo.Services
 
                                         model.Senses.Add(senseModel);
 
-                                        // 把“动词: 使大为惊奇”之类放到 Definitions
-                                        if (!model.Definitions.ContainsKey(category))
+                                        //construct definitions
+                                        string definitionToAdd = string.Empty;
+                                        if (!string.IsNullOrWhiteSpace(firstTranslation))
                                         {
-                                            model.Definitions[category] = firstTranslation;
+                                            // 如果Senses中的释义不为空，则使用翻译中的释义
+                                            definitionToAdd = firstTranslation;
+                                        }
+                                        else if (model.OriginalDefinitions.ContainsKey(category) && !string.IsNullOrWhiteSpace(model.OriginalDefinitions[category]))
+                                        {
+                                            // 如果Senses中的释义为空，则尝试使用 OriginalDefinitions 中的释义作为替代
+                                            definitionToAdd = model.OriginalDefinitions[category];
+                                        }
+
+                                        if (!string.IsNullOrWhiteSpace(definitionToAdd))
+                                        {
+                                            if (!model.Definitions.ContainsKey(category))
+                                            {
+                                                // 如果该词性还未添加释义，则直接添加
+                                                model.Definitions[category] = definitionToAdd;
+                                            }
+                                            else
+                                            {
+                                                // 如果该词性已有释义，则将新的释义追加在后面（注意避免重复添加）
+                                                var existingDefs = model.Definitions[category]
+                                                                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                    .Select(x => x.Trim())
+                                                                    .ToList();
+                                                if (!existingDefs.Contains(definitionToAdd))
+                                                {
+                                                    model.Definitions[category] += ", " + definitionToAdd;
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                }
+            }
+            // 对于 translation_json 中未出现但存在于 OriginalDefinitions 的词性，补充释义
+            foreach (var kvp in model.OriginalDefinitions)
+            {
+                if (!model.Definitions.ContainsKey(kvp.Key) || string.IsNullOrWhiteSpace(model.Definitions[kvp.Key]))
+                {
+                    model.Definitions[kvp.Key] = kvp.Value;
                 }
             }
 

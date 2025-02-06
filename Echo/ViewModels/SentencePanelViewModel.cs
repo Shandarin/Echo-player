@@ -142,13 +142,13 @@ namespace Echo.ViewModels
                 var jObj = Newtonsoft.Json.Linq.JObject.Parse(responseString);
 
                 var result = jObj["resp_content"]?.ToString();
-                _translationText = result;
+                _translationText = result.Replace("\t"," ");
                 ContentLines = TextManager.SplitRows(result);
             }
             else
             {
                 var analysis = await _openAiService.AnalyzeSubtitleAsync(sText, TargetLanguage);
-
+                _translationText = analysis.Replace("\t", " ");
                 ContentLines = TextManager.SplitRows(analysis);
             }
 
