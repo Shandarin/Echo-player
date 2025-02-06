@@ -158,21 +158,21 @@ namespace Echo.Services
                     ?? new List<PronunciationModel>();
 
 
-                wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
-                    .ToDictionary(
-                        lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Other",
-                        lexicalEntry => string.Join("；", lexicalEntry["entries"]?
-                            .SelectMany(entry => entry["senses"]?
-                                .Select(sense => sense["translations"]?[0]?["text"]?.ToString())
-                                .Where(translation => !string.IsNullOrEmpty(translation)) ?? Enumerable.Empty<string>()
-                            )
-                        ) ?? string.Empty
-                    ) ?? wordModel.OriginalSenses
-                    .GroupBy(sense => sense.Category)
-                    .ToDictionary(
-                        group => group.Key,
-                        group => string.Join("；", group.Select(sense => sense.Definition))
-                    );
+                //wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
+                //    .ToDictionary(
+                //        lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Other",
+                //        lexicalEntry => string.Join("；", lexicalEntry["entries"]?
+                //            .SelectMany(entry => entry["senses"]?
+                //                .Select(sense => sense["translations"]?[0]?["text"]?.ToString())
+                //                .Where(translation => !string.IsNullOrEmpty(translation)) ?? Enumerable.Empty<string>()
+                //            )
+                //        ) ?? string.Empty
+                //    ) ?? wordModel.OriginalSenses
+                //    .GroupBy(sense => sense.Category)
+                //    .ToDictionary(
+                //        group => group.Key,
+                //        group => string.Join("；", group.Select(sense => sense.Definition))
+                //    );
 
                 wordModel.Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
                         ?.SelectMany(sense => sense["synonyms"]?
