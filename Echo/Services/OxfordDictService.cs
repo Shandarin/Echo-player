@@ -7,6 +7,7 @@ using Echo.Models;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using Newtonsoft.Json;
+using System.Windows;
 
 namespace Echo.Services
 {
@@ -36,7 +37,44 @@ namespace Echo.Services
             //Debug.WriteLine($"OxfordDictService initialized:{config.AppId}");
         }
 
-        public async Task<(string headword, JObject details)> GetWordDetailsAsync(string word, string sourceLang )
+        private async Task<JObject?> GetRequestAsync(string url)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(url);
+                string responseString = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return JObject.Parse(responseString);
+                }
+                else
+                {
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        MessageBox.Show(responseString);
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError ||
+                             response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||
+                             response.StatusCode == System.Net.HttpStatusCode.GatewayTimeout)
+                    {
+                        MessageBox.Show("Server error, please try later");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Request failed: " + response.StatusCode);
+                    }
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Request failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<(List<string> headwords, JObject details)> GetWordDetailsAsync(string word, string sourceLang)
         {
             try
             {
@@ -44,67 +82,132 @@ namespace Echo.Services
                 ErrorMessage = null;
 
                 var url = $"{_baseUrl}/words/{sourceLang}?q={word}";
-                var response = await _httpClient.GetStringAsync(url);
-                var json = JObject.Parse(response);
-                
-                var headword = json["results"]?[0]?["id"]?.ToString();
-                wordModel = new WordModel
+                var json = await GetRequestAsync(url);
+                if (json == null)
                 {
-                    Word = headword,
-                    
-                    // Inflections
-                    Inflections = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["inflections"]
-                        ?.Select(inflection =>
-                        {
-                            return inflection["inflectedForm"]?.ToString();
-                        })
-                        .Where(inflectedForm => !string.IsNullOrEmpty(inflectedForm))
-                        .ToList() ?? new List<string>(),
-
-                    // OriginalSenses
-                    OriginalSenses = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
-                        ?.Select(sense => new SenseModel
-                        {
-                            // Category
-                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Other",
-
-                            // Definition
-                            Definition = sense["definitions"]?.FirstOrDefault()?.ToString() ?? sense["crossReferenceMarkers"]?.FirstOrDefault()?.ToString() ?? null,
-
-                            // Description
-                            Description = sense["notes"]?.FirstOrDefault()?["text"]?.ToString() ?? null,
-
-                            // Examples
-                            Examples = sense["examples"]
-                                ?.ToDictionary(
-                                    example => example["text"]?.ToString() ?? "Other",
-                                    example => example["translations"]?.FirstOrDefault()?["text"]?.ToString() ?? null
-                                ) ?? new Dictionary<string, string>()
-                        })
-                        .ToList() ?? new List<SenseModel>()
-                };
-
-
-                if (string.IsNullOrEmpty(headword))
-                {
-                    throw new Exception("Word not found");
+                    ErrorMessage = "Eorro requesting word";
+                    return (null, null);
                 }
 
-                //wordModel = 
+                // 遍历所有 results 获取 headword（有可能不同结果存在不同 headword，这里用 List 收集）
+                var headwords = new List<string>();
+                var results = json["results"] as JArray;
+                if (results != null)
+                {
+                    foreach (var result in results)
+                    {
+                        var hw = result["id"]?.ToString();
+                        if (!string.IsNullOrEmpty(hw) && !headwords.Contains(hw))
+                        {
+                            headwords.Add(hw);
+                        }
+                    }
+                }
 
-                return (headword, json);
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
-                return (null, null);
+                // 遍历所有 results 聚合 Inflections 与 OriginalSenses
+                var inflections = new List<string>();
+                var originalSenses = new List<SenseModel>();
+
+                if (results != null)
+                {
+                    foreach (var result in results)
+                    {
+                        var lexicalEntries = result["lexicalEntries"] as JArray;
+                        if (lexicalEntries == null)
+                            continue;
+
+                        foreach (var lexicalEntry in lexicalEntries)
+                        {
+                            // 获取词性信息（用于后续 sense 分类）
+                            string category = lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Other";
+
+                            var entriesArray = lexicalEntry["entries"] as JArray;
+                            if (entriesArray == null)
+                                continue;
+
+                            foreach (var entry in entriesArray)
+                            {
+                                // 处理 inflections
+                                var infls = entry["inflections"] as JArray;
+                                if (infls != null)
+                                {
+                                    foreach (var infl in infls)
+                                    {
+                                        var form = infl["inflectedForm"]?.ToString();
+                                        if (!string.IsNullOrEmpty(form) && !inflections.Contains(form))
+                                        {
+                                            inflections.Add(form);
+                                        }
+                                    }
+                                }
+
+                                // 处理 senses
+                                var senses = entry["senses"] as JArray;
+                                if (senses != null)
+                                {
+                                    foreach (var s in senses)
+                                    {
+                                        // 获取释义的第一条 definition
+                                        var defArray = s["definitions"] as JArray;
+                                        string firstDef = defArray != null && defArray.Count > 0 ? defArray[0]?.ToString() : string.Empty;
+
+                                        // 同义词
+                                        var synonyms = new List<string>();
+                                        var synArray = s["synonyms"] as JArray;
+                                        if (synArray != null)
+                                        {
+                                            foreach (var syn in synArray)
+                                            {
+                                                var synText = syn["text"]?.ToString();
+                                                if (!string.IsNullOrEmpty(synText) && !synonyms.Contains(synText))
+                                                {
+                                                    synonyms.Add(synText);
+                                                }
+                                            }
+                                        }
+
+                                        // 示例句
+                                        var examples = new Dictionary<string, string>();
+                                        var exArr = s["examples"] as JArray;
+                                        if (exArr != null)
+                                        {
+                                            foreach (var ex in exArr)
+                                            {
+                                                var exText = ex["text"]?.ToString() ?? "";
+                                                if (!string.IsNullOrEmpty(exText) && !examples.ContainsKey(exText))
+                                                {
+                                                    examples.Add(exText, ""); // 翻译信息可之后补充
+                                                }
+                                            }
+                                        }
+
+                                        var senseModel = new SenseModel
+                                        {
+                                            Category = category,
+                                            Definition = firstDef,
+                                            Examples = examples,
+                                            //Synonyms = synonyms
+                                        };
+
+                                        originalSenses.Add(senseModel);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 更新 wordModel 中相应的字段（可继续扩展其它字段）
+                wordModel.Inflections = inflections;
+                wordModel.OriginalSenses = originalSenses;
+
+                return (headwords, json);
             }
             finally
             {
                 IsLoading = false;
             }
         }
-
 
         public async Task<WordModel> GetTranslationsAsync(
             string headword,
@@ -117,82 +220,158 @@ namespace Echo.Services
                 ErrorMessage = null;
 
                 var url = $"{_baseUrl}/translations/{sourceLang}/{targetLang}/{headword}";
-                var response = await _httpClient.GetStringAsync(url);
-                var json = JObject.Parse(response);
+                var json = await GetRequestAsync(url);
 
-                // Create WordModel instance
-                //var wordModel = new WordModel
+                if (json == null)
+                {
+                    ErrorMessage = "Error Requesting translation";
+                    return wordModel;
+                }
 
                 wordModel.SourceLanguageCode = sourceLang;
                 wordModel.TargetLanguageCode = targetLang;
-                    //Word = headword,
-                    wordModel.Pronounciations = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["pronunciations"]
-                    ?.Select(pronunciation =>
+
+                var pronunciations = new List<PronunciationModel>();
+                var synonyms = new List<string>();
+                var senses = new List<SenseModel>();
+
+                var results = json["results"] as JArray;
+                if (results != null)
+                {
+                    foreach (var result in results)
                     {
-                        // 获取原始 dialect
-                        var originalDialect = pronunciation["dialects"]?[0]?.ToString() ?? "Other";
+                        var lexicalEntries = result["lexicalEntries"] as JArray;
+                        if (lexicalEntries == null)
+                            continue;
 
-                        // 转成我们需要的 "British" 或 "US" 或 "Unknown"
-                        var dialect = originalDialect switch
+                        foreach (var lexicalEntry in lexicalEntries)
                         {
-                            "British English" => "British",
-                            "American English" => "US",
-                            _ => "Other"
-                        };
+                            // 处理发音信息
+                            var entriesArray = lexicalEntry["entries"] as JArray;
+                            if (entriesArray != null)
+                            {
+                                foreach (var entry in entriesArray)
+                                {
+                                    var prons = entry["pronunciations"] as JArray;
+                                    if (prons != null)
+                                    {
+                                        foreach (var p in prons)
+                                        {
+                                            var originalDialect = p["dialects"]?[0]?.ToString() ?? "Other";
+                                            var dialect = originalDialect switch
+                                            {
+                                                "British English" => "British",
+                                                "American English" => "US",
+                                                _ => "Other"
+                                            };
 
-                        // 音频地址
-                        var audioFile = pronunciation["audioFile"]?.ToString() ?? string.Empty;
+                                            var audioFile = p["audioFile"]?.ToString() ?? string.Empty;
+                                            var phoneticSpelling = p["phoneticSpelling"]?.ToString() ?? string.Empty;
 
-                        // 音标
-                        var phoneticSpelling = pronunciation["phoneticSpelling"]?.ToString() ?? string.Empty;
+                                            pronunciations.Add(new PronunciationModel
+                                            {
+                                                Dialect = dialect,
+                                                AudioFile = audioFile,
+                                                PhoneticSpelling = phoneticSpelling
+                                            });
+                                        }
+                                    }
 
-                        // 返回 PronunciationModel
-                        return new PronunciationModel
-                        {
-                            Dialect = dialect,
-                            AudioFile = audioFile,
-                            PhoneticSpelling = phoneticSpelling
-                        };
-                    })
-                    .ToList()
-                    ?? new List<PronunciationModel>();
+                                    // 处理同义词及翻译释义
+                                    var sensesArray = entry["senses"] as JArray;
+                                    if (sensesArray != null)
+                                    {
+                                        foreach (var s in sensesArray)
+                                        {
+                                            // 同义词
+                                            var synArray = s["synonyms"] as JArray;
+                                            if (synArray != null)
+                                            {
+                                                foreach (var syn in synArray)
+                                                {
+                                                    var synText = syn["text"]?.ToString();
+                                                    if (!string.IsNullOrEmpty(synText) && !synonyms.Contains(synText))
+                                                        synonyms.Add(synText);
+                                                }
+                                            }
+
+                                            // 获取翻译释义（Definition）
+                                            string defText = s["translations"]?[0]?["text"]?.ToString() ?? "";
+
+                                            // 示例句
+                                            var examples = new Dictionary<string, string>();
+                                            var exArr = s["examples"] as JArray;
+                                            if (exArr != null)
+                                            {
+                                                foreach (var ex in exArr)
+                                                {
+                                                    var exText = ex["text"]?.ToString() ?? "";
+                                                    var transText = ex["translations"]?[0]?["text"]?.ToString() ?? "";
+                                                    if (!string.IsNullOrEmpty(exText) && !examples.ContainsKey(exText))
+                                                        examples.Add(exText, transText);
+                                                }
+                                            }
+
+                                            senses.Add(new SenseModel
+                                            {
+                                                Category = lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Other",
+                                                Definition = defText,
+                                                Examples = examples
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 更新 wordModel 的相关字段
+                wordModel.Pronounciations = pronunciations;
+                wordModel.Synonyms = synonyms;
+                wordModel.Senses = senses;
 
 
-                //wordModel.Definitions = json["results"]?[0]?["lexicalEntries"]?
-                //    .ToDictionary(
-                //        lexicalEntry => lexicalEntry["lexicalCategory"]?["text"]?.ToString() ?? "Other",
-                //        lexicalEntry => string.Join("；", lexicalEntry["entries"]?
-                //            .SelectMany(entry => entry["senses"]?
-                //                .Select(sense => sense["translations"]?[0]?["text"]?.ToString())
-                //                .Where(translation => !string.IsNullOrEmpty(translation)) ?? Enumerable.Empty<string>()
-                //            )
-                //        ) ?? string.Empty
-                //    ) ?? wordModel.OriginalSenses
-                //    .GroupBy(sense => sense.Category)
-                //    .ToDictionary(
-                //        group => group.Key,
-                //        group => string.Join("；", group.Select(sense => sense.Definition))
-                //    );
+                var definitions = new Dictionary<string, string>();
 
-                wordModel.Synonyms = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
-                        ?.SelectMany(sense => sense["synonyms"]?
-                            .Select(synonym => synonym["text"]?.ToString())
-                            .Where(synonym => !string.IsNullOrEmpty(synonym)) ?? Enumerable.Empty<string>()
-                        ).ToList();
-                    wordModel.Senses = json["results"]?[0]?["lexicalEntries"]?[0]?["entries"]?[0]?["senses"]
-                        ?.Select(sense => new SenseModel
-                        {
-                            //Word = headword,
-                            Category = json["results"]?[0]?["lexicalEntries"]?[0]?["lexicalCategory"]?["text"]?.ToString() ?? "Other",
-                            Definition = sense["translations"]?[0]?["text"]?.ToString() ?? "",
-                            Description = sense["notes"]?.FirstOrDefault()?["text"]?.ToString() ?? "",
-                            Examples = sense["examples"]
-                                ?.ToDictionary(
-                                    example => example["text"]?.ToString() ?? "Unknown",
-                                    example => example["translations"]?[0]?["text"]?.ToString() ?? ""
-                                )
-                        }).ToList() ?? new List<SenseModel>();
-        
+                // 1. 对 Senses 按照词性进行分组，提取每个词性的所有非空释义
+                var groupedSenses = wordModel.Senses.GroupBy(sense => sense.Category);
+                foreach (var group in groupedSenses)
+                {
+                    // 取出该组中所有非空释义，并去重、去前后空白
+                    var defs = group
+                        .Select(sense => sense.Definition?.Trim())
+                        .Where(def => !string.IsNullOrWhiteSpace(def))
+                        .Distinct()
+                        .ToList();
+
+                    // 如果当前词性下 Senses 中没有有效释义，
+                    // 则尝试从 OriginalDefinitions 中进行补充
+                    if (defs.Count == 0 &&
+                        wordModel.OriginalDefinitions.ContainsKey(group.Key) &&
+                        !string.IsNullOrWhiteSpace(wordModel.OriginalDefinitions[group.Key]))
+                    {
+                        defs.Add(wordModel.OriginalDefinitions[group.Key].Trim());
+                    }
+
+                    if (defs.Count > 0)
+                    {
+                        definitions[group.Key] = string.Join(", ", defs);
+                    }
+                }
+
+                // 2. 对于 OriginalDefinitions 中存在但 Senses 中没有的词性，直接添加原始释义
+                var missingCategories = wordModel.OriginalDefinitions.Keys.Except(definitions.Keys);
+                foreach (var category in missingCategories)
+                {
+                    if (!string.IsNullOrWhiteSpace(wordModel.OriginalDefinitions[category]))
+                    {
+                        definitions[category] = wordModel.OriginalDefinitions[category].Trim();
+                    }
+                }
+
+                wordModel.Definitions = definitions;
+
 
                 return wordModel;
             }
