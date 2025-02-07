@@ -369,4 +369,13 @@
   <data name="Update_completeed" xml:space="preserve">
     <value>更新完成</value>
   </data>
+  <data name="use_third_party_API" xml:space="preserve">
+    <value>使用第三方API</value>
+  </data>
+  <data name="use_Echo_API" xml:space="preserve">
+    <value>使用 Echo API</value>
+  </data>
+  <data name="Input_API_Key" xml:space="preserve">
+    <value>输入 API 密钥</value>
+  </data>
 </root>

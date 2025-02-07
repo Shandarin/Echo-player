@@ -4,8 +4,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Echo.ViewModels"
+             xmlns:conv="clr-namespace:Echo.Converters"
              mc:Ignorable="d"
              Width="400" MinHeight="100" MaxHeight="400">
+
+    <UserControl.Resources>
+        <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+    </UserControl.Resources>
 
     <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" 
            Background="White" >
@@ -26,7 +31,8 @@
 
                 <!-- Favorite Button -->
                 <Button Grid.Column="1" BorderThickness="0"
-                   Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
+                   Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" 
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">>
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="Transparent"/>

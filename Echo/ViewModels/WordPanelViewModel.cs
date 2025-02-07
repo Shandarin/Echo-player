@@ -156,7 +156,7 @@ namespace Echo.ViewModels
 
                 WordModel? wordModel = new ();
                 //请求Echo Server
-                if (Properties.Settings.Default.IsEchoAPIEnabled)
+                if (Properties.Settings.Default.IsUseEchoAPI)
                 {
                     var responseString= await EchoService.OxfordAPIRequest(word,sourceLang,targetLang);
                     if (responseString is null)

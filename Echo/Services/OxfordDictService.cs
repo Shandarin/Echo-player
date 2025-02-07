@@ -50,9 +50,11 @@ namespace Echo.Services
                 }
                 else
                 {
-                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                        response.StatusCode == System.Net.HttpStatusCode.Forbidden
+                        )
                     {
-                        MessageBox.Show(responseString);
+                        MessageBox.Show("API key wrong or expired.\n Consider using Echo API");
                     }
                     else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError ||
                              response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||

@@ -42,20 +42,12 @@ namespace Echo.Services
                 sourcelanguagecode = sourcelanguagecode,
                 targetlanguagecode = targetlanguagecode
             };
+            Debug.WriteLine($"payload {payload.sourcelanguagecode}");
+            Debug.WriteLine($"payload {payload.targetlanguagecode}");
 
-           
             string result = await PostRequestAsync(endpoint, payload);
 
             return result;
-
-            //if (result != null)
-            //{
-            //    return result;
-            //}
-            //else
-            //{
-            //    throw new Exception("Oxford API request failed.");
-            //}
         }
 
         private static async Task<string> PostRequestAsync(string url, object payload)
@@ -78,6 +70,7 @@ namespace Echo.Services
 
                     // 读取响应
                     string responseString = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"responseString {responseString}");
 
                     if (response.IsSuccessStatusCode)
                     {

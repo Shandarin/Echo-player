@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Echo.Services
 {
@@ -29,7 +30,7 @@ namespace Echo.Services
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
         }
 
-        public async Task<string> AnalyzeSubtitleAsync(string subtitle,string sourceLang, string targetLang)
+        public async Task<string?> AnalyzeSubtitleAsync(string subtitle,string sourceLang, string targetLang)
         {
 
             var prompt = GenerateTranslationPrompt(sourceLang, targetLang, subtitle);
@@ -55,7 +56,11 @@ namespace Echo.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"OpenAI API error: {responseString}");
+                if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    MessageBox.Show("API key wrong or expired");
+                }
+                return null;
             }
 
             var responseJson = JsonSerializer.Deserialize<JsonElement>(responseString);

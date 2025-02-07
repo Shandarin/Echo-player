@@ -45,14 +45,16 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _favoriteIcon;
 
-        [ObservableProperty]
-        private string _sourceLanguage;
+        //[ObservableProperty]
+        //private string _sourceLanguage;
 
-        [ObservableProperty]
-        private string _targetLanguage;
+        //[ObservableProperty]
+        //private string _targetLanguage;
 
         [ObservableProperty]
         private List<string> _contentLines;
+
+        private readonly MainWindowViewModel MainWindowVM;
 
 
         public SentencePanelViewModel()
@@ -68,9 +70,9 @@ namespace Echo.ViewModels
 
             //Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
 
-            MainWindowViewModel MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
-            SourceLanguage = MainWindowVM.LearningLanguage;
-            TargetLanguage = MainWindowVM.YourLanguage;
+             MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
+            //SourceLanguage = MainWindow.your
+            //TargetLanguage = Properties.Settings.Default.YourLanguage;
             _collectionName = Path.GetFileName(MainWindowVM.VideoFilePath);
         }
 
@@ -108,14 +110,16 @@ namespace Echo.ViewModels
             IsVisible = false;
         }
 
-        private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            SourceLanguage = Properties.Settings.Default.LearningLanguage;
-            TargetLanguage = Properties.Settings.Default.YourLanguage;
-        }
+        //private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        //{
+        //    SourceLanguage = Properties.Settings.Default.LearningLanguage;
+        //    TargetLanguage = Properties.Settings.Default.YourLanguage;
+        //}
 
         public async Task SentenceTranslateAsync(string text)
         {
+            var SourceLanguage = MainWindowVM.LearningLanguage;
+            var TargetLanguage = MainWindowVM.YourLanguage;
 
             _sentenceModel = await _databaseService.GetSentenceAsync(text,SourceLanguage, TargetLanguage);
             if (_sentenceModel != null)
@@ -136,9 +140,16 @@ namespace Echo.ViewModels
             var sText = TextManager.RemoveHtmlTags(text).Trim(); ;
 
 
-            if (Properties.Settings.Default.IsEchoAPIEnabled)
+            if (Properties.Settings.Default.IsUseEchoAPI)
             {
                 var responseString = await EchoService.OpenAIRequest(sText, SourceLanguage, TargetLanguage);
+                if (string.IsNullOrEmpty(responseString))
+                {
+                    ErrorMessage = "Translation error";
+      
+                    return;
+                }
+
                 var jObj = Newtonsoft.Json.Linq.JObject.Parse(responseString);
 
                 var result = jObj["resp_content"]?.ToString();
@@ -148,12 +159,23 @@ namespace Echo.ViewModels
             else
             {
                 var analysis = await _openAiService.AnalyzeSubtitleAsync(sText, SourceLanguage,TargetLanguage);
+
+                Debug.WriteLine($"afdsfsd {analysis}");
+
+                if (string.IsNullOrEmpty(analysis))
+                {
+                    ErrorMessage = "Translation error";
+                    Debug.WriteLine("Translationired");
+                    return;
+                }
+
                 _translationText = analysis.Replace("\t", " ");
                 ContentLines = TextManager.SplitRows(analysis);
             }
 
             if (string.IsNullOrWhiteSpace(_translationText))
             {
+                ErrorMessage = "Translation error";
                 return;
             }
 

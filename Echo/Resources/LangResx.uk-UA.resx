@@ -369,4 +369,13 @@
   <data name="Update_completeed" xml:space="preserve">
     <value>Оновлення завершено</value>
   </data>
+  <data name="use_third_party_API" xml:space="preserve">
+    <value>Використовуйте API третьої сторони</value>
+  </data>
+  <data name="use_Echo_API" xml:space="preserve">
+    <value>використовуйте Echo API</value>
+  </data>
+  <data name="Input_API_Key" xml:space="preserve">
+    <value>Введіть API ключ</value>
+  </data>
 </root>

@@ -151,6 +151,15 @@ namespace Echo.Resources {
         }
         
         /// <summary>
+        ///   查找类似  的本地化字符串。
+        /// </summary>
+        public static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Change log 的本地化字符串。
         /// </summary>
         public static string Change_log {
@@ -174,6 +183,15 @@ namespace Echo.Resources {
         public static string Configure_Token {
             get {
                 return ResourceManager.GetString("Configure_Token", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似  的本地化字符串。
+        /// </summary>
+        public static string Confirm {
+            get {
+                return ResourceManager.GetString("Confirm", resourceCulture);
             }
         }
         
@@ -399,6 +417,15 @@ namespace Echo.Resources {
         public static string Input {
             get {
                 return ResourceManager.GetString("Input", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Input API Key 的本地化字符串。
+        /// </summary>
+        public static string Input_API_Key {
+            get {
+                return ResourceManager.GetString("Input_API_Key", resourceCulture);
             }
         }
         
@@ -750,6 +777,24 @@ namespace Echo.Resources {
         public static string Update_now {
             get {
                 return ResourceManager.GetString("Update_now", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 use Echo API 的本地化字符串。
+        /// </summary>
+        public static string use_Echo_API {
+            get {
+                return ResourceManager.GetString("use_Echo_API", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Use third party API 的本地化字符串。
+        /// </summary>
+        public static string use_third_party_API {
+            get {
+                return ResourceManager.GetString("use_third_party_API", resourceCulture);
             }
         }
         

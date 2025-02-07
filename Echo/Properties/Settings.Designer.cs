@@ -202,5 +202,53 @@ namespace Echo.Properties {
                 this["SubtitleDisplayMode"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OxfordApiKey {
+            get {
+                return ((string)(this["OxfordApiKey"]));
+            }
+            set {
+                this["OxfordApiKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OpenAIApiKey {
+            get {
+                return ((string)(this["OpenAIApiKey"]));
+            }
+            set {
+                this["OpenAIApiKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IsUseThirdPartyAPI {
+            get {
+                return ((bool)(this["IsUseThirdPartyAPI"]));
+            }
+            set {
+                this["IsUseThirdPartyAPI"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool IsUseEchoAPI {
+            get {
+                return ((bool)(this["IsUseEchoAPI"]));
+            }
+            set {
+                this["IsUseEchoAPI"] = value;
+            }
+        }
     }
 }

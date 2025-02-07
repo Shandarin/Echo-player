@@ -81,6 +81,7 @@
                     <TextBlock Text="📂" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <!-- 
             <MenuItem Header="{x:Static resx:LangResx.Recent_Files}" 
                       IsEnabled="False"
                       Style="{StaticResource MenuItemStyle}">
@@ -88,6 +89,7 @@
                     <TextBlock Text="📋" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
+            -->
             <Separator Style="{StaticResource SeparatorStyle}"/>
             <MenuItem Header="{x:Static resx:LangResx.Exit}" 
                       Command="{Binding ExitCommand}"
@@ -285,11 +287,11 @@
         </MenuItem>
 
         <!-- 词典菜单 -->
-        <MenuItem Header="{x:Static resx:LangResx.Learn}" Style="{StaticResource MenuItemStyle}">
+        <MenuItem Header="{x:Static resx:LangResx.Learn}" Style="{StaticResource MenuItemStyle}" Click="MenuItem_Click">
             <MenuItem Header="{x:Static resx:LangResx.Language}" Style="{StaticResource MenuItemStyle}">
                 <MenuItem Header="{x:Static resx:LangResx.Your_Language}" Style="{StaticResource MenuItemStyle}">
                     
-                    <MenuItem Header="简体中文" 
+                    <MenuItem Header="中文" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='zh'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="zh" 
@@ -320,6 +322,7 @@
                               CommandParameter="ko" 
                               Style="{StaticResource MenuItemStyle}"/>
                     -->
+                    <!-- todo
                     <MenuItem Header="Français" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
@@ -330,11 +333,13 @@
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="de" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <MenuItem Header="Español" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='es'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="es" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    <!-- todo
                     <MenuItem Header="العربية" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='ar'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
@@ -345,6 +350,7 @@
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="ru" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <!-- todo
                     <MenuItem Header="Українська" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk'}" 
@@ -352,6 +358,7 @@
                               CommandParameter="uk" 
                               Style="{StaticResource MenuItemStyle}"/>
                     -->
+                    <!-- todo
                     <MenuItem Header="Português" 
                               IsChecked="{Binding SelectedYourLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}" 
                               Command="{Binding ChangeYourLanguageCommand}" 
@@ -362,6 +369,7 @@
                               Command="{Binding ChangeYourLanguageCommand}" 
                               CommandParameter="it" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                 </MenuItem>
                 <MenuItem Header="{x:Static resx:LangResx.Learning_Language}" Style="{StaticResource MenuItemStyle}">
                     
@@ -405,6 +413,7 @@
                               CommandParameter="ko" 
                               Style="{StaticResource MenuItemStyle}"/>
                     -->
+                    <!-- todo
                     <MenuItem Header="Français" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='fr'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
@@ -430,6 +439,7 @@
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="ru" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                     <!-- todo
                     <MenuItem Header="Українська" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='uk'}" 
@@ -437,6 +447,7 @@
                               CommandParameter="uk" 
                               Style="{StaticResource MenuItemStyle}"/>
                     -->
+                    <!-- todo
                     <MenuItem Header="Português" 
                               IsChecked="{Binding SelectedLearningLanguage, Mode=OneWay, Converter={StaticResource LanguageConverter}, ConverterParameter='pt'}" 
                               Command="{Binding ChangeLearningLanguageCommand}" 
@@ -447,6 +458,7 @@
                               Command="{Binding ChangeLearningLanguageCommand}" 
                               CommandParameter="it" 
                               Style="{StaticResource MenuItemStyle}"/>
+                    -->
                 </MenuItem>
                 <MenuItem Header="{x:Static resx:LangResx.Software_Language}">
                     <MenuItem Header="简体中文" 
@@ -504,27 +516,30 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="API" Style="{StaticResource MenuItemStyle}">
-                <MenuItem Header="{x:Static resx:LangResx.Dictionary_API}" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="{x:Static resx:LangResx.Oxford_Dictionary}" Command="{Binding SelectWordAPICommand}" CommandParameter="oxford" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="{x:Static resx:LangResx.Set_up_API}" Command="{Binding ConfigureWordAPICommand}" Style="{StaticResource MenuItemStyle}"/>
-                    </MenuItem>
+                <MenuItem Style="{StaticResource MenuItemStyle}">
+                    <MenuItem.Header>
+                        <CheckBox Content="{x:Static resx:LangResx.use_third_party_API}"
+                                      IsChecked="{Binding IsUseThirdPartyAPI, Mode=TwoWay}"
+                                      VerticalAlignment="Center"/>
+                    </MenuItem.Header>
+                    <!-- 子菜单项：牛津词典，选中父项后可点击弹出 API key 配置框 -->
+                    <MenuItem Header="{x:Static resx:LangResx.Oxford_Dictionary}"
+                              Command="{Binding ConfigureWordAPICommand}"
+                              Style="{StaticResource MenuItemStyle}"/>
+                    <!-- 子菜单项：OpenAI，同样点击后弹出配置窗口 -->
+                    <MenuItem Header="OpenAI"
+                              Command="{Binding ConfigureSentenceAPICommand}"
+                              Style="{StaticResource MenuItemStyle}"/>
                 </MenuItem>
-                <MenuItem Header="{x:Static resx:LangResx.Sentence_Analysis_API}" Style="{StaticResource MenuItemStyle}">
-                    <MenuItem Header="OpenAI" Command="{Binding SelectSentenceAPICommand}" CommandParameter="openai" Style="{StaticResource MenuItemStyle}">
-                        <MenuItem Header="{x:Static resx:LangResx.Set_up_API}" Command="{Binding ConfigureSentenceAPICommand}" Style="{StaticResource MenuItemStyle}"/>
-                    </MenuItem>
-                </MenuItem>
-                <!-- todo 
-                <MenuItem Header="自动翻译API">
-                    <MenuItem Header="OpenAI" Command="{Binding TranslationAPIChangeCommand}" Tag="openai">
-                        <MenuItem Header="配置Token" Command="{Binding SetTranslationAPICommand}"/>
-                    </MenuItem>
-                </MenuItem>
-                 -->
-                <Separator/>
-                <MenuItem Header="{x:Static resx:LangResx.Echo_Token}">
-                    <MenuItem Header="{x:Static resx:LangResx.Input}" Command="{Binding InputEchoAPICommand}"/>
-                    <MenuItem Header="{x:Static resx:LangResx.Purchase}" Command="{Binding ButEchoAPICommand}"/>
+
+                <!-- 分隔线 -->
+                <Separator Style="{StaticResource SeparatorStyle}"/>
+                <MenuItem  Style="{StaticResource MenuItemStyle}">
+                    <MenuItem.Header>
+                        <CheckBox Content="{x:Static resx:LangResx.use_Echo_API}"
+                                      IsChecked="{Binding IsUseEchoAPI, Mode=TwoWay}"
+                                      VerticalAlignment="Center"/>
+                    </MenuItem.Header>
                 </MenuItem>
             </MenuItem>
         </MenuItem>

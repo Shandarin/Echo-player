@@ -23,6 +23,7 @@ using SubtitlesParser.Classes;
 using System.Reflection;
 using LibVLCSharp.WPF;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace Echo.ViewModels
 {
@@ -39,6 +40,7 @@ namespace Echo.ViewModels
         private bool _hasAdjustedAspectRatio = false;
         private bool _isSentenceAnalysisEnabled;
         private bool _isVideoLoading = false;
+        private bool _isChangingFullScreen = false;
 
         private long _sizeChangingTimer;
 
@@ -186,9 +188,10 @@ namespace Echo.ViewModels
             VideoControlVM = new VideoControlViewModel(_mediaPlayer);
             MenuBarVM = new MenuBarViewModel();
 
-            _yourLanguage = MenuBarVM.SelectedYourLanguage;
-            _learningLanguage = MenuBarVM.SelectedLearningLanguage;
-            _isWordQueryEnabled = MenuBarVM.IsWordQueryEnabled;
+            YourLanguage = Properties.Settings.Default.YourLanguage;
+            //_learningLanguage = Properties.Settings.Default.LearningLanguage;
+            _isSentenceAnalysisEnabled = Properties.Settings.Default.IsSentenceAnalysisEnabled;
+            _isWordQueryEnabled = Properties.Settings.Default.IsWordQueryEnabled;
 
             // Subscribe to events
             MenuBarVM.OnScreenshotRequested += HandleScreenshotRequested;
@@ -199,14 +202,15 @@ namespace Echo.ViewModels
             MenuBarVM.SubtitleVisibleChanged += HandleSubtitleVisibleChanged;
             MenuBarVM.OnChangeOpacity += HandleOnChangeOpacity;
             MenuBarVM.OnFontSizeChanged += HandleOnFontSizeChanged;
-            MenuBarVM.YourLanguageChanged += HandleYourLanguageChanged;
-            MenuBarVM.LearningLanguageChanged += HandleLearningLanguageChanged;
-            MenuBarVM.BackwardTimeChanged += (s, e) => BackwardTime = e;
-            MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
+            //MenuBarVM.YourLanguageChanged += HandleYourLanguageChanged;
+            //MenuBarVM.LearningLanguageChanged += HandleLearningLanguageChanged;
+            //MenuBarVM.BackwardTimeChanged += (s, e) => BackwardTime = e;
+            //MenuBarVM.ForwardTimeChanged += (s, e) => ForwardTime = e;
             MenuBarVM.OnSubtitleTrackSelected += HandleSubtitleTrackSelected;
             MenuBarVM.SubtitleDisplayModeChangedEvent += HandleSubtitleDisplayModeChanged;
-            MenuBarVM.IsSentenceAnalysisEnabledChanged += HandleIsSentenceAnalysisEnabledChanged;
-            MenuBarVM.IsWordQueryEnabledChanged += HandleIsWordQueryEnabledChanged;
+            // MenuBarVM.IsSentenceAnalysisEnabledChanged += HandleIsSentenceAnalysisEnabledChanged;
+            //MenuBarVM.IsWordQueryEnabledChanged += HandleIsWordQueryEnabledChanged;
+            MenuBarVM.OnLearningLanguageChanged += HandleLearningLanguageChanged;
 
             MediaPlayer.Playing += OnMediaPlaying;
 
@@ -250,7 +254,14 @@ namespace Echo.ViewModels
             _isSentenceAnalysisEnabled = MenuBarVM.IsSentenceAnalysisEnabled;
             _wordClickHandler.OnWordClickEvent += HandleWordClickEvent;
 
+            Properties.Settings.Default.PropertyChanged += OnPropertyChanged;
+
+
         }
+
+
+
+
 
         #region Callbacks 
 
@@ -424,10 +435,10 @@ namespace Echo.ViewModels
             SubtitleFontSize = size;
         }
 
-        private void HandleYourLanguageChanged(object? sender, string language)
-        {
-            _yourLanguage = language;
-        }
+        //private void HandleYourLanguageChanged(object? sender, string language)
+        //{
+        //    _yourLanguage = language;
+        //}
 
         private void HandleLearningLanguageChanged(object? sender, string language)
         {
@@ -568,16 +579,16 @@ namespace Echo.ViewModels
             //_scrollingSubtitleHandler?.EnableScrolling(isEnabled);
         }
 
-        [RelayCommand]
-        private void WindowSizeChanged(SizeChangedEventArgs e)
-        {
-            Debug.WriteLine($"size {e}");
-        }
+        //[RelayCommand]
+        //private void WindowSizeChanged(SizeChangedEventArgs e)
+        //{
+        //    Debug.WriteLine($"size {e}");
+        //}
 
         public void OnWindowSizeChanged(Size newSize)
         {
             //防止视频载入的尺寸变化触发
-            if (_isVideoLoading) {
+            if (_isVideoLoading || _isChangingFullScreen) {
                 return;
                     };
             var currentTime = _mediaPlayer.Time;
@@ -703,8 +714,12 @@ namespace Echo.ViewModels
 
         #region  Private Helpers
 
+
+
+
         public void ToggleFullScreen()
         {
+            _isChangingFullScreen = true;
             _isFullScreen = !_isFullScreen;
             ToggleFullScreenRequested?.Invoke(this, _isFullScreen);
             if (IsFullScreen)
@@ -724,8 +739,10 @@ namespace Echo.ViewModels
                 //VideoViewWidth = PreviousVideoViewWidth;
                 //Debug.WriteLine($"VideoViewWidth {VideoViewWidth}");
             }
-            
-           // _mediaPlayer.ToggleFullscreen();
+
+            // _mediaPlayer.ToggleFullscreen();
+            _sizeChangingTimer = _mediaPlayer.Time;
+            _isChangingFullScreen = false;
 
         }
 
@@ -744,6 +761,13 @@ namespace Echo.ViewModels
                 _isVideoLoading = true;
                 // 打开视频文件
 
+                // 如果当前正在播放，先停止播放保证能安全释放媒体资源
+                if (_mediaPlayer.IsPlaying)
+                {
+                    _mediaPlayer.Stop();
+                    await Task.Delay(200);
+                }
+
                 _mediaPlayer.Media?.Dispose();
                 _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
                 _mediaPlayer.Play();
@@ -751,6 +775,8 @@ namespace Echo.ViewModels
                 //_isMouseLoaded = true;
 
                 VideoFilePath = filePath;
+
+
 
                 // step 1: check same dir for subtitles
                 _subtitleHandler.Dispose();
@@ -775,7 +801,7 @@ namespace Echo.ViewModels
                 //EmbeddedSubtitleFiles = SubtitleExtractHandler.FindEmbeddedSubtitleFiles(filePath);
 
                 //step 3: extract embedded subtitles(not always there)
-                if (!EmbeddedSubtitleFiles.Any() | EmbeddedSubtitleFiles is null)
+                if (!EmbeddedSubtitleFiles.Any() || EmbeddedSubtitleFiles is null)
                 {
                     subtitleFiles.Clear();
 
@@ -787,7 +813,7 @@ namespace Echo.ViewModels
                 {
                     foreach (var file in EmbeddedSubtitleFiles)
                     {
-                        if (file.Contains("OriginalLang") & !file.Contains("SDH"))
+                        if (file.Contains("OriginalLang") && !file.Contains("SDH"))
                         {
                             LoadSubtitle(file);
 
@@ -871,6 +897,45 @@ namespace Echo.ViewModels
 
 
         #endregion
+
+        private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // 根据 setting 对象更新 ViewModel 中对应的值
+            if (Properties.Settings.Default == null)
+            {
+                return;
+            }
+
+            switch (e.PropertyName)
+            {
+                case "YourLanguage":
+                    // 更新你的语言设置
+                    YourLanguage = Properties.Settings.Default.YourLanguage;
+                    break;
+                case "LearningLanguage":
+                    // 更新学习语言设置
+                    LearningLanguage = Properties.Settings.Default.LearningLanguage;
+                    break;
+                case "IsWordQueryEnabled":
+                    // 更新是否启用单词查询的标志
+                    _isWordQueryEnabled = Properties.Settings.Default.IsWordQueryEnabled;
+                    break;
+                case "BackwardTime":
+                    // 更新向后跳转的时间（秒）
+                    BackwardTime = Properties.Settings.Default.BackwardTime;
+                    break;
+                case "ForwardTime":
+                    // 更新向前跳转的时间（秒）
+                    ForwardTime = Properties.Settings.Default.ForwardTime;
+                    break;
+                //Is sentence analysis enabled
+                case "IsSentenceAnalysisEnabled":
+                    _isSentenceAnalysisEnabled = Properties.Settings.Default.IsSentenceAnalysisEnabled;
+                    break;
+                default:
+                    break;
+            }
+        }
 
         public void OnPreviewKeyDown(KeyEventArgs e)
         {

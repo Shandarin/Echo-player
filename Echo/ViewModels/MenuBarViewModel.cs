@@ -78,6 +78,12 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _detectedLanguage ;
 
+        [ObservableProperty]
+        private bool _isUseThirdPartyAPI;
+
+        [ObservableProperty]
+        private bool _isUseEchoAPI;
+
         private readonly UpdateService _updateService = new("https://echo-player.com/updates/update.xml");
 
         public MenuBarViewModel() 
@@ -92,15 +98,24 @@ namespace Echo.ViewModels
             SelectedAspectRatio = Properties.Settings.Default.AspectRatio;
             SelectedYourLanguage = Properties.Settings.Default.YourLanguage;
             SelectedLearningLanguage = Properties.Settings.Default.LearningLanguage;
+
             BackwardTime = Properties.Settings.Default.BackwardTime;
             ForwardTime = Properties.Settings.Default.ForwardTime;
             SubtitleDisplayMode = Properties.Settings.Default.SubtitleDisplayMode;
+
+            IsUseEchoAPI= Properties.Settings.Default.IsUseEchoAPI;
+            IsUseThirdPartyAPI = Properties.Settings.Default.IsUseThirdPartyAPI;
+
             DetectedLanguage = null;
         }
 
+
         partial void OnDetectedLanguageChanged(string value)
         {
-            Debug.WriteLine($"DetectedLanguage {DetectedLanguage}");
+            if (SelectedLearningLanguage == "Auto")
+            {
+                OnLearningLanguageChanged?.Invoke(this, value);
+            }
         }
 
         // File Menu Commands
@@ -186,13 +201,41 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void ConfigureWordAPI()
         {
-            // Implement API configuration logic
+            string savedKey = Properties.Settings.Default.OxfordApiKey;
+            var dialog = new InputDialog("请输入牛津词典 API Key：", "API 配置", savedKey);
+            if (dialog.ShowDialog() == true)
+            {
+                string apiKey = dialog.ResponseText;
+
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    return;
+                }
+                // 保存或使用 apiKey
+                Properties.Settings.Default.OxfordApiKey = apiKey;
+                Properties.Settings.Default.Save();
+                Debug.WriteLine($"牛津词典 API Key：{apiKey}");
+            }
         }
 
         [RelayCommand]
         private void ConfigureSentenceAPI()
         {
-            // Implement API configuration logic
+            string savedKey = Properties.Settings.Default.OpenAIApiKey;
+            var dialog = new InputDialog("请输入 OpenAI API Key：", "API 配置", savedKey);
+            if (dialog.ShowDialog() == true)
+            {
+                string apiKey = dialog.ResponseText;
+
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    return;
+                }
+                Properties.Settings.Default.OpenAIApiKey = apiKey;
+                Properties.Settings.Default.Save();
+                // TODO: 在这里处理获取到的 API Key（如保存到配置或调用服务）
+                Debug.WriteLine($"OpenAI API Key：{apiKey}");
+            }
         }
 
         [RelayCommand]
@@ -231,14 +274,16 @@ namespace Echo.ViewModels
         private void ChangeYourLanguage(string lang)
         {
             SelectedYourLanguage = lang;
-            YourLanguageChanged?.Invoke(this, lang);
+            Properties.Settings.Default.YourLanguage = SelectedYourLanguage;
+            //YourLanguageChanged?.Invoke(this, lang);
         }
 
         [RelayCommand]
         private void ChangeLearningLanguage(string lang)
         {
             SelectedLearningLanguage = lang;
-            LearningLanguageChanged?.Invoke(this, lang);
+            Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
+            //LearningLanguageChanged?.Invoke(this, lang);
         }
 
         [RelayCommand]
@@ -252,6 +297,8 @@ namespace Echo.ViewModels
         {
            _updateService.CheckForUpdates();
         }
+
+
 
 
         public void UpdateSubtitle(ObservableCollection<string> ES,bool HasES)
@@ -270,8 +317,8 @@ namespace Echo.ViewModels
             Properties.Settings.Default.SubtitleOpacity = SubtitleOpacity;
             Properties.Settings.Default.SoftwareLanguage = SelectedSoftwareLanguage;
             Properties.Settings.Default.AspectRatio = SelectedAspectRatio;
-            Properties.Settings.Default.YourLanguage = SelectedYourLanguage;
-            Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
+            
+            
             Properties.Settings.Default.BackwardTime = BackwardTime;
             Properties.Settings.Default.ForwardTime = ForwardTime;
             Properties.Settings.Default.SubtitleDisplayMode = SubtitleDisplayMode;
@@ -311,6 +358,28 @@ namespace Echo.ViewModels
             IsWordQueryEnabledChanged?.Invoke(this, value);
         }
 
+        partial void OnIsUseThirdPartyAPIChanged(bool value)
+        {
+            Properties.Settings.Default.IsUseThirdPartyAPI = IsUseThirdPartyAPI;
+            Properties.Settings.Default.Save();
+            Debug.WriteLine($"IsUseThirdPartyAPI: {IsUseThirdPartyAPI}");
+            if (IsUseThirdPartyAPI)
+            {
+                IsUseEchoAPI = false;
+            }
+        }
+
+        partial void OnIsUseEchoAPIChanged(bool value)
+        {
+            Properties.Settings.Default.IsUseEchoAPI = IsUseEchoAPI;
+            Properties.Settings.Default.Save();
+            Debug.WriteLine($"IsUseEchoAPI: {IsUseEchoAPI}");
+            if (IsUseEchoAPI)
+            {
+                IsUseThirdPartyAPI = false;
+            }
+        }
+
 
         // Events
         public event EventHandler<string> OnFileSelected;
@@ -335,6 +404,8 @@ namespace Echo.ViewModels
         public event EventHandler<string> SubtitleDisplayModeChangedEvent;
         public event EventHandler<bool> IsSentenceAnalysisEnabledChanged;
         public event EventHandler<bool> IsWordQueryEnabledChanged;
+
+        public event EventHandler<string> OnLearningLanguageChanged;
 
         // Additional commands can be added for other menu items
     }

@@ -369,4 +369,13 @@
   <data name="Update_completeed" xml:space="preserve">
     <value>Actualización completada</value>
   </data>
+  <data name="use_third_party_API" xml:space="preserve">
+    <value>Utilizar API de terceros</value>
+  </data>
+  <data name="use_Echo_API" xml:space="preserve">
+    <value>usar la API de Echo</value>
+  </data>
+  <data name="Input_API_Key" xml:space="preserve">
+    <value>Ingrese la clave de API</value>
+  </data>
 </root>
