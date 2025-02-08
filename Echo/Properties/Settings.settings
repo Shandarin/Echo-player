@@ -18,7 +18,7 @@
       <Value Profile="(Default)">0.5</Value>
     </Setting>
     <Setting Name="SoftwareLanguage" Type="System.String" Scope="User">
-      <Value Profile="(Default)">zh-Hans</Value>
+      <Value Profile="(Default)">en</Value>
     </Setting>
     <Setting Name="AspectRatio" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
