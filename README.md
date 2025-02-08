@@ -3,15 +3,16 @@
 # Echo Player
 Echo Player is a WPF-based video player designed to simplify language learning through video watching.
 
-#### This project is currently under development. Sorry for the bugs; we’re working on fixing them!
+#### Download: https://echo-player.com/
+
+#### This project is currently under development. We’re working on adding more features and languages!
 
 #### Tested Language:
-| Native\Learning  | English   | Chinese | Spanish |French |
-|:---------|------------|------------|------------|------------|
-| English   |        |            |             |             |
-| Chinese  | Tested|            |             |             |
-| Spanish   |        |            |             |             |
-| French   |        |            |             |             |
+| Native\Learning  | English   | 中文 | español |
+|:---------|------------|------------|------------|
+| English   |        |            |             |    
+| 中文  |   √   |            |             |    
+| español   |   √   |            |             |  
 
 ### Features
 #### Subtitle Features
@@ -47,6 +48,7 @@ Built using:
 - SubtitlesParser
 - Newtonsoft.Json
 - Mkvtoolnix
+- LanguageDetection.Ai
 
 #### License
 MIT License

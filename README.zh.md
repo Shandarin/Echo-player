@@ -4,20 +4,20 @@
 
 Echo Player 是一个基于 WPF 的视频播放器，专为语言学习者打造。
 
+#### Download: https://echo-player.com/
+
 #### 本项目正在继续完善中，欢迎提出反馈！
 
 #### 已测试语言
-| 母语\学习语言  | 英语       | 中文       | Spanish |French |
-|:---------|------------|------------|------------|------------|
-| 英语       |            |            |            |             |
-| 中文       | 已测试     |            |          |             |
-| Spanish   |        |            |             |             |
-| French   |        |            |             |             |
-
+| 母语\学习语言  | English   | 中文 | español |
+|:---------|------------|------------|------------|
+| English   |        |            |             |    
+| 中文  |   √   |            |             |    
+| español   |   √   |            |             |  
 
 ### 功能
 #### 字幕功能
-- 点击单词即可查询翻译
+- 点击单词可查询翻译
 - 利用 AI 进行句子分析
 - 鼠标悬停显示字幕
 
@@ -41,13 +41,14 @@ Echo Player 是一个基于 WPF 的视频播放器，专为语言学习者打造
 
 #### 开发
 使用以下技术构建：
-- WPF  
-- LibVLCSharp  
-- CommunityToolkit.Mvvm  
-- System.Data.SQLite  
-- SubtitlesParser  
-- Newtonsoft.Json  
-- Mkvtoolnix  
+- WPF 
+- LibVLCSharp
+- CommunityToolkit.Mvvm
+- System.Data.SQLite
+- SubtitlesParser
+- Newtonsoft.Json
+- Mkvtoolnix
+- LanguageDetection.Ai
 
 #### 许可证
 MIT 许可证
