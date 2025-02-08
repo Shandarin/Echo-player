@@ -17,9 +17,9 @@ namespace Echo.Handlers
             try
             {
                 var appRootDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                var mkvExtractPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvextract.exe");
-                var mkvInfoPath = Path.Combine(appRootDirectory, "mkvtoolnix", "mkvinfo.exe");
-
+                var mkvExtractPath = Path.Combine(appRootDirectory, "ThirdPartyTools", "mkvtoolnix", "mkvextract.exe");
+                var mkvInfoPath = Path.Combine(appRootDirectory, "ThirdPartyTools", "mkvtoolnix", "mkvinfo.exe");
+                
                 // 调试信息
                 Debug.WriteLine($"Current Directory: {Environment.CurrentDirectory}");
                 Debug.WriteLine($"MKVInfo Path: {mkvInfoPath}");
@@ -28,7 +28,7 @@ namespace Echo.Handlers
                 Debug.WriteLine($"File exists - MKVExtract: {File.Exists(mkvExtractPath)}");
 
                 // 设置工作目录
-                Environment.CurrentDirectory = Path.Combine(appRootDirectory, "mkvtoolnix");
+                Environment.CurrentDirectory = Path.Combine(appRootDirectory, "ThirdPartyTools", "mkvtoolnix");
 
                 var outputDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

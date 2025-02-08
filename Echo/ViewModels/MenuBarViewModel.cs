@@ -107,8 +107,6 @@ namespace Echo.ViewModels
             IsUseEchoAPI= Properties.Settings.Default.IsUseEchoAPI;
             IsUseThirdPartyAPI = Properties.Settings.Default.IsUseThirdPartyAPI;
 
-            Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
-
             DetectedLanguage = null;
         }
 
@@ -184,6 +182,10 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void ChangeOpacity(string opacity)
         {
+            double opacityValue;
+            double.TryParse(opacity, out opacityValue);
+            Properties.Settings.Default.SubtitleOpacity = opacityValue;
+            Properties.Settings.Default.Save();
             OnChangeOpacity?.Invoke(this, opacity);
         }
 
@@ -263,30 +265,40 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void SoftwareLanguageChange(string lang)
         {
+            Properties.Settings.Default.SoftwareLanguage = lang;
+            Properties.Settings.Default.Save();
+
             string selectedLanguage = lang; 
-            ((App)Application.Current).ChangeLanguage(selectedLanguage);
+            ((App)Application.Current).ChangeLanguage(selectedLanguage);//切换语言
             SelectedSoftwareLanguage = selectedLanguage;
         }
 
         [RelayCommand]
         private void ChangeYourLanguage(string lang)
         {
+
+            Properties.Settings.Default.YourLanguage = lang;
+            Properties.Settings.Default.Save();
+
             SelectedYourLanguage = lang;
-            Properties.Settings.Default.YourLanguage = SelectedYourLanguage;
             //YourLanguageChanged?.Invoke(this, lang);
         }
 
         [RelayCommand]
         private void ChangeLearningLanguage(string lang)
         {
+            Properties.Settings.Default.LearningLanguage = lang;
+            Properties.Settings.Default.Save();
+
             SelectedLearningLanguage = lang;
-            Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
-            //LearningLanguageChanged?.Invoke(this, lang);
+
         }
 
         [RelayCommand]
         public void SetSubtitleDisplayMode(string mode)
         {
+            Properties.Settings.Default.SubtitleDisplayMode = mode;
+            Properties.Settings.Default.Save();
             SubtitleDisplayModeChangedEvent?.Invoke(this, mode);
         }
 
@@ -303,137 +315,78 @@ namespace Echo.ViewModels
         }
 
 
-        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "SubtitleOpacity")
-            {
-                Properties.Settings.Default.SubtitleOpacity = SubtitleOpacity;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "SoftwareLanguage")
-            {
-                Properties.Settings.Default.SoftwareLanguage = SelectedSoftwareLanguage;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "AspectRatio")
-            {
-                Properties.Settings.Default.AspectRatio = SelectedAspectRatio;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "YourLanguage")
-            {
-                Properties.Settings.Default.YourLanguage = SelectedYourLanguage;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "LearningLanguage")
-            {
-                Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "BackwardTime")
-            {
-                Properties.Settings.Default.BackwardTime = BackwardTime;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "ForwardTime")
-            {
-                Properties.Settings.Default.ForwardTime = ForwardTime;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "SubtitleDisplayMode")
-            {
-                Properties.Settings.Default.SubtitleDisplayMode = SubtitleDisplayMode;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "IsUseThirdPartyAPI")
-            {
-                Properties.Settings.Default.IsUseThirdPartyAPI = IsUseThirdPartyAPI;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "IsUseEchoAPI")
-            {
-                Properties.Settings.Default.IsUseEchoAPI = IsUseEchoAPI;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "IsSubtitleVisible")
-            {
-                Properties.Settings.Default.IsSubtitleVisible = IsSubtitleVisible;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "IsMouseHoverEnabled")
-            {
-                Properties.Settings.Default.IsMouseHoverEnabled = IsMouseHoverEnabled;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "IsSentenceAnalysisEnabled")
-            {
-                Properties.Settings.Default.IsSentenceAnalysisEnabled = IsSentenceAnalysisEnabled;
-                Properties.Settings.Default.Save();
-            }
-            else if (e.PropertyName == "IsWordQueryEnabled")
-            {
-                Properties.Settings.Default.IsWordQueryEnabled = IsWordQueryEnabled;
-                Properties.Settings.Default.Save();
-            }
-        }
-
-
         public void SaveSettings()
         {
         }
 
         partial void OnIsMouseHoverEnabledChanged(bool value)
         {
+
+            Properties.Settings.Default.IsMouseHoverEnabled = value;
+            Properties.Settings.Default.Save();
             MouseHoverEnabledChanged?.Invoke(this,value);
         }
 
         partial void OnIsSubtitleVisibleChanged(bool value)
         {
-
+            Properties.Settings.Default.IsSubtitleVisible = value;
+            Properties.Settings.Default.Save();
 
             SubtitleVisibleChanged?.Invoke(this, value);
         }
 
         partial void OnBackwardTimeChanged(uint value)
         {
+
+            Properties.Settings.Default.BackwardTime = value;
+            Properties.Settings.Default.Save();
             BackwardTimeChanged?.Invoke(this, value);
         }
 
         partial void OnForwardTimeChanged(uint value)
         {
+            Properties.Settings.Default.ForwardTime = value;
+            Properties.Settings.Default.Save();
+
             ForwardTimeChanged?.Invoke(this, value);
         }
 
         partial void OnIsSentenceAnalysisEnabledChanged(bool value)
         {
+            Properties.Settings.Default.IsSentenceAnalysisEnabled = value;
+            Properties.Settings.Default.Save();
             IsSentenceAnalysisEnabledChanged?.Invoke(this,value);
         }
 
         partial void OnIsWordQueryEnabledChanged(bool value)
         {
+            Properties.Settings.Default.IsWordQueryEnabled = value;
+            Properties.Settings.Default.Save();
             IsWordQueryEnabledChanged?.Invoke(this, value);
         }
 
         partial void OnIsUseThirdPartyAPIChanged(bool value)
         {
-            Properties.Settings.Default.IsUseThirdPartyAPI = IsUseThirdPartyAPI;
-            Properties.Settings.Default.Save();
+            Properties.Settings.Default.IsUseThirdPartyAPI = value;
 
             if (IsUseThirdPartyAPI)
             {
                 IsUseEchoAPI = false;
             }
+            Properties.Settings.Default.IsUseEchoAPI = IsUseEchoAPI;
+            Properties.Settings.Default.Save();
         }
 
         partial void OnIsUseEchoAPIChanged(bool value)
         {
-            Properties.Settings.Default.IsUseEchoAPI = IsUseEchoAPI;
-            Properties.Settings.Default.Save();
-
+            Properties.Settings.Default.IsUseEchoAPI = value;
             if (IsUseEchoAPI)
             {
                 IsUseThirdPartyAPI = false;
             }
+
+            Properties.Settings.Default.IsUseThirdPartyAPI = IsUseThirdPartyAPI;
+            Properties.Settings.Default.Save();
         }
 
 

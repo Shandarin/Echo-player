@@ -160,12 +160,12 @@ namespace Echo.ViewModels
             {
                 var analysis = await _openAiService.AnalyzeSubtitleAsync(sText, SourceLanguage,TargetLanguage);
 
-                Debug.WriteLine($"afdsfsd {analysis}");
+                //Debug.WriteLine($"afdsfsd {analysis}");
 
                 if (string.IsNullOrEmpty(analysis))
                 {
                     ErrorMessage = "Translation error";
-                    Debug.WriteLine("Translationired");
+                    //Debug.WriteLine("Translationired");
                     return;
                 }
 
