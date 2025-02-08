@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Echo.Properties;
 using Echo.Services;
 using Echo.Views;
 using Microsoft.Win32;
@@ -201,20 +202,17 @@ namespace Echo.ViewModels
         [RelayCommand]
         private void ConfigureWordAPI()
         {
-            string savedKey = Properties.Settings.Default.OxfordApiKey;
-            var dialog = new InputDialog("请输入牛津词典 API Key：", "API 配置", savedKey);
-            if (dialog.ShowDialog() == true)
-            {
-                string apiKey = dialog.ResponseText;
+            string currentApiId = Settings.Default.OxfordApiId;
+            string currentApiKey = Settings.Default.OxfordApiKey;
 
-                if (string.IsNullOrEmpty(apiKey))
-                {
-                    return;
-                }
-                // 保存或使用 apiKey
-                Properties.Settings.Default.OxfordApiKey = apiKey;
-                Properties.Settings.Default.Save();
-                Debug.WriteLine($"牛津词典 API Key：{apiKey}");
+            OxfordConfigDialog dialog = new OxfordConfigDialog(currentApiId, currentApiKey);
+            bool? result = dialog.ShowDialog();
+            if (result == true)
+            {
+                // 用户点击确定后，更新 API 信息（此处可根据实际需求调整保存逻辑）
+                Settings.Default.OxfordApiId = dialog.ApiId;
+                Settings.Default.OxfordApiKey = dialog.ApiKey;
+                Settings.Default.Save();
             }
         }
 
@@ -222,7 +220,7 @@ namespace Echo.ViewModels
         private void ConfigureSentenceAPI()
         {
             string savedKey = Properties.Settings.Default.OpenAIApiKey;
-            var dialog = new InputDialog("请输入 OpenAI API Key：", "API 配置", savedKey);
+            var dialog = new InputDialog("OpenAI API Key：", "API", savedKey);
             if (dialog.ShowDialog() == true)
             {
                 string apiKey = dialog.ResponseText;
@@ -233,8 +231,6 @@ namespace Echo.ViewModels
                 }
                 Properties.Settings.Default.OpenAIApiKey = apiKey;
                 Properties.Settings.Default.Save();
-                // TODO: 在这里处理获取到的 API Key（如保存到配置或调用服务）
-                Debug.WriteLine($"OpenAI API Key：{apiKey}");
             }
         }
 

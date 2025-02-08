@@ -378,4 +378,10 @@
   <data name="Input_API_Key" xml:space="preserve">
     <value>API 키 입력</value>
   </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>확인</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>취소</value>
+  </data>
 </root>

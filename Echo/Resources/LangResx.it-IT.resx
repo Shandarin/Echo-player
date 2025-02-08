@@ -378,4 +378,10 @@
   <data name="Input_API_Key" xml:space="preserve">
     <value>Inserisci la chiave API</value>
   </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Conferma</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
 </root>

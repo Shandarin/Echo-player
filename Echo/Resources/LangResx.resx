@@ -379,9 +379,9 @@
     <value>Input API Key</value>
   </data>
   <data name="Confirm" xml:space="preserve">
-    <value></value>
+    <value>Confirm</value>
   </data>
   <data name="Cancel" xml:space="preserve">
-    <value></value>
+    <value>Cancel</value>
   </data>
 </root>

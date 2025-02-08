@@ -250,5 +250,17 @@ namespace Echo.Properties {
                 this["IsUseEchoAPI"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OxfordApiId {
+            get {
+                return ((string)(this["OxfordApiId"]));
+            }
+            set {
+                this["OxfordApiId"] = value;
+            }
+        }
     }
 }

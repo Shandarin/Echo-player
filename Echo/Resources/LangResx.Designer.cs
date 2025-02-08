@@ -151,7 +151,7 @@ namespace Echo.Resources {
         }
         
         /// <summary>
-        ///   查找类似  的本地化字符串。
+        ///   查找类似 Cancel 的本地化字符串。
         /// </summary>
         public static string Cancel {
             get {
@@ -187,7 +187,7 @@ namespace Echo.Resources {
         }
         
         /// <summary>
-        ///   查找类似  的本地化字符串。
+        ///   查找类似 Confirm 的本地化字符串。
         /// </summary>
         public static string Confirm {
             get {

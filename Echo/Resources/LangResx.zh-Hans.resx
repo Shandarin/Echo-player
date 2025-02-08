@@ -378,4 +378,10 @@
   <data name="Input_API_Key" xml:space="preserve">
     <value>输入 API 密钥</value>
   </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
 </root>
