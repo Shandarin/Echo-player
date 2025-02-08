@@ -107,6 +107,8 @@ namespace Echo.ViewModels
             IsUseEchoAPI= Properties.Settings.Default.IsUseEchoAPI;
             IsUseThirdPartyAPI = Properties.Settings.Default.IsUseThirdPartyAPI;
 
+            Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
+
             DetectedLanguage = null;
         }
 
@@ -294,9 +296,6 @@ namespace Echo.ViewModels
            _updateService.CheckForUpdates();
         }
 
-
-
-
         public void UpdateSubtitle(ObservableCollection<string> ES,bool HasES)
         {
             //HasEmbeddedSubtitles = HasES;
@@ -304,22 +303,83 @@ namespace Echo.ViewModels
         }
 
 
+        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "SubtitleOpacity")
+            {
+                Properties.Settings.Default.SubtitleOpacity = SubtitleOpacity;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "SoftwareLanguage")
+            {
+                Properties.Settings.Default.SoftwareLanguage = SelectedSoftwareLanguage;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "AspectRatio")
+            {
+                Properties.Settings.Default.AspectRatio = SelectedAspectRatio;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "YourLanguage")
+            {
+                Properties.Settings.Default.YourLanguage = SelectedYourLanguage;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "LearningLanguage")
+            {
+                Properties.Settings.Default.LearningLanguage = SelectedLearningLanguage;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "BackwardTime")
+            {
+                Properties.Settings.Default.BackwardTime = BackwardTime;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "ForwardTime")
+            {
+                Properties.Settings.Default.ForwardTime = ForwardTime;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "SubtitleDisplayMode")
+            {
+                Properties.Settings.Default.SubtitleDisplayMode = SubtitleDisplayMode;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "IsUseThirdPartyAPI")
+            {
+                Properties.Settings.Default.IsUseThirdPartyAPI = IsUseThirdPartyAPI;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "IsUseEchoAPI")
+            {
+                Properties.Settings.Default.IsUseEchoAPI = IsUseEchoAPI;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "IsSubtitleVisible")
+            {
+                Properties.Settings.Default.IsSubtitleVisible = IsSubtitleVisible;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "IsMouseHoverEnabled")
+            {
+                Properties.Settings.Default.IsMouseHoverEnabled = IsMouseHoverEnabled;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "IsSentenceAnalysisEnabled")
+            {
+                Properties.Settings.Default.IsSentenceAnalysisEnabled = IsSentenceAnalysisEnabled;
+                Properties.Settings.Default.Save();
+            }
+            else if (e.PropertyName == "IsWordQueryEnabled")
+            {
+                Properties.Settings.Default.IsWordQueryEnabled = IsWordQueryEnabled;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+
         public void SaveSettings()
         {
-            Properties.Settings.Default.IsSubtitleVisible = IsSubtitleVisible;
-            Properties.Settings.Default.IsMouseHoverEnabled = IsMouseHoverEnabled;
-            Properties.Settings.Default.IsSentenceAnalysisEnabled = IsSentenceAnalysisEnabled;
-            Properties.Settings.Default.IsWordQueryEnabled = IsWordQueryEnabled;
-            Properties.Settings.Default.SubtitleOpacity = SubtitleOpacity;
-            Properties.Settings.Default.SoftwareLanguage = SelectedSoftwareLanguage;
-            Properties.Settings.Default.AspectRatio = SelectedAspectRatio;
-            
-            
-            Properties.Settings.Default.BackwardTime = BackwardTime;
-            Properties.Settings.Default.ForwardTime = ForwardTime;
-            Properties.Settings.Default.SubtitleDisplayMode = SubtitleDisplayMode;
-
-            Properties.Settings.Default.Save();
         }
 
         partial void OnIsMouseHoverEnabledChanged(bool value)
@@ -358,7 +418,7 @@ namespace Echo.ViewModels
         {
             Properties.Settings.Default.IsUseThirdPartyAPI = IsUseThirdPartyAPI;
             Properties.Settings.Default.Save();
-            Debug.WriteLine($"IsUseThirdPartyAPI: {IsUseThirdPartyAPI}");
+
             if (IsUseThirdPartyAPI)
             {
                 IsUseEchoAPI = false;
@@ -369,7 +429,7 @@ namespace Echo.ViewModels
         {
             Properties.Settings.Default.IsUseEchoAPI = IsUseEchoAPI;
             Properties.Settings.Default.Save();
-            Debug.WriteLine($"IsUseEchoAPI: {IsUseEchoAPI}");
+
             if (IsUseEchoAPI)
             {
                 IsUseThirdPartyAPI = false;

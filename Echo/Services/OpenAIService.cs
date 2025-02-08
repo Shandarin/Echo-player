@@ -1,4 +1,5 @@
 ﻿using Echo.Mappers;
+using Echo.Properties;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
@@ -18,20 +19,28 @@ namespace Echo.Services
 
         public OpenAIService()
         {
-            var config = ConfigService.Instance.GetOpenAIConfig();
+            //var config = ConfigService.Instance.GetOpenAIConfig();
             _httpClient = new HttpClient();
 
-            _apiKey = config.Key;
-            _apiModel = config.Model;
-
+            //_apiKey = Settings.Default.OpenAIApiKey;
+            _apiModel = "gpt-4o-mini";
 
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri("https://api.openai.com/v1/");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+            //_httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
         }
 
         public async Task<string?> AnalyzeSubtitleAsync(string subtitle,string sourceLang, string targetLang)
         {
+
+            _apiKey = Settings.Default.OpenAIApiKey; // 或者通过 ConfigService 重新加载
+
+            // 更新 HttpClient 的 Authorization 请求头
+            if (_httpClient.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _httpClient.DefaultRequestHeaders.Remove("Authorization");
+            }
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
             var prompt = GenerateTranslationPrompt(sourceLang, targetLang, subtitle);
 

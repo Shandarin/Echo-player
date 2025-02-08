@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Windows;
+using Echo.Properties;
 
 namespace Echo.Services
 {
@@ -27,11 +28,14 @@ namespace Echo.Services
 
         public OxfordDictService()
         {
-            var config = ConfigService.Instance.GetOxfordDictionaryConfig();
+            //var config = ConfigService.Instance.GetOxfordDictionaryConfig();
+
+            //var ApiId = Settings.Default.OxfordApiId;
+            //var ApiKey = Settings.Default.OxfordApiKey;
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("app_id", config.AppId);
-            _httpClient.DefaultRequestHeaders.Add("app_key", config.AppKey);
+            //_httpClient.DefaultRequestHeaders.Add("app_id", ApiId);
+            //_httpClient.DefaultRequestHeaders.Add("app_key", ApiKey);
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
             //Debug.WriteLine($"OxfordDictService initialized:{config.AppId}");
@@ -39,6 +43,19 @@ namespace Echo.Services
 
         private async Task<JObject?> GetRequestAsync(string url)
         {
+            if (_httpClient.DefaultRequestHeaders.Contains("app_id"))
+            {
+                _httpClient.DefaultRequestHeaders.Remove("app_id");
+            }
+            if (_httpClient.DefaultRequestHeaders.Contains("app_key"))
+            {
+                _httpClient.DefaultRequestHeaders.Remove("app_key");
+            }
+
+            // 从配置中获取最新的 API 信息
+            _httpClient.DefaultRequestHeaders.Add("app_id", Settings.Default.OxfordApiId);
+            _httpClient.DefaultRequestHeaders.Add("app_key", Settings.Default.OxfordApiKey);
+
             try
             {
                 var response = await _httpClient.GetAsync(url);
