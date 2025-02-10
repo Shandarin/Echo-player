@@ -182,7 +182,7 @@ namespace Echo.ViewModels
             _libVLC = new LibVLC();
             _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
             _mediaPlayer.EnableHardwareDecoding = false;
-            _mediaPlayer.FileCaching = 10000;
+            _mediaPlayer.FileCaching = 3000;
 
             //_mediaPlayer.AspectRatio = "1:1";
 
@@ -692,7 +692,7 @@ namespace Echo.ViewModels
             _wordClickHandler.SetTextBlock(textBlock);
         }
 
-        private void ToggleMediaPlay()
+        private async void ToggleMediaPlay()
         {
             //Debug.WriteLine();
             if (_mediaPlayer.IsPlaying)
