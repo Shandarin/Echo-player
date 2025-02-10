@@ -181,7 +181,8 @@ namespace Echo.ViewModels
             Core.Initialize();
             _libVLC = new LibVLC();
             _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
-            _mediaPlayer.EnableHardwareDecoding = true;
+            _mediaPlayer.EnableHardwareDecoding = false;
+            _mediaPlayer.FileCaching = 10000;
 
             //_mediaPlayer.AspectRatio = "1:1";
 

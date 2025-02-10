@@ -14,8 +14,8 @@ namespace Echo
         public App()
         {
             // 程序启动默认语言（简体中文）
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-Hans");
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("zh-Hans");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en");
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en");
         }
 
         protected override void OnStartup(StartupEventArgs e)
