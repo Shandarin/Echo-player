@@ -182,7 +182,7 @@ namespace Echo.ViewModels
             _libVLC = new LibVLC();
             _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
             _mediaPlayer.EnableHardwareDecoding = false;
-            _mediaPlayer.FileCaching = 3000;
+            _mediaPlayer.FileCaching = 500;//太大会造成暂停后声音短暂消失
 
             //_mediaPlayer.AspectRatio = "1:1";
 
@@ -697,11 +697,13 @@ namespace Echo.ViewModels
             //Debug.WriteLine();
             if (_mediaPlayer.IsPlaying)
             {
-                _mediaPlayer.Pause();
+                //_mediaPlayer.Pause();
+                _mediaPlayer.SetPause(true);
             }
             else
             {
-                _mediaPlayer.Play();
+                //_mediaPlayer.Play();
+                _mediaPlayer.SetPause(false);
             }
         }
 
