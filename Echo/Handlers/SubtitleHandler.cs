@@ -110,9 +110,39 @@ namespace Echo.Handlers
             {
                 // 移除 ReferenceEquals 检查，直接更新字幕
                 CurrentSubtitleItem = _currentSubtitle;
-                var text = string.Join("\n", _currentSubtitle.Lines)
-                                .Replace("\\N", "\n")
-                                .Replace("\\n", "\n");
+                //var text = string.Join("\n", _currentSubtitle.Lines)
+                //                .Replace("\\N", "\n")
+                //                .Replace("\\n", "\n");
+
+                // 去掉换行符
+                var text = string.Join(" ", _currentSubtitle.Lines)
+                                .Replace("\\N", " ")
+                                .Replace("\\n", " ");
+
+                // 定义句子终止符号
+                var sentenceEndings = new[] { ".", "。", "?", "？", "!", "！" };
+                // 合并属于同一句的字幕项
+                var nextSubtitle = _subtitles.FirstOrDefault(s =>
+                    s.StartTime == _currentSubtitle.EndTime &&
+                    !sentenceEndings.Any(e => text.EndsWith(e)));
+
+                while (nextSubtitle != null)
+                {
+                    // 合并文本
+                    text += " " + string.Join(" ", nextSubtitle.Lines)
+                                        .Replace("\\N", " ")
+                                        .Replace("\\n", " ");
+
+                    // 更新结束时间
+                    _currentSubtitle.EndTime = nextSubtitle.EndTime;
+                    _subtitles.Remove(nextSubtitle);
+
+                    // 检查下一个字幕项
+                    nextSubtitle = _subtitles.FirstOrDefault(s =>
+                        s.StartTime == _currentSubtitle.EndTime &&
+                        !sentenceEndings.Any(e => text.EndsWith(e)));
+                }
+
                 _updateSubtitleText(text);
             }
             else

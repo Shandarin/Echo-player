@@ -41,6 +41,7 @@ namespace Echo.ViewModels
         private bool _isSentenceAnalysisEnabled;
         private bool _isVideoLoading = false;
         private bool _isChangingFullScreen = false;
+        private bool _isStopped = false;
 
         private long _sizeChangingTimer;
 
@@ -237,6 +238,7 @@ namespace Echo.ViewModels
             _mediaPlayer.Stopped += (sender, e) =>
             {
                 VideoAreaContainerBackground = "Black";
+                _isStopped = true;
             };
 
             _mediaPlayer.TimeChanged += (sender, e) =>
@@ -312,6 +314,10 @@ namespace Echo.ViewModels
             _mediaPlayer.SetSpu(-1);//turn off embedded subtitle
             _isVideoLoading = false;
             _sizeChangingTimer = _mediaPlayer.Time;
+            if (_isStopped)
+            {
+                _isStopped = false;
+            }
         }
 
         #endregion
@@ -523,6 +529,16 @@ namespace Echo.ViewModels
             }
         }
 
+        //private async Task WaitForMediaPlayerStoppedAsync()
+        //{
+        //    // 轮询直到播放器状态为 Stopped
+        //    while (!_mediaPlayer.)
+        //    {
+        //        await Task.Delay(50);
+        //    }
+        //}
+
+
         [RelayCommand]
         public void OpenSubtitle()
         {
@@ -716,9 +732,14 @@ namespace Echo.ViewModels
         #endregion
 
         #region  Private Helpers
-
-
-
+        private async Task WaitForMediaPlayerStoppedAsync()
+        {
+            // 轮询直到播放器状态为 Stopped
+            while (!_isStopped)
+            {
+                await Task.Delay(50);
+            }
+        }
 
         public void ToggleFullScreen()
         {
@@ -728,24 +749,18 @@ namespace Echo.ViewModels
             if (IsFullScreen)
             {
                 FullVideoView(null, null);
-                ///HideControlView();
                 MenuBarVM.IsMenuBarVisible = false;
-                //PreviousVideoViewHeight = VideoViewHeight;
-                //PreviousVideoViewWidth = VideoViewWidth;
             }
             else
             {
                 NormalVideoView(null, null);
-                //ShowVideoControlView();
                 MenuBarVM.IsMenuBarVisible = true;
-                //VideoViewHeight = PreviousVideoViewHeight;
-                //VideoViewWidth = PreviousVideoViewWidth;
-                //Debug.WriteLine($"VideoViewWidth {VideoViewWidth}");
             }
 
-            // _mediaPlayer.ToggleFullscreen();
             _sizeChangingTimer = _mediaPlayer.Time;
             _isChangingFullScreen = false;
+            Debug.WriteLine($"IsFullScreen {_isFullScreen}");
+            Debug.WriteLine($"MenuBarVM.IsMenuBarVisible {MenuBarVM.IsMenuBarVisible}");
 
         }
 
@@ -765,15 +780,16 @@ namespace Echo.ViewModels
                 // 打开视频文件
 
                 // 如果当前正在播放，先停止播放保证能安全释放媒体资源
-                if (_mediaPlayer.IsPlaying)
+                if (!_isStopped)
                 {
                     _mediaPlayer.Stop();
-                    await Task.Delay(200);
+                    WaitForMediaPlayerStoppedAsync();
                 }
 
                 _mediaPlayer.Media?.Dispose();
                 _mediaPlayer.Media = new Media(_libVLC, new Uri(filePath));
                 _mediaPlayer.Play();
+                //_isStopped = false;
 
                 //_isMouseLoaded = true;
 
