@@ -44,6 +44,7 @@ namespace Echo.ViewModels
         private bool _isStopped = false;
 
         private long _sizeChangingTimer;
+        private long _clearSubtitleTimestamp = 0;
 
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
@@ -249,6 +250,11 @@ namespace Echo.ViewModels
                 if (_mediaPlayer.IsPlaying)
                 {
                     //_scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
+                }
+                if (_clearSubtitleTimestamp > 0 && _mediaPlayer.Time >= _clearSubtitleTimestamp)
+                {
+                    PreviousSubtitleText = string.Empty;
+                    _clearSubtitleTimestamp = 0;
                 }
             };
             //LanguageManager.SetLanguage("zh-Hans");
@@ -526,16 +532,21 @@ namespace Echo.ViewModels
                 // 旧字幕保存到 PreviousSubtitleText
                 if (!string.IsNullOrEmpty(SubtitleText))
                 {
-                    Debug.WriteLine("e");
                     PreviousSubtitleText = SubtitleText;
                 }
                 SubtitleText = newText;
                 //Debug.WriteLine($"SubtitleText {SubtitleText}");
+                _clearSubtitleTimestamp = 0;
             }
             else
             {
                 SubtitleText = string.Empty;
-                //PreviousSubtitleText = string.Empty;
+                _clearSubtitleTimestamp = _mediaPlayer.Time + 3000;
+                // 3秒后清空 PreviousSubtitleText
+                //await Task.Delay(3000);
+
+                // PreviousSubtitleText = string.Empty;
+
             }
             _wordClickHandler.SetText(newText);
             
@@ -892,7 +903,11 @@ namespace Echo.ViewModels
 
         private void HideSubtitle()
         {
-            _subtitleHandler.Hide();
+            //_subtitleHandler.Hide();
+            if (SubtitleDisplayMode != "Hover")
+            {
+                _subtitleHandler.Hide();
+            }
             HideTextBlocks();
         }
 
