@@ -29,8 +29,9 @@
 
     <Window.Resources>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <converters:IntegerValueConverter x:Key="IntegerValueConverter"/>
 
-        <!-- 通用按钮样式 -->
+            <!-- 通用按钮样式 -->
         <Style x:Key="ControlButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#FF2D2D2D"/>
             <Setter Property="Foreground" Value="White"/>
@@ -160,15 +161,15 @@
 
                             <!-- Previous subtitle -->
                             <TextBlock x:Name="PreviousSubtitleBlock"
-                                           Text="{Binding PreviousSubtitleText}"
+                                    
                                            Foreground="White" 
-                                           FontSize="20"
-                                           Background="#80000000"
+                                           FontSize="{Binding SubtitleFontSize, Converter={StaticResource IntegerValueConverter}, ConverterParameter=-2}"
+                                           Background="{Binding SubtitleBackgroud, Mode=TwoWay}"
                                            Padding="5"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
                                            MaxWidth="800"
-                                           Opacity="0.5"
+                                           Opacity="0.9"
                                            Visibility="Visible"/>
                             <!-- Current subtitle -->
                             <TextBlock x:Name="SubtitleTextBlock"

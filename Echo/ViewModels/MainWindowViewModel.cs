@@ -33,6 +33,7 @@ namespace Echo.ViewModels
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
         private readonly SubtitleHandler _subtitleHandler;
         private readonly WordClickHandler _wordClickHandler;
+        private readonly WordClickHandler _previousWordClickHandler;
         private readonly WindowSizeHandler _windowSizeHandler = new();
         private readonly TranslationService _translationService;
         //private readonly ScrollingSubtitleHandler _scrollingSubtitleHandler;
@@ -138,7 +139,7 @@ namespace Echo.ViewModels
         private string _subtitleBackgroud;
 
         [ObservableProperty]
-        private string _subtitleFontSize = "20";
+        private double _subtitleFontSize = 20;
 
         [ObservableProperty]
         private string _videoFilePath;
@@ -223,6 +224,7 @@ namespace Echo.ViewModels
             // Initialize services and handlers
             _translationService = new TranslationService();
             _wordClickHandler = new WordClickHandler( _translationService);
+            _previousWordClickHandler = new WordClickHandler(_translationService);
             _subtitleHandler = new SubtitleHandler(UpdateSubtitleText, _mediaPlayer,IsSubtitleVisible);
             //_scrollingSubtitleHandler = new ScrollingSubtitleHandler();
 
@@ -265,6 +267,7 @@ namespace Echo.ViewModels
             SubtitleDisplayMode = MenuBarVM.SubtitleDisplayMode;
             _isSentenceAnalysisEnabled = MenuBarVM.IsSentenceAnalysisEnabled;
             _wordClickHandler.OnWordClickEvent += HandleWordClickEvent;
+            _previousWordClickHandler.OnWordClickEvent += HandleWordClickEvent;
 
             Properties.Settings.Default.PropertyChanged += OnPropertyChanged;
 
@@ -446,7 +449,7 @@ namespace Echo.ViewModels
             SubtitleOpacity = opacity;
         }
 
-        private void HandleOnFontSizeChanged(object? sender, string size)
+        private void HandleOnFontSizeChanged(object? sender, double size)
         {
             SubtitleFontSize = size;
         }
@@ -549,7 +552,8 @@ namespace Echo.ViewModels
 
             }
             _wordClickHandler.SetText(newText);
-            
+            _previousWordClickHandler.SetText(PreviousSubtitleText);
+
             //Debug.WriteLine($"PreviousSubtitleText {PreviousSubtitleText}");
         }
 
@@ -721,6 +725,7 @@ namespace Echo.ViewModels
             _subtitleTextBlock = mainBlock;
             _prevSubtitleBlock = prevBlock;
             _wordClickHandler.SetTextBlock(mainBlock);
+            _previousWordClickHandler.SetTextBlock(prevBlock);
             // 如有需要，可将 nextBlock 保存供后续使用
             // _nextSubtitleBlock = nextBlock;
         }

@@ -190,7 +190,7 @@ namespace Echo.ViewModels
         }
 
         [RelayCommand]
-        private void ChangeFontSize(string size)
+        private void ChangeFontSize(double size)
         {
             //Debug.WriteLine(size);
             OnFontSizeChanged?.Invoke(this, size);
@@ -398,7 +398,7 @@ namespace Echo.ViewModels
         public event EventHandler OnFullScreenToggled;
         public event EventHandler<string> OnSubtitleFileSelected;
         public event EventHandler<string> OnSubtitleTrackSelected;
-        public event EventHandler<string> OnFontSizeChanged;
+        public event EventHandler<double> OnFontSizeChanged;
         public event EventHandler<string> OnFontFamilyChanged;
         public event EventHandler<string> OnSoftwareLanguageChanged;
         public event EventHandler<string> OnChangeOpacity;

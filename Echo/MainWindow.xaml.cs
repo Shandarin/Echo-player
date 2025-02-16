@@ -55,13 +55,13 @@ namespace Echo
                     vm.SetSubtitleBlocks(mainSubtitleBlock, prevSubtitleBlock, nextSubtitleBlock);
                     vm.SubtitleTextElement = mainSubtitleBlock;
 
-                    _subtitle_area_height = mainSubtitleBlock.Height + 10;
+                    _subtitle_area_height = mainSubtitleBlock.ActualHeight + prevSubtitleBlock.ActualHeight+ 10;
 
                     mainSubtitleBlock.LayoutUpdated += (s, e) =>
                     {
-                        if (mainSubtitleBlock.ActualHeight != _subtitle_area_height)
+                        if (mainSubtitleBlock.ActualHeight + prevSubtitleBlock.ActualHeight != _subtitle_area_height)
                         {
-                            _subtitle_area_height = mainSubtitleBlock.ActualHeight +10;
+                            _subtitle_area_height = mainSubtitleBlock.ActualHeight + prevSubtitleBlock.ActualHeight + 10;
                         }
 
                         if(mainSubtitleBlock.ActualWidth != _subtitle_area_width)
@@ -238,6 +238,34 @@ namespace Echo
             
         }
 
+        private bool IsMouseInMainSubtitleArea(Point mousePosition)
+        {
+            if (FindName("SubtitleTextBlock") is TextBlock mainSubtitleBlock)
+            {
+                var mainSubtitleBounds = new Rect(
+                    mainSubtitleBlock.TranslatePoint(new Point(0, 0), this),
+                    new Size(mainSubtitleBlock.ActualWidth, mainSubtitleBlock.ActualHeight)
+                );
+
+                return mainSubtitleBounds.Contains(mousePosition);
+            }
+            return false;
+        }
+
+        private bool IsMouseInPrevSubtitleArea(Point mousePosition)
+        {
+            if (FindName("PreviousSubtitleBlock") is TextBlock prevSubtitleBlock)
+            {
+                var prevSubtitleBounds = new Rect(
+                    prevSubtitleBlock.TranslatePoint(new Point(0, 0), this),
+                    new Size(prevSubtitleBlock.ActualWidth, prevSubtitleBlock.ActualHeight)
+                );
+
+                return prevSubtitleBounds.Contains(mousePosition);
+            }
+            return false;
+        }
+
         private void OnWindowClosed(object? sender, EventArgs e)
         {
             var vm = DataContext as MainWindowViewModel;
@@ -245,22 +273,48 @@ namespace Echo
         }
         #endregion
 
-        private void OnSubtitleAreaMouseEnter(object sender, MouseEventArgs e)
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.OnSubtitleAreaMouseEnter();
-            }
-        }
+        //private void OnSubtitleAreaMouseEnter(object sender, MouseEventArgs e)
+        //{
+        //    var mousePosition = e.GetPosition(this);
+        //    Debug.WriteLine($"Mouse position: {mousePosition}");
+
+        //    if (IsMouseInMainSubtitleArea(mousePosition))
+        //    {
+        //        Debug.WriteLine("Mouse in main subtitle area");
+        //        // 鼠标在主字幕区域
+        //        if (DataContext is MainWindowViewModel vm)
+        //        {
+        //            vm.OnSubtitleAreaMouseEnter();
+        //        }
+        //    }
+        //    else if (IsMouseInPrevSubtitleArea(mousePosition))
+        //    {
+        //        // 鼠标在前一个字幕区域
+        //        // 可以在这里调用相应的方法
+        //        Debug.WriteLine("Mouse in prev subtitle area");
+        //    }
+        //}
 
 
-        private void OnSubtitleMouseLeftButtonDown(object sender, MouseEventArgs e)
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.OnSubtitleAreaMouseLeftButtonDown(e);
-            }
-        }
+        //private void OnSubtitleMouseLeftButtonDown(object sender, MouseEventArgs e)
+        //{
+        //    var mousePosition = e.GetPosition(this);
+
+        //    if (IsMouseInMainSubtitleArea(mousePosition))
+        //    {
+        //        // 鼠标在主字幕区域
+        //        if (DataContext is MainWindowViewModel vm)
+        //        {
+        //            vm.OnSubtitleAreaMouseLeftButtonDown(e);
+        //        }
+        //    }
+        //    else if (IsMouseInPrevSubtitleArea(mousePosition))
+        //    {
+        //        // 鼠标在前一个字幕区域
+        //        // 可以在这里调用相应的方法
+        //        Debug.WriteLine("Mouse in prev subtitle area2");
+        //    }
+        //}
 
         private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -278,7 +332,7 @@ namespace Echo
 
             if (SubtitleTextBlock.Visibility == Visibility.Collapsed)
             {
-                _subtitle_area_width = 300;
+                _subtitle_area_width = 500;
                 _subtitle_area_height = 100;
             }
 
@@ -319,9 +373,6 @@ namespace Echo
                     // 设置正确的工作目录
                     string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                     Environment.CurrentDirectory = baseDirectory;
-
-                    Debug.WriteLine($"Original Directory: {originalDirectory}");
-                    Debug.WriteLine($"Set Directory to: {baseDirectory}");
 
                     if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     {
