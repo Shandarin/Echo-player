@@ -51,7 +51,7 @@ namespace Echo.ViewModels
 
         private bool _isWordQueryEnabled;
 
-        //private TextBlock _prevSubtitleBlock;
+        private TextBlock _prevSubtitleBlock;
         //private TextBlock _nextSubtitleBlock;
 
         //for double click detect
@@ -126,6 +126,9 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private string subtitleText;
+
+        [ObservableProperty]
+        private string previousSubtitleText;
 
         [ObservableProperty]
         private string _subtitleOpacity = "0.5";
@@ -422,7 +425,7 @@ namespace Echo.ViewModels
                 // When hover is enabled, initially hide subtitles
                 if (_subtitleTextBlock != null)
                 {
-                    HideTextBlock();
+                    HideTextBlocks();
                 }
             }
         }
@@ -468,7 +471,7 @@ namespace Echo.ViewModels
             }
             else if (SubtitleDisplayMode == "Hide")
             {
-                HideTextBlock();
+                HideTextBlocks();
                 HideSubtitle();
             }
         }
@@ -507,10 +510,36 @@ namespace Echo.ViewModels
             _learningLanguage = _subtitleHandler.Language;
         }
 
+        //private void UpdateSubtitleText(string newText)
+        //{
+        //    SubtitleText = newText;
+        //    _wordClickHandler.SetText(newText);
+        //}
+
         private void UpdateSubtitleText(string newText)
         {
-            SubtitleText = newText;
+            if (newText == SubtitleText)
+                return;
+
+            if (!string.IsNullOrEmpty(newText))
+            {
+                // 旧字幕保存到 PreviousSubtitleText
+                if (!string.IsNullOrEmpty(SubtitleText))
+                {
+                    Debug.WriteLine("e");
+                    PreviousSubtitleText = SubtitleText;
+                }
+                SubtitleText = newText;
+                //Debug.WriteLine($"SubtitleText {SubtitleText}");
+            }
+            else
+            {
+                SubtitleText = string.Empty;
+                //PreviousSubtitleText = string.Empty;
+            }
             _wordClickHandler.SetText(newText);
+            
+            //Debug.WriteLine($"PreviousSubtitleText {PreviousSubtitleText}");
         }
 
         [RelayCommand]
@@ -679,8 +708,10 @@ namespace Echo.ViewModels
                 throw new ArgumentNullException(nameof(mainBlock));
 
             _subtitleTextBlock = mainBlock;
+            _prevSubtitleBlock = prevBlock;
             _wordClickHandler.SetTextBlock(mainBlock);
-            //_scrollingSubtitleHandler.Initialize(mainBlock, prevBlock, nextBlock);
+            // 如有需要，可将 nextBlock 保存供后续使用
+            // _nextSubtitleBlock = nextBlock;
         }
 
 
@@ -847,24 +878,42 @@ namespace Echo.ViewModels
 
         private void ShowSubtitle()
         {
+            // 如果绑定了前一行字幕，且 PreviousSubtitleText 不为空，则将其显示
+            if (_prevSubtitleBlock != null && !string.IsNullOrEmpty(PreviousSubtitleText))
+            {
+                _prevSubtitleBlock.Visibility = Visibility.Visible;
+                //_prevSubtitleBlock.Text = PreviousSubtitleText;
+            }
+
             if (_subtitleTextBlock != null)
-            ShowTextBlock();
+                _subtitleTextBlock.Visibility = Visibility.Visible;
             _subtitleHandler.Show();
-            
         }
 
         private void HideSubtitle()
         {
             _subtitleHandler.Hide();
-            HideTextBlock();
+            HideTextBlocks();
         }
 
-        private void HideTextBlock()
+        //private void HideTextBlock()
+        //{
+        //    if (_subtitleTextBlock != null)
+        //    {
+        //        //_subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x02, 0x02, 0x06, 0x00));
+        //        _subtitleTextBlock.Visibility = Visibility.Collapsed;
+        //    }
+        //}
+
+        private void HideTextBlocks()
         {
             if (_subtitleTextBlock != null)
             {
-                //_subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x02, 0x02, 0x06, 0x00));
                 _subtitleTextBlock.Visibility = Visibility.Collapsed;
+            }
+            if (_prevSubtitleBlock != null)
+            {
+                _prevSubtitleBlock.Visibility = Visibility.Collapsed;
             }
         }
 

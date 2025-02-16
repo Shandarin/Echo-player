@@ -160,14 +160,16 @@
 
                             <!-- Previous subtitle -->
                             <TextBlock x:Name="PreviousSubtitleBlock"
-                                          Foreground="White" 
-                                          FontSize="20"
-                                          Background="#80000000"
-                                          Padding="5"
-                                          TextWrapping="Wrap"
-                                          TextAlignment="Center"
-                                          MaxWidth="800"
-                                          Visibility="Collapsed"/>
+                                           Text="{Binding PreviousSubtitleText}"
+                                           Foreground="White" 
+                                           FontSize="20"
+                                           Background="#80000000"
+                                           Padding="5"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center"
+                                           MaxWidth="800"
+                                           Opacity="0.5"
+                                           Visibility="Visible"/>
                             <!-- Current subtitle -->
                             <TextBlock x:Name="SubtitleTextBlock"
                                          Foreground="White" 
@@ -182,7 +184,7 @@
                                          Visibility="{Binding SubtitleText, Converter={StaticResource StringToVisibilityConverter}}">>
                             </TextBlock>
 
-                            <!-- Next subtitle -->
+                            <!-- Next subtitle 不能删否则出错-->
                             <TextBlock x:Name="NextSubtitleBlock"
                                           Foreground="White" 
                                           FontSize="20"
@@ -192,7 +194,7 @@
                                           TextAlignment="Center"
                                           MaxWidth="800"
                                           Visibility="Collapsed"/>
-
+                      
                         </StackPanel>
                     </Grid>
                     <!-- 单词翻译面板容器 -->

@@ -60,7 +60,7 @@ namespace Echo.ViewModels
 
         private void Initialize()
         {
-            Volume = 80;
+            Volume = 100;
             IsMuted = false;
             IsPlaying = false;
             Progress = 0;
