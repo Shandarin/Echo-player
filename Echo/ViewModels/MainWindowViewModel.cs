@@ -717,6 +717,34 @@ namespace Echo.ViewModels
             }
         }
 
+        public void OnPrevSubtitleAreaMouseLeftButtonDown(System.Windows.Input.MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && previousSubtitleText.Length > 0)
+            {
+                if (_translationService != null)
+                {
+                    _translationService.CloseTranslation();
+                }
+                if (_sentencePanelView != null)
+                {
+                    _sentencePanelView.Close();
+                    _sentenceContainer.Children.Remove(_sentencePanelView);
+                }
+
+                if (_isSentenceAnalysisEnabled)
+                {
+                    _sentencePanelView = new SentencePanelView();
+                    _sentencePanelView.CloseRequested += (s, args) =>
+                    {
+                        _sentenceContainer.Children.Remove(_sentencePanelView);
+                        _sentencePanelView = null;
+                    };
+                    _sentenceContainer.Children.Add(_sentencePanelView);
+                    _sentencePanelView.Show(previousSubtitleText, e.GetPosition(_sentenceContainer));
+                }
+            }
+        }
+
         public void SetSubtitleBlocks(TextBlock mainBlock, TextBlock prevBlock, TextBlock nextBlock)
         {
             if (mainBlock == null)

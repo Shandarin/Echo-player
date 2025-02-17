@@ -108,17 +108,27 @@ namespace Echo
             base.OnMouseLeftButtonDown(e);
             if (DataContext is not MainWindowViewModel vm) return;
 
-            var clickPosition = e.GetPosition(MouseDetectionLayer);
-            bool isClickOnSubtitle = IsInSubtitleArea(clickPosition);
+            // 获取鼠标在 MouseDetectionLayer 上的坐标
+            var clickPositionInLayer = e.GetPosition(MouseDetectionLayer);
+            // 转换到主窗口坐标系
+            var clickPosition = MouseDetectionLayer.TranslatePoint(clickPositionInLayer, this);
 
-            if (isClickOnSubtitle && !string.IsNullOrEmpty(vm.SubtitleText))
+            if (IsMouseInMainSubtitleArea(clickPosition))
             {
-                // 字幕区点击
-                vm.OnSubtitleAreaMouseLeftButtonDown(e);
+                if (!string.IsNullOrEmpty(vm.SubtitleText))
+                {
+                    vm.OnSubtitleAreaMouseLeftButtonDown(e);
+                }
+            }
+            else if (IsMouseInPrevSubtitleArea(clickPosition))
+            {
+                if (!string.IsNullOrEmpty(vm.PreviousSubtitleText))
+                {
+                    vm.OnPrevSubtitleAreaMouseLeftButtonDown(e);
+                }
             }
             else
             {
-                // 视频区点击
                 vm.HandleVideoAreaClickCommand.Execute(clickPosition);
             }
 
@@ -238,33 +248,7 @@ namespace Echo
             
         }
 
-        private bool IsMouseInMainSubtitleArea(Point mousePosition)
-        {
-            if (FindName("SubtitleTextBlock") is TextBlock mainSubtitleBlock)
-            {
-                var mainSubtitleBounds = new Rect(
-                    mainSubtitleBlock.TranslatePoint(new Point(0, 0), this),
-                    new Size(mainSubtitleBlock.ActualWidth, mainSubtitleBlock.ActualHeight)
-                );
 
-                return mainSubtitleBounds.Contains(mousePosition);
-            }
-            return false;
-        }
-
-        private bool IsMouseInPrevSubtitleArea(Point mousePosition)
-        {
-            if (FindName("PreviousSubtitleBlock") is TextBlock prevSubtitleBlock)
-            {
-                var prevSubtitleBounds = new Rect(
-                    prevSubtitleBlock.TranslatePoint(new Point(0, 0), this),
-                    new Size(prevSubtitleBlock.ActualWidth, prevSubtitleBlock.ActualHeight)
-                );
-
-                return prevSubtitleBounds.Contains(mousePosition);
-            }
-            return false;
-        }
 
         private void OnWindowClosed(object? sender, EventArgs e)
         {
@@ -346,6 +330,34 @@ namespace Echo
 
             return isTop && isBottom && isLeft && isRight;
 
+        }
+
+        private bool IsMouseInMainSubtitleArea(Point mousePosition)
+        {
+            if (FindName("SubtitleTextBlock") is TextBlock mainSubtitleBlock)
+            {
+                var mainSubtitleBounds = new Rect(
+                    mainSubtitleBlock.TranslatePoint(new Point(0, 0), this),
+                    new Size(mainSubtitleBlock.ActualWidth, mainSubtitleBlock.ActualHeight)
+                );
+                Debug.WriteLine($"Main subtitle bounds: {mainSubtitleBounds}");
+                return mainSubtitleBounds.Contains(mousePosition);
+            }
+            return false;
+        }
+
+        private bool IsMouseInPrevSubtitleArea(Point mousePosition)
+        {
+            if (FindName("PreviousSubtitleBlock") is TextBlock prevSubtitleBlock)
+            {
+                var prevSubtitleBounds = new Rect(
+                    prevSubtitleBlock.TranslatePoint(new Point(0, 0), this),
+                    new Size(prevSubtitleBlock.ActualWidth, prevSubtitleBlock.ActualHeight)
+                );
+
+                return prevSubtitleBounds.Contains(mousePosition);
+            }
+            return false;
         }
 
         private void OnDragOver(object sender, DragEventArgs e)
