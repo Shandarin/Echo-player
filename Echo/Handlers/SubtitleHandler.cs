@@ -17,9 +17,11 @@ namespace Echo.Handlers
     {
         private const int MAX_SENTENCE_LENGTH = 200;
 
+        private char[] sentenceTerminators = new char[] { '.', '。', '?', '？', '!', '！', '-', ']' };
+
         private List<SubtitleItem> _subtitles;
         private readonly DispatcherTimer _timer;
-        private readonly Action<string> _updateSubtitleText;
+        private readonly Action<string,string> _updateSubtitleText;
         private long _currentTime;
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
         public string Language;
@@ -32,7 +34,7 @@ namespace Echo.Handlers
 
         public event EventHandler SubtitlesLoaded;
 
-        public SubtitleHandler(Action<string> updateSubtitleText, LibVLCSharp.Shared.MediaPlayer mediaPlayer, bool isShowing)
+        public SubtitleHandler(Action<string,string> updateSubtitleText, LibVLCSharp.Shared.MediaPlayer mediaPlayer, bool isShowing)
         {
             _updateSubtitleText = updateSubtitleText;
             _subtitles = new List<SubtitleItem>();
@@ -73,7 +75,7 @@ namespace Echo.Handlers
         public void Hide()
         {
             _isShowing = false;
-            _updateSubtitleText(string.Empty);
+            _updateSubtitleText(string.Empty, string.Empty);
         }
 
 
@@ -97,36 +99,32 @@ namespace Echo.Handlers
         {
             if (_subtitles == null || !_subtitles.Any() || !_isShowing)
             {
-                _updateSubtitleText(string.Empty);
-                //Debug.WriteLine("Empty");
+                _updateSubtitleText(string.Empty, string.Empty);
                 return;
             }
 
-            //Debug.WriteLine($"_currentTime {_currentTime}");
+            // 查询当前时间所在的字幕项
             var _currentSubtitle = _subtitles.FirstOrDefault(s =>
                 s.StartTime <= _currentTime &&
                 s.EndTime >= _currentTime);
-            //Debug.WriteLine($"currentSubtitle {currentSubtitle}");
 
             if (_currentSubtitle != null)
             {
-                // 移除 ReferenceEquals 检查，直接更新字幕
+                // 找到当前字幕，更新 CurrentSubtitleItem
                 CurrentSubtitleItem = _currentSubtitle;
-                //var text = string.Join("\n", _currentSubtitle.Lines)
-                //                .Replace("\\N", "\n")
-                //                .Replace("\\n", "\n");
 
-                // 去掉换行符
+                // 拼接字幕文本，去除换行符
                 var text = string.Join(" ", _currentSubtitle.Lines)
-                                .Replace("\\N", " ")
-                                .Replace("\\n", " ");
+                                    .Replace("\\N", " ")
+                                    .Replace("\\n", " ");
 
                 // 定义句子终止符号
-                var sentenceEndings = new[] { ".", "。", "?", "？", "!", "！" };
-                // 合并属于同一句的字幕项
+                //var sentenceEndings = new[] { ".", "。", "?", "？", "!", "！" };
+
+                // 如果下一个字幕紧跟当前字幕且当前文本不以终止符结束，则进行合并
                 var nextSubtitle = _subtitles.FirstOrDefault(s =>
                     s.StartTime == _currentSubtitle.EndTime &&
-                    !sentenceEndings.Any(e => text.EndsWith(e)));
+                    !sentenceTerminators.Any(e => text.EndsWith(e)));
 
                 while (nextSubtitle != null)
                 {
@@ -134,25 +132,58 @@ namespace Echo.Handlers
                     text += " " + string.Join(" ", nextSubtitle.Lines)
                                         .Replace("\\N", " ")
                                         .Replace("\\n", " ");
-
-                    // 更新结束时间
+                    // 更新结束时间为下一个字幕的结束时间
                     _currentSubtitle.EndTime = nextSubtitle.EndTime;
                     _subtitles.Remove(nextSubtitle);
 
-                    // 检查下一个字幕项
+                    // 检查下一个字幕是否继续合并
                     nextSubtitle = _subtitles.FirstOrDefault(s =>
                         s.StartTime == _currentSubtitle.EndTime &&
-                        !sentenceEndings.Any(e => text.EndsWith(e)));
+                        !sentenceTerminators.Any(e => text.EndsWith(e)));
                 }
-
-                _updateSubtitleText(text);
+                // 更新显示：当前字幕作为当前显示，同时调用 GetPreviousSubtitle() 获取上一个字幕内容
+                _updateSubtitleText(text, GetPreviousSubtitle());
             }
             else
             {
-                CurrentSubtitleItem = null;
-                _updateSubtitleText(string.Empty);
+                // 当找不到新字幕时，使用上一个（最新）字幕作为 previousSubtitle 显示
+                // 如果当前时间与最后一个字幕结束时间之差小于 3000 毫秒，则保持显示；超过 3 秒则清除
+                if (CurrentSubtitleItem != null && (_currentTime - CurrentSubtitleItem.EndTime) < 3000)
+                {
+                    _updateSubtitleText(string.Empty, GetSubtitleItemText(CurrentSubtitleItem));
+                }
+                else
+                {
+                    _updateSubtitleText(string.Empty, string.Empty);
+                }
             }
         }
+
+        private string GetPreviousSubtitle()
+        {
+            if (_subtitles == null || !_subtitles.Any())
+            {
+                return string.Empty;
+            }
+            // 获取当前字幕项的索引
+            int currentIndex = _subtitles.IndexOf(CurrentSubtitleItem);
+            if (currentIndex < 0)
+            {
+                return string.Empty;
+            }
+            // 向前查找第一个非空字幕项
+            int previousIndex = currentIndex - 1;
+            while (previousIndex >= 0)
+            {
+                if (!string.IsNullOrWhiteSpace(GetSubtitleItemText(_subtitles[previousIndex])))
+                {
+                    return GetSubtitleItemText(_subtitles[previousIndex]);
+                }
+                previousIndex--;
+            }
+            return string.Empty;
+        }
+
 
         private string DetectLanguage()
         {
@@ -210,7 +241,7 @@ namespace Echo.Handlers
             // 获取基准字幕的文本（替换换行符）
             string baseText = GetSubtitleItemText(_subtitles[baseIndex]).Trim();
             // 定义句子终止符（注意省略号不算）
-            char[] sentenceTerminators = new char[] { '.', '。', '?', '？', '!', '！' };
+            
 
             // 向上合并：从基准字幕向前合并
             int upwardIndex = baseIndex;
@@ -296,7 +327,8 @@ namespace Echo.Handlers
             if (text.EndsWith("...") || text.EndsWith("……"))
                 return false;
             char lastChar = text[text.Length - 1];
-            return new char[] { '.', '。', '?', '？', '!', '！' ,'-',']'}.Contains(lastChar);
+            
+            return sentenceTerminators.Contains(lastChar);
         }
 
         private string ExtractRelevantSegmentUpward(string text, char[] sentenceTerminators)
@@ -368,6 +400,78 @@ namespace Echo.Handlers
             return sentences;
         }
 
+        public Tuple<int, int> GetCompleteSentenceRange(bool usePrevious = false)
+        {
+            if (CurrentSubtitleItem == null)
+                return new Tuple<int, int>(-1, -1);
+
+            int baseIndex = _subtitles.IndexOf(CurrentSubtitleItem);
+            if (usePrevious && baseIndex > 0)
+            {
+                baseIndex--;
+            }
+
+            // 定义句子终止符（省略号不计入）
+            char[] sentenceTerminators = new char[] { '.', '。', '?', '？', '!', '！' };
+
+            // 向上合并：查找能合并进入当前完整句的最早字幕项
+            int upwardIndex = baseIndex;
+            while (upwardIndex > 0)
+            {
+                string prevText = GetSubtitleItemText(_subtitles[upwardIndex - 1]).Trim();
+                // 如果前一条字幕以终止符结尾，则认为它已经独立为一个完整句，不合并
+                if (EndsWithSentenceTerminator(prevText))
+                {
+                    break;
+                }
+                // 如果前一条字幕中含有终止符（但不在末尾），则也不合并（只合并整条无终止符的字幕）
+                else if (prevText.IndexOfAny(sentenceTerminators) >= 0)
+                {
+                    break;
+                }
+                else
+                {
+                    upwardIndex--;
+                }
+            }
+
+            // 向后合并：查找当前完整句结束处
+            int downwardIndex = baseIndex;
+            while (downwardIndex < _subtitles.Count - 1)
+            {
+                string nextText = GetSubtitleItemText(_subtitles[downwardIndex + 1]).Trim();
+                // 如果下一条字幕中存在终止符，则认为当前完整句在此结束
+                if (nextText.IndexOfAny(sentenceTerminators) >= 0)
+                {
+                    break;
+                }
+                else
+                {
+                    downwardIndex++;
+                }
+            }
+            return new Tuple<int, int>(upwardIndex, downwardIndex);
+        }
+
+        public long GetCompleteSentenceStartTime(bool usePrevious = false)
+        {
+            var range = GetCompleteSentenceRange(usePrevious);
+            if (range.Item1 >= 0)
+                return _subtitles[range.Item1].StartTime;
+            return CurrentSubtitleItem != null ? CurrentSubtitleItem.StartTime : 0;
+        }
+
+        public long GetCompleteSentenceForwardTime(bool usePrevious = false)
+        {
+            var range = GetCompleteSentenceRange(usePrevious);
+            if (range.Item2 < _subtitles.Count - 1)
+                return _subtitles[range.Item2 + 1].StartTime;
+            else
+                return _subtitles[range.Item2].StartTime;
+        }
+
+
+
         public void Dispose()
         {
             IsLoaded = false;
@@ -376,7 +480,7 @@ namespace Echo.Handlers
             _subtitles = null;
 
             SubtitlesLoaded = null;
-            _updateSubtitleText(string.Empty);
+            _updateSubtitleText(string.Empty,string.Empty);
 
         }
     }

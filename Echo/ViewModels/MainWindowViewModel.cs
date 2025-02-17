@@ -1,7 +1,6 @@
-﻿using System;
+﻿
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,8 +19,6 @@ using Echo.Services;
 using Echo.Views;
 using Echo.Managers;
 using SubtitlesParser.Classes;
-using System.Reflection;
-using LibVLCSharp.WPF;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -169,6 +166,12 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private string _subtitleDisplayMode;
 
+        [ObservableProperty]
+        private bool _isBackwardBySentence;
+
+        [ObservableProperty]
+        private bool _isForwardBySentence;
+
 
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
@@ -220,6 +223,9 @@ namespace Echo.ViewModels
             //MenuBarVM.IsWordQueryEnabledChanged += HandleIsWordQueryEnabledChanged;
             MenuBarVM.OnLearningLanguageChanged += HandleLearningLanguageChanged;
 
+            IsBackwardBySentence = true;
+            IsForwardBySentence = true;
+
             MediaPlayer.Playing += OnMediaPlaying;
 
             // Initialize services and handlers
@@ -250,6 +256,8 @@ namespace Echo.ViewModels
 
             _mediaPlayer.TimeChanged += (sender, e) =>
             {
+                //Debug.WriteLine($"_mediaPlayer.Time {_mediaPlayer.Time}");
+                //Debug.WriteLine($"_changPlayer.Time {_clearSubtitleTimestamp}");
                 if (_mediaPlayer.IsPlaying)
                 {
                     //_scrollingSubtitleHandler?.UpdateSubtitles(e.Time);
@@ -258,6 +266,7 @@ namespace Echo.ViewModels
                 {
                     PreviousSubtitleText = string.Empty;
                     _clearSubtitleTimestamp = 0;
+                    _previousWordClickHandler.SetText(PreviousSubtitleText);
                 }
             };
             //LanguageManager.SetLanguage("zh-Hans");
@@ -526,7 +535,7 @@ namespace Echo.ViewModels
         //    _wordClickHandler.SetText(newText);
         //}
 
-        private void UpdateSubtitleText(string newText)
+        private async void UpdateSubtitleText(string newText,string prevText)
         {
             if (newText == SubtitleText)
                 return;
@@ -536,21 +545,31 @@ namespace Echo.ViewModels
                 // 旧字幕保存到 PreviousSubtitleText
                 if (!string.IsNullOrEmpty(SubtitleText))
                 {
-                    PreviousSubtitleText = SubtitleText;
+                    PreviousSubtitleText = prevText;
                 }
+
                 SubtitleText = newText;
                 //Debug.WriteLine($"SubtitleText {SubtitleText}");
                 _clearSubtitleTimestamp = 0;
             }
             else
             {
+                
                 SubtitleText = string.Empty;
-                _clearSubtitleTimestamp = _mediaPlayer.Time + 3000;
-                // 3秒后清空 PreviousSubtitleText
-                //await Task.Delay(3000);
-
-                // PreviousSubtitleText = string.Empty;
-
+                if (!string.IsNullOrEmpty(prevText))
+                {
+                    PreviousSubtitleText = prevText;
+                    //await Task.Delay(5000);
+                    //PreviousSubtitleText = string.Empty;
+                    // 3000毫秒后清空 previousSubtitle
+                    _clearSubtitleTimestamp = _mediaPlayer.Time + 3000;
+                    //Debug.WriteLine($"_clearSubtitleTimestamp {_clearSubtitleTimestamp}");
+                }
+                else
+                {
+                    //await Task.Delay(3000);
+                    PreviousSubtitleText = string.Empty;
+                }
             }
             _wordClickHandler.SetText(newText);
             _previousWordClickHandler.SetText(PreviousSubtitleText);
@@ -786,6 +805,10 @@ namespace Echo.ViewModels
 
         private async void ToggleMediaPlay()
         {
+            if(_mediaPlayer.Time <= 1000)//防止视频载入时误操作
+            {
+                return;
+            }
             //Debug.WriteLine();
             if (_mediaPlayer.IsPlaying)
             {
@@ -835,14 +858,12 @@ namespace Echo.ViewModels
 
             _sizeChangingTimer = _mediaPlayer.Time;
             _isChangingFullScreen = false;
-            Debug.WriteLine($"IsFullScreen {_isFullScreen}");
-            Debug.WriteLine($"MenuBarVM.IsMenuBarVisible {MenuBarVM.IsMenuBarVisible}");
-
         }
 
 
         public async Task HandleFileOpenAsync(string filePath)
         {
+            Debug.WriteLine($"filepath {filePath}");
             var extension = Path.GetExtension(filePath).ToLower();
 
             if (extension == ".srt" || extension == ".ass")
@@ -1069,9 +1090,18 @@ namespace Echo.ViewModels
                     // Skip backward
                     if (MediaPlayer?.Media != null)
                     {
-                        long newTime = MediaPlayer.Time - BackwardTime*1000; // 10 seconds in milliseconds
-                        if (newTime < 0) newTime = 0;
-                        MediaPlayer.Time = newTime;
+                        if (IsBackwardBySentence)
+                        {
+                            long targetTime = _subtitleHandler.GetCompleteSentenceStartTime(false);
+                            MediaPlayer.Time = targetTime;
+                        }
+                        else
+                        {
+                            long newTime = MediaPlayer.Time - BackwardTime * 1000; // 10 seconds in milliseconds
+                            if (newTime < 0) newTime = 0;
+                            MediaPlayer.Time = newTime;
+                        }
+
                     }
                     break;
 
@@ -1079,9 +1109,17 @@ namespace Echo.ViewModels
                     // Skip forward
                     if (MediaPlayer?.Media != null)
                     {
-                        long newTime = MediaPlayer.Time + ForwardTime*1000;
-                        if (newTime > MediaPlayer.Length) newTime = MediaPlayer.Length;
-                        MediaPlayer.Time = newTime;
+                        if (IsForwardBySentence)
+                        {
+                            long targetTime = _subtitleHandler.GetCompleteSentenceStartTime(true);
+                            MediaPlayer.Time = targetTime;
+                        }
+                        else
+                        {
+                            long newTime = MediaPlayer.Time + ForwardTime * 1000;
+                            if (newTime > MediaPlayer.Length) newTime = MediaPlayer.Length;
+                            MediaPlayer.Time = newTime;
+                        }
                         //Debug.WriteLine($"MediaPlayer.Time {ForwardTime}");
                     }
                     break;

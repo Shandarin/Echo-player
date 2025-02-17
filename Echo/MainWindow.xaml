@@ -22,6 +22,8 @@
         Top="{Binding MainWindowTop,Mode=TwoWay}"
         SizeChanged="OnWindowSizeChanged"
         Icon="/logo.png"
+        AllowDrop="True"
+        Drop="OnFileDrop"
         >
     <Window.DataContext>
         <local:MainWindowViewModel />
@@ -95,7 +97,7 @@
                                        HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
                            >
-                <Grid x:Name="VideoAreaContainer" Background="{Binding VideoAreaContainerBackground}" >
+                <Grid x:Name="VideoAreaContainer" Background="{Binding VideoAreaContainerBackground}" AllowDrop="True" Drop="OnFileDrop">
                     <!-- 鼠标检测层 -->
                     <Grid x:Name="MouseDetectionLayer" 
                                 Background="#01000000"
