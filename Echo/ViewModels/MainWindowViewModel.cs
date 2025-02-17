@@ -43,6 +43,7 @@ namespace Echo.ViewModels
         private bool _isVideoLoading = false;
         private bool _isChangingFullScreen = false;
         private bool _isStopped = false;
+        private bool _isFullSentence= true;
 
         private long _sizeChangingTimer;
         private long _clearSubtitleTimestamp = 0;
@@ -712,7 +713,7 @@ namespace Echo.ViewModels
                         _sentencePanelView = null;
                     };
                     _sentenceContainer.Children.Add(_sentencePanelView);
-                    _sentencePanelView.Show(subtitleText, e.GetPosition(_sentenceContainer));
+                    _sentencePanelView.Show(_subtitleHandler.GetFullSentence(false), e.GetPosition(_sentenceContainer));
                 }
             }
         }
@@ -740,7 +741,7 @@ namespace Echo.ViewModels
                         _sentencePanelView = null;
                     };
                     _sentenceContainer.Children.Add(_sentencePanelView);
-                    _sentencePanelView.Show(previousSubtitleText, e.GetPosition(_sentenceContainer));
+                    _sentencePanelView.Show(_subtitleHandler.GetFullSentence(true), e.GetPosition(_sentenceContainer));
                 }
             }
         }

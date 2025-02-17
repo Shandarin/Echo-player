@@ -24,6 +24,7 @@
             <Grid Grid.Row="0">
                 <!-- Sentence -->
                 <TextBlock Text="{Binding Sentence, Mode=OneWay}" 
+                           TextWrapping="Wrap"
                         FontSize="17" 
                         FontWeight="Bold"
                         VerticalAlignment="Top"
@@ -31,7 +32,7 @@
 
                 <!-- Favorite Button -->
                 <Button Grid.Column="1" BorderThickness="0"
-                   Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" 
+                   Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="5,0,10,0" 
                     Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">>
                     <Button.Style>
                         <Style TargetType="Button">

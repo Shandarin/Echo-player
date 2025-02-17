@@ -417,7 +417,7 @@
                 <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
                     <StackPanel Margin="10">
                         <Grid>
-                            <TextBlock Text="{Binding SelectedSentence.Sentence}" FontSize="22" FontWeight="Bold" Margin="5,10,5,5"/>
+                            <TextBlock Text="{Binding SelectedSentence.Sentence}" TextWrapping="Wrap" FontSize="22" FontWeight="Bold" Margin="5,10,5,5"/>
                             <!-- 收藏按钮 -->
                             <Button Grid.Column="1" BorderThickness="0"
                             Command="{Binding ToggleSentenceFavoriteCommand}" HorizontalAlignment="Right">

@@ -15,6 +15,8 @@ namespace Echo.Handlers
 {
     public class SubtitleHandler
     {
+        private const int MAX_SENTENCE_LENGTH = 200;
+
         private List<SubtitleItem> _subtitles;
         private readonly DispatcherTimer _timer;
         private readonly Action<string> _updateSubtitleText;
@@ -191,6 +193,179 @@ namespace Echo.Handlers
             };
 
             return languageMap.TryGetValue(detectedLanguage, out var twoLetterCode) ? twoLetterCode : "unknown";
+        }
+
+        public string GetFullSentence(bool usePrevious = false)
+        {
+            if (CurrentSubtitleItem == null)
+                return string.Empty;
+
+            // 选择基准字幕项：如果要求上一条字幕且存在，则取上一项；否则使用当前字幕
+            int baseIndex = _subtitles.IndexOf(CurrentSubtitleItem);
+            if (usePrevious && baseIndex > 0)
+            {
+                baseIndex--;
+            }
+
+            // 获取基准字幕的文本（替换换行符）
+            string baseText = GetSubtitleItemText(_subtitles[baseIndex]).Trim();
+            // 定义句子终止符（注意省略号不算）
+            char[] sentenceTerminators = new char[] { '.', '。', '?', '？', '!', '！' };
+
+            // 向上合并：从基准字幕向前合并
+            int upwardIndex = baseIndex;
+            string mergedText = baseText;
+            while (upwardIndex > 0)
+            {
+                // 获取前一条字幕的文本
+                string prevText = GetSubtitleItemText(_subtitles[upwardIndex - 1]).Trim();
+                // 如果前一条字幕以终止符结尾，则认为完整，不合并
+                if (EndsWithSentenceTerminator(prevText))
+                {
+                    break;
+                }
+                // 如果前一条字幕中包含终止符（但不在末尾），则只取最后一个终止符之后的片段合并，然后停止向上合并
+                else if (prevText.IndexOfAny(sentenceTerminators) >= 0)
+                {
+                    string fragment = ExtractRelevantSegmentUpward(prevText, sentenceTerminators);
+                    if (!string.IsNullOrEmpty(fragment))
+                        mergedText = fragment + " " + mergedText;
+                    break;
+                }
+                else
+                {
+                    // 没有任何终止符，则全部合并
+                    mergedText = prevText + " " + mergedText;
+                    upwardIndex--;
+                }
+            }
+
+            mergedText = mergedText.Trim();
+
+            // 向后合并：仅当合并后的文本既不以终止符也不以休止符结尾时，才继续向后查找
+            int downwardIndex = baseIndex;
+            string totalMergedText = mergedText;
+            if (!EndsWithSentenceTerminator(totalMergedText))
+            {
+                while (downwardIndex < _subtitles.Count - 1)
+                {
+                    string nextText = GetSubtitleItemText(_subtitles[downwardIndex + 1]).Trim();
+                    if (nextText.IndexOfAny(sentenceTerminators) >= 0)
+                    {
+                        // 如果存在终止符，则只取从开始到第一个终止符（包含终止符）的部分
+                        string fragment = ExtractRelevantSegmentDownward(nextText, sentenceTerminators);
+                        if (!string.IsNullOrEmpty(fragment))
+                            totalMergedText = totalMergedText + " " + fragment;
+                        break;
+                    }
+                    else
+                    {
+                        totalMergedText = totalMergedText + " " + nextText;
+                        downwardIndex++;
+                    }
+                }
+            }
+
+            totalMergedText = totalMergedText.Trim();
+
+            // 拆分合并后的文本为完整句子列表，并组合所有完整句子
+            var sentences = SplitIntoSentences(totalMergedText, sentenceTerminators);
+            if (sentences.Count > 0)
+            {
+                totalMergedText = string.Join(" ", sentences);
+            }
+
+            // 限制整体长度
+            if (totalMergedText.Length > MAX_SENTENCE_LENGTH)
+                totalMergedText = totalMergedText.Substring(0, MAX_SENTENCE_LENGTH) + "...";
+
+            return totalMergedText;
+        }
+
+        private string GetSubtitleItemText(SubtitleItem item)
+        {
+            return string.Join(" ", item.Lines)
+                         .Replace("\\N", " ")
+                         .Replace("\\n", " ");
+        }
+
+        private bool EndsWithSentenceTerminator(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+            if (text.EndsWith("...") || text.EndsWith("……"))
+                return false;
+            char lastChar = text[text.Length - 1];
+            return new char[] { '.', '。', '?', '？', '!', '！' ,'-',']'}.Contains(lastChar);
+        }
+
+        private string ExtractRelevantSegmentUpward(string text, char[] sentenceTerminators)
+        {
+            int lastPos = -1;
+            foreach (char term in sentenceTerminators)
+            {
+                int pos = text.LastIndexOf(term);
+                if (pos > lastPos)
+                    lastPos = pos;
+            }
+            if (lastPos >= 0 && lastPos < text.Length - 1)
+            {
+                // 返回终止符后面的片段
+                return text.Substring(lastPos + 1).Trim();
+            }
+            return text;
+        }
+
+        private string ExtractRelevantSegmentDownward(string text, char[] sentenceTerminators)
+        {
+            int firstPos = -1;
+            foreach (char term in sentenceTerminators)
+            {
+                int pos = text.IndexOf(term);
+                if (pos >= 0)
+                {
+                    if (firstPos == -1 || pos < firstPos)
+                        firstPos = pos;
+                }
+            }
+            if (firstPos >= 0)
+            {
+                // 返回从开始到终止符的部分（包含终止符）
+                return text.Substring(0, firstPos + 1).Trim();
+            }
+            return text;
+        }
+
+
+        private List<string> SplitIntoSentences(string text, char[] sentenceTerminators)
+        {
+            var sentences = new List<string>();
+            if (string.IsNullOrWhiteSpace(text))
+                return sentences;
+
+            StringBuilder currentSentence = new StringBuilder();
+            for (int i = 0; i < text.Length; i++)
+            {
+                currentSentence.Append(text[i]);
+                if (sentenceTerminators.Contains(text[i]))
+                {
+                    // 判断是否为省略号（假定连续三个点或“……”为省略号）
+                    bool isEllipsis = false;
+                    if (text[i] == '.')
+                    {
+                        if (i >= 2 && text.Substring(i - 2, 3) == "...")
+                            isEllipsis = true;
+                    }
+                    if (!isEllipsis)
+                    {
+                        sentences.Add(currentSentence.ToString().Trim());
+                        currentSentence.Clear();
+                    }
+                }
+            }
+            if (currentSentence.Length > 0)
+                sentences.Add(currentSentence.ToString().Trim());
+            return sentences;
         }
 
         public void Dispose()
