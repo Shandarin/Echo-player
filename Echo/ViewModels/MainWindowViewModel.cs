@@ -1,19 +1,14 @@
-﻿
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-
 using Microsoft.Win32;
-
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
 using LibVLCSharp.Shared;
-
 using Echo.Handlers;
 using Echo.Services;
 using Echo.Views;
@@ -21,11 +16,14 @@ using Echo.Managers;
 using SubtitlesParser.Classes;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Echo.ViewModels
 {
     public partial class MainWindowViewModel : ObservableObject
     {
+        #region 字段
         private readonly LibVLC _libVLC;
         private readonly LibVLCSharp.Shared.MediaPlayer _mediaPlayer;
         private readonly SubtitleHandler _subtitleHandler;
@@ -33,37 +31,31 @@ namespace Echo.ViewModels
         private readonly WordClickHandler _previousWordClickHandler;
         private readonly WindowSizeHandler _windowSizeHandler = new();
         private readonly TranslationService _translationService;
-        //private readonly ScrollingSubtitleHandler _scrollingSubtitleHandler;
 
         private bool _hasAdjustedAspectRatio = false;
         private bool _isSentenceAnalysisEnabled;
         private bool _isVideoLoading = false;
         private bool _isChangingFullScreen = false;
         private bool _isStopped = false;
-        private bool _isFullSentence= true;
-
+        private bool _isWordQueryEnabled;
         private long _sizeChangingTimer;
         private long _clearSubtitleTimestamp = 0;
 
         private TextBlock _subtitleTextBlock;
         private Canvas _sentenceContainer;
         private SentencePanelView _sentencePanelView;
-
-        private bool _isWordQueryEnabled;
-
         private TextBlock _prevSubtitleBlock;
-        //private TextBlock _nextSubtitleBlock;
-
-        //for double click detect
-        private DateTime lastClickTime = DateTime.MinValue;
-        private const double DOUBLE_CLICK_INTERVAL = 300; // 300ms for double click detection
+        private DateTime _lastClickTime = DateTime.MinValue; //for double click detect
+        private const double DOUBLE_CLICK_INTERVAL = 300; // 单位：毫秒
 
         //obtain actual screen resolution
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int nIndex);
-
         private const int SM_CXSCREEN = 0; // 主屏幕宽度
         private const int SM_CYSCREEN = 1; // 主屏幕高度
+
+        private MessageManager _messageManager;
+        #endregion
 
         #region Events
         public event EventHandler<bool> FullscreenChanged;
@@ -172,11 +164,8 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private bool _isForwardBySentence;
 
-
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
-
-        private MessageManager _messageManager;
 
         #region Properties
 
@@ -285,16 +274,7 @@ namespace Echo.ViewModels
         }
 
 
-
-
-
         #region Callbacks 
-
-        //partial void OnIsFullScreenChanged(bool value)
-        //{
-        //    FullscreenChanged?.Invoke(this, value);
-        //    //MediaPlayer.ToggleFullscreen();
-        //}
 
         partial void OnSubtitleOpacityChanged(string op)
         {
@@ -306,20 +286,6 @@ namespace Echo.ViewModels
             VideoFilePathChanged?.Invoke(this, value);
         }
 
-        //partial void OnIsSubtitleVisibleChanged(bool value)
-        //{
-        //    if (value)
-        //    {
-        //        HideSubtitle();
-        //    }
-        //    else
-        //    {
-        //        if (IsSubtitleVisible)
-        //        {
-        //            ShowSubtitle();
-        //        }
-        //    }
-        //}
 
         private void OnMediaPlaying(object? sender, EventArgs e)
         {
@@ -479,18 +445,33 @@ namespace Echo.ViewModels
             LoadSubtitle(track);
         }
         
+        //private void HandleSubtitleDisplayModeChanged(object? sender, string mode)
+        //{
+        //    SubtitleDisplayMode = mode;
+
+        //    if(SubtitleDisplayMode == "Always")
+        //    {
+        //        SetSubtitleBackground();
+        //        ShowSubtitle();
+        //    }
+        //    else if (SubtitleDisplayMode == "Hide")
+        //    {
+        //        HideTextBlocks();
+        //        HideSubtitle();
+        //    }
+        //}
+
         private void HandleSubtitleDisplayModeChanged(object? sender, string mode)
         {
             SubtitleDisplayMode = mode;
 
-            if(SubtitleDisplayMode == "Always")
+            if (SubtitleDisplayMode == "Always")
             {
                 SetSubtitleBackground();
                 ShowSubtitle();
             }
-            else if (SubtitleDisplayMode == "Hide")
+            else if (SubtitleDisplayMode == "Hover" || SubtitleDisplayMode == "Hide")
             {
-                HideTextBlocks();
                 HideSubtitle();
             }
         }
@@ -510,24 +491,42 @@ namespace Echo.ViewModels
 
         #region commands
 
+        //[RelayCommand]
+        //private void LoadSubtitle(string subtitlePath)
+        //{
+        //    _subtitleHandler.LoadSubtitle(subtitlePath);
+        //    if (SubtitleDisplayMode == "Hide" | SubtitleDisplayMode == "Hover")
+        //    {
+        //        HideSubtitle();
+
+        //    }
+        //    else
+        //    {
+        //        SetSubtitleBackground();
+        //        ShowSubtitle();
+        //    }
+
+        //    MenuBarVM.DetectedLanguage = _subtitleHandler.Language;
+        //    _learningLanguage = _subtitleHandler.Language;
+        //}
+
         [RelayCommand]
         private void LoadSubtitle(string subtitlePath)
         {
             _subtitleHandler.LoadSubtitle(subtitlePath);
-            if (SubtitleDisplayMode == "Hide" | SubtitleDisplayMode == "Hover")
-            {
-                HideSubtitle();
-
-            }
-            else
+            if (SubtitleDisplayMode == "Always")
             {
                 SetSubtitleBackground();
                 ShowSubtitle();
             }
-
+            else
+            {
+                HideSubtitle();
+            }
             MenuBarVM.DetectedLanguage = _subtitleHandler.Language;
             _learningLanguage = _subtitleHandler.Language;
         }
+
 
         //private void UpdateSubtitleText(string newText)
         //{
@@ -535,46 +534,116 @@ namespace Echo.ViewModels
         //    _wordClickHandler.SetText(newText);
         //}
 
-        private async void UpdateSubtitleText(string newText,string prevText)
+        //private async void UpdateSubtitleText(string newText,string prevText)
+        //{
+        //    if (newText == SubtitleText)
+        //        return;
+
+        //    if (!string.IsNullOrEmpty(newText))
+        //    {
+        //        ShowTextBlock(true);
+
+        //        // 旧字幕保存到 PreviousSubtitleText
+        //        if (!string.IsNullOrEmpty(SubtitleText))
+        //        {
+        //            PreviousSubtitleText = prevText;
+        //        }
+
+        //        SubtitleText = newText;
+        //        //Debug.WriteLine($"SubtitleText {SubtitleText}");
+        //        _clearSubtitleTimestamp = 0;
+        //    }
+        //    else
+        //    {
+        //        SubtitleText = string.Empty;
+        //        if (!string.IsNullOrEmpty(prevText))
+        //        {
+        //            ShowTextBlock(false);
+        //            PreviousSubtitleText = prevText;
+        //            // 3000毫秒后清空 previousSubtitle
+        //            _clearSubtitleTimestamp = _mediaPlayer.Time + 3000;
+        //            //Debug.WriteLine($"_clearSubtitleTimestamp {_clearSubtitleTimestamp}");
+        //        }
+        //        else
+        //        {
+        //            //await Task.Delay(3000);
+        //            PreviousSubtitleText = string.Empty;
+        //            HideTextBlock(false);
+        //        }
+        //        HideTextBlock(true);
+        //    }
+        //    _wordClickHandler.SetText(newText);
+        //    _previousWordClickHandler.SetText(PreviousSubtitleText);
+        //}
+
+        // 修改后的 UpdateSubtitleText 方法
+        private async void UpdateSubtitleText(string newText, string prevText)
         {
-            if (newText == SubtitleText)
-                return;
-
-            if (!string.IsNullOrEmpty(newText))
+            if (SubtitleDisplayMode == "Hide")
             {
-                // 旧字幕保存到 PreviousSubtitleText
-                if (!string.IsNullOrEmpty(SubtitleText))
-                {
-                    PreviousSubtitleText = prevText;
-                }
-
-                SubtitleText = newText;
-                //Debug.WriteLine($"SubtitleText {SubtitleText}");
-                _clearSubtitleTimestamp = 0;
-            }
-            else
-            {
-                
+                // Hide 模式下：清空字幕并隐藏所有 textblock
                 SubtitleText = string.Empty;
-                if (!string.IsNullOrEmpty(prevText))
+                PreviousSubtitleText = string.Empty;
+                HideTextBlocks();
+                _wordClickHandler.SetText(string.Empty);
+                _previousWordClickHandler.SetText(string.Empty);
+            }
+            else if (SubtitleDisplayMode == "Hover")
+            {
+                // Hover 模式下：仅更新字幕文本（显示由鼠标进入事件控制）
+                SubtitleText = newText;
+                PreviousSubtitleText = prevText;
+                _wordClickHandler.SetText(newText);
+                _previousWordClickHandler.SetText(prevText);
+            }
+            else if (SubtitleDisplayMode == "Always")
+            {
+                // Always 模式下分别根据内容显示或隐藏对应的 textblock
+                SubtitleText = newText;
+                if (!string.IsNullOrEmpty(newText))
                 {
-                    PreviousSubtitleText = prevText;
-                    //await Task.Delay(5000);
-                    //PreviousSubtitleText = string.Empty;
-                    // 3000毫秒后清空 previousSubtitle
-                    _clearSubtitleTimestamp = _mediaPlayer.Time + 3000;
-                    //Debug.WriteLine($"_clearSubtitleTimestamp {_clearSubtitleTimestamp}");
+                    ShowTextBlock(true); // 显示主字幕 textblock
                 }
                 else
                 {
-                    //await Task.Delay(3000);
-                    PreviousSubtitleText = string.Empty;
+                    HideMainTextBlock();
                 }
-            }
-            _wordClickHandler.SetText(newText);
-            _previousWordClickHandler.SetText(PreviousSubtitleText);
 
-            //Debug.WriteLine($"PreviousSubtitleText {PreviousSubtitleText}");
+                PreviousSubtitleText = prevText;
+                if (!string.IsNullOrEmpty(prevText))
+                {
+                    ShowTextBlock(false); // 显示上一句字幕 textblock
+                }
+                else
+                {
+                    HidePrevTextBlock();
+                }
+
+                _wordClickHandler.SetText(newText);
+                _previousWordClickHandler.SetText(prevText);
+            }
+        }
+
+        private void HideMainTextBlock()
+        {
+            if (_subtitleTextBlock != null)
+            {
+                _subtitleTextBlock.Dispatcher.Invoke(() =>
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
+                });
+            }
+        }
+
+        private void HidePrevTextBlock()
+        {
+            if (_prevSubtitleBlock != null)
+            {
+                _prevSubtitleBlock.Dispatcher.Invoke(() =>
+                {
+                    _prevSubtitleBlock.Visibility = Visibility.Collapsed;
+                });
+            }
         }
 
         [RelayCommand]
@@ -641,7 +710,7 @@ namespace Echo.ViewModels
                 _sentencePanelView.Close();
             }
 
-            if (DateTime.Now.Subtract(lastClickTime).TotalMilliseconds <= DOUBLE_CLICK_INTERVAL)
+            if (DateTime.Now.Subtract(_lastClickTime).TotalMilliseconds <= DOUBLE_CLICK_INTERVAL)
             {
                 ToggleFullScreen();
             }
@@ -650,7 +719,7 @@ namespace Echo.ViewModels
                 ToggleMediaPlay();
             }
 
-            lastClickTime = DateTime.Now;
+            _lastClickTime = DateTime.Now;
         }
 
         [RelayCommand]
@@ -685,14 +754,43 @@ namespace Echo.ViewModels
             }
         }
 
+        //public void OnSubtitleAreaMouseEnter()
+        //{
+        //        if (SubtitleDisplayMode != "Hide")
+        //        {
+        //            //ShowTextBlock();
+
+        //            ShowSubtitle();
+        //            SetSubtitleBackground();
+        //    }
+        //}
+
         public void OnSubtitleAreaMouseEnter()
         {
-                if (SubtitleDisplayMode != "Hide")
+            if (SubtitleDisplayMode == "Hover")
+            {
+                // 主字幕 textblock：有内容则显示
+                if (!string.IsNullOrEmpty(SubtitleText) && _subtitleTextBlock != null)
                 {
-                    //ShowTextBlock();
-                    
-                    ShowSubtitle();
-                    SetSubtitleBackground();
+                    _subtitleTextBlock.Dispatcher.Invoke(() =>
+                    {
+                        _subtitleTextBlock.Visibility = Visibility.Visible;
+                    });
+                }
+                // 上一句字幕 textblock：有内容则显示
+                if (!string.IsNullOrEmpty(PreviousSubtitleText) && _prevSubtitleBlock != null)
+                {
+                    _prevSubtitleBlock.Dispatcher.Invoke(() =>
+                    {
+                        _prevSubtitleBlock.Visibility = Visibility.Visible;
+                    });
+                }
+                SetSubtitleBackground();
+            }
+            else if (SubtitleDisplayMode == "Always")
+            {
+                // Always 模式下直接刷新背景即可（UpdateSubtitleText 已经根据内容做过显示/隐藏处理）
+                SetSubtitleBackground();
             }
         }
 
@@ -700,12 +798,7 @@ namespace Echo.ViewModels
         {
             if (SubtitleDisplayMode == "Hover")
             {
-              
-                HideSubtitle();
-            }
-            else
-            {
-                //SetSubtitleBackground();
+                HideTextBlocks();
             }
         }
 
@@ -944,54 +1037,93 @@ namespace Echo.ViewModels
 
         private void ShowSubtitle()
         {
-            // 如果绑定了前一行字幕，且 PreviousSubtitleText 不为空，则将其显示
-            if (_prevSubtitleBlock != null && !string.IsNullOrEmpty(PreviousSubtitleText))
-            {
-                _prevSubtitleBlock.Visibility = Visibility.Visible;
-                //_prevSubtitleBlock.Text = PreviousSubtitleText;
-            }
-
             if (_subtitleTextBlock != null)
-                _subtitleTextBlock.Visibility = Visibility.Visible;
+            {
+                _subtitleTextBlock.Dispatcher.Invoke(() =>
+                {
+                    _subtitleTextBlock.Visibility = string.IsNullOrEmpty(SubtitleText) ? Visibility.Collapsed : Visibility.Visible;
+                });
+            }
+            if (_prevSubtitleBlock != null)
+            {
+                _prevSubtitleBlock.Dispatcher.Invoke(() =>
+                {
+                    _prevSubtitleBlock.Visibility = string.IsNullOrEmpty(PreviousSubtitleText) ? Visibility.Collapsed : Visibility.Visible;
+                });
+            }
             _subtitleHandler.Show();
         }
 
         private void HideSubtitle()
         {
-            //_subtitleHandler.Hide();
-            if (SubtitleDisplayMode != "Hover")
-            {
-                _subtitleHandler.Hide();
-            }
+            _subtitleHandler.Hide();
             HideTextBlocks();
         }
 
-        //private void HideTextBlock()
-        //{
-        //    if (_subtitleTextBlock != null)
-        //    {
-        //        //_subtitleTextBlock.Background = new SolidColorBrush(Color.FromArgb(0x02, 0x02, 0x06, 0x00));
-        //        _subtitleTextBlock.Visibility = Visibility.Collapsed;
-        //    }
-        //}
-
         private void HideTextBlocks()
+        {
+            HideMainTextBlock();
+            HidePrevTextBlock();
+        }
+
+        private void HideTextBlock(bool main = true)
         {
             if (_subtitleTextBlock != null)
             {
-                _subtitleTextBlock.Visibility = Visibility.Collapsed;
+                _subtitleTextBlock.Dispatcher.Invoke(() =>
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
+                });
             }
             if (_prevSubtitleBlock != null)
             {
-                _prevSubtitleBlock.Visibility = Visibility.Collapsed;
+                _prevSubtitleBlock.Dispatcher.Invoke(() =>
+                {
+                    _prevSubtitleBlock.Visibility = Visibility.Collapsed;
+                });
             }
         }
 
-        private void ShowTextBlock()
+        //private void HideTextBlocks()
+        //{
+
+        //    _subtitleTextBlock.Dispatcher.Invoke(() =>
+        //    {
+        //        if (_subtitleTextBlock != null)
+        //        {
+        //            _subtitleTextBlock.Visibility = Visibility.Collapsed;
+        //        }
+        //    });
+
+        //    _prevSubtitleBlock.Dispatcher.Invoke(() =>
+        //    {
+        //        if (_prevSubtitleBlock != null)
+        //        {
+        //            _prevSubtitleBlock.Visibility = Visibility.Collapsed;
+        //        }
+        //    });
+
+        //}
+
+        private void ShowTextBlock(bool isMain = true)
         {
-            if (_subtitleHandler.IsAnySubtitle())
+            if (!_subtitleHandler.IsAnySubtitle())
             {
-                _subtitleTextBlock.Visibility = Visibility.Visible;
+                return;
+            }
+            if (isMain)
+            {
+                _subtitleTextBlock.Dispatcher.Invoke(() =>
+                {
+                    _subtitleTextBlock.Visibility = Visibility.Visible;
+                });
+            }
+            else
+            {
+                _prevSubtitleBlock.Dispatcher.Invoke(() =>
+                {
+                    _prevSubtitleBlock.Visibility = Visibility.Visible;
+                });
             }
         }
 

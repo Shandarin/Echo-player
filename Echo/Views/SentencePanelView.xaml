@@ -10,6 +10,7 @@
 
     <UserControl.Resources>
         <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <conv:SentenceButtonVisibilityConverter x:Key="SentenceButtonVisibilityConverter"/>
     </UserControl.Resources>
 
     <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" 
@@ -17,23 +18,28 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
                 <!-- Sentence -->
-                <TextBlock Text="{Binding Sentence, Mode=OneWay}" 
+                <TextBlock Grid.Column="0"   Text="{Binding Sentence, Mode=OneWay}" 
                            TextWrapping="Wrap"
                         FontSize="17" 
                         FontWeight="Bold"
                         VerticalAlignment="Top"
-                           Margin ="15,8,10,8"/>
+                           Margin ="15,8,24,8"/>
 
                 <!-- Favorite Button -->
                 <Button Grid.Column="1" BorderThickness="0"
                    Command="{Binding ToggleFavoriteCommand}" HorizontalAlignment="Right" Margin="5,0,10,0" 
-                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">>
+                >
+                    <Button.Visibility>
+                        <MultiBinding Converter="{StaticResource SentenceButtonVisibilityConverter}">
+                            <Binding Path="ErrorMessage"/>
+                            <Binding Path="ContentLines"/>
+                        </MultiBinding>
+                    </Button.Visibility>
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="Transparent"/>
@@ -70,7 +76,7 @@
             <Border Grid.Row="1" Height="1" Margin="10,0,10,0" Background="#E0E0E0"/>
             <!-- 内容区域 -->
             <Grid Grid.Row="2">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15,8,10,10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15,8,10,10" MaxHeight="250">
                     <ItemsControl ItemsSource="{Binding ContentLines}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
