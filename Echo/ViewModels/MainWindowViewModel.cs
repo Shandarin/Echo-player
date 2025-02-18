@@ -18,6 +18,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Echo.Models;
 
 namespace Echo.ViewModels
 {
@@ -164,6 +165,13 @@ namespace Echo.ViewModels
         [ObservableProperty]
         private bool _isForwardBySentence;
 
+        [ObservableProperty]
+        private ObservableCollection<AudioTrackInfo> _audioTracks = new();
+
+        [ObservableProperty]
+        private AudioTrackInfo _selectedAudioTrack;
+
+
         public SubtitleItem CurrentSubtitleItem => _subtitleHandler?.CurrentSubtitleItem;
         #endregion
 
@@ -211,6 +219,8 @@ namespace Echo.ViewModels
             // MenuBarVM.IsSentenceAnalysisEnabledChanged += HandleIsSentenceAnalysisEnabledChanged;
             //MenuBarVM.IsWordQueryEnabledChanged += HandleIsWordQueryEnabledChanged;
             MenuBarVM.OnLearningLanguageChanged += HandleLearningLanguageChanged;
+            MenuBarVM.OnAudioTrackChanged += HandleAudioTrackChanged;
+          
 
             IsBackwardBySentence = true;
             IsForwardBySentence = true;
@@ -306,6 +316,9 @@ namespace Echo.ViewModels
             {
                 _isStopped = false;
             }
+
+            // 更新音轨列表
+            UpdateAudioTracks();
         }
 
         #endregion
@@ -430,10 +443,6 @@ namespace Echo.ViewModels
             SubtitleFontSize = size;
         }
 
-        //private void HandleYourLanguageChanged(object? sender, string language)
-        //{
-        //    _yourLanguage = language;
-        //}
 
         private void HandleLearningLanguageChanged(object? sender, string language)
         {
@@ -445,21 +454,6 @@ namespace Echo.ViewModels
             LoadSubtitle(track);
         }
         
-        //private void HandleSubtitleDisplayModeChanged(object? sender, string mode)
-        //{
-        //    SubtitleDisplayMode = mode;
-
-        //    if(SubtitleDisplayMode == "Always")
-        //    {
-        //        SetSubtitleBackground();
-        //        ShowSubtitle();
-        //    }
-        //    else if (SubtitleDisplayMode == "Hide")
-        //    {
-        //        HideTextBlocks();
-        //        HideSubtitle();
-        //    }
-        //}
 
         private void HandleSubtitleDisplayModeChanged(object? sender, string mode)
         {
@@ -491,25 +485,6 @@ namespace Echo.ViewModels
 
         #region commands
 
-        //[RelayCommand]
-        //private void LoadSubtitle(string subtitlePath)
-        //{
-        //    _subtitleHandler.LoadSubtitle(subtitlePath);
-        //    if (SubtitleDisplayMode == "Hide" | SubtitleDisplayMode == "Hover")
-        //    {
-        //        HideSubtitle();
-
-        //    }
-        //    else
-        //    {
-        //        SetSubtitleBackground();
-        //        ShowSubtitle();
-        //    }
-
-        //    MenuBarVM.DetectedLanguage = _subtitleHandler.Language;
-        //    _learningLanguage = _subtitleHandler.Language;
-        //}
-
         [RelayCommand]
         private void LoadSubtitle(string subtitlePath)
         {
@@ -527,54 +502,6 @@ namespace Echo.ViewModels
             _learningLanguage = _subtitleHandler.Language;
         }
 
-
-        //private void UpdateSubtitleText(string newText)
-        //{
-        //    SubtitleText = newText;
-        //    _wordClickHandler.SetText(newText);
-        //}
-
-        //private async void UpdateSubtitleText(string newText,string prevText)
-        //{
-        //    if (newText == SubtitleText)
-        //        return;
-
-        //    if (!string.IsNullOrEmpty(newText))
-        //    {
-        //        ShowTextBlock(true);
-
-        //        // 旧字幕保存到 PreviousSubtitleText
-        //        if (!string.IsNullOrEmpty(SubtitleText))
-        //        {
-        //            PreviousSubtitleText = prevText;
-        //        }
-
-        //        SubtitleText = newText;
-        //        //Debug.WriteLine($"SubtitleText {SubtitleText}");
-        //        _clearSubtitleTimestamp = 0;
-        //    }
-        //    else
-        //    {
-        //        SubtitleText = string.Empty;
-        //        if (!string.IsNullOrEmpty(prevText))
-        //        {
-        //            ShowTextBlock(false);
-        //            PreviousSubtitleText = prevText;
-        //            // 3000毫秒后清空 previousSubtitle
-        //            _clearSubtitleTimestamp = _mediaPlayer.Time + 3000;
-        //            //Debug.WriteLine($"_clearSubtitleTimestamp {_clearSubtitleTimestamp}");
-        //        }
-        //        else
-        //        {
-        //            //await Task.Delay(3000);
-        //            PreviousSubtitleText = string.Empty;
-        //            HideTextBlock(false);
-        //        }
-        //        HideTextBlock(true);
-        //    }
-        //    _wordClickHandler.SetText(newText);
-        //    _previousWordClickHandler.SetText(PreviousSubtitleText);
-        //}
 
         // 修改后的 UpdateSubtitleText 方法
         private async void UpdateSubtitleText(string newText, string prevText)
@@ -1066,44 +993,6 @@ namespace Echo.ViewModels
             HidePrevTextBlock();
         }
 
-        private void HideTextBlock(bool main = true)
-        {
-            if (_subtitleTextBlock != null)
-            {
-                _subtitleTextBlock.Dispatcher.Invoke(() =>
-                {
-                    _subtitleTextBlock.Visibility = Visibility.Collapsed;
-                });
-            }
-            if (_prevSubtitleBlock != null)
-            {
-                _prevSubtitleBlock.Dispatcher.Invoke(() =>
-                {
-                    _prevSubtitleBlock.Visibility = Visibility.Collapsed;
-                });
-            }
-        }
-
-        //private void HideTextBlocks()
-        //{
-
-        //    _subtitleTextBlock.Dispatcher.Invoke(() =>
-        //    {
-        //        if (_subtitleTextBlock != null)
-        //        {
-        //            _subtitleTextBlock.Visibility = Visibility.Collapsed;
-        //        }
-        //    });
-
-        //    _prevSubtitleBlock.Dispatcher.Invoke(() =>
-        //    {
-        //        if (_prevSubtitleBlock != null)
-        //        {
-        //            _prevSubtitleBlock.Visibility = Visibility.Collapsed;
-        //        }
-        //    });
-
-        //}
 
         private void ShowTextBlock(bool isMain = true)
         {
@@ -1286,6 +1175,47 @@ namespace Echo.ViewModels
                     break;
             }
   
+        }
+
+        private void UpdateAudioTracks()
+        {
+            AudioTracks.Clear();
+            // 尝试获取音轨列表（LibVLCSharp 内部通过 TrackDescriptions 提供）
+            var trackDescriptions = _mediaPlayer.AudioTrackDescription;
+            if (trackDescriptions != null)
+            {
+                foreach (var desc in trackDescriptions)
+                {
+                    Debug.WriteLine($"desc {desc.Id} {desc.Name}");
+                    // 可选：如果需要跳过 id 为 -1 的项（一般代表禁音/无效），则过滤之
+                    if (desc.Id != -1)
+                    {
+                        AudioTracks.Add(new AudioTrackInfo(desc.Id, desc.Name));
+                    }
+                }
+                if (AudioTracks.Any())
+                {
+                    // 默认选中第一个音轨
+                    SelectedAudioTrack = AudioTracks.First();
+                }
+
+            }
+            menuBarVM.UpdateAudioTracks(AudioTracks);
+        }
+
+        private void HandleAudioTrackChanged(object sender, AudioTrackInfo track)
+        {
+
+            if (track != null)
+            {
+                // 更新选中音轨属性
+                SelectedAudioTrack = track;
+                // 调用 LibVLCSharp 音频接口切换音轨
+                if (_mediaPlayer != null && _mediaPlayer.AudioTrack != -1)
+                {
+                    _mediaPlayer.SetAudioTrack(track.Id);
+                }
+            }
         }
 
         public void ShowVideoControlView()

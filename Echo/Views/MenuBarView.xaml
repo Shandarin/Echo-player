@@ -25,6 +25,7 @@
         <converters:ZeroToEnableConverter x:Key="ZeroToEnableConverter"/>
         <converters:PathToFileNameConverter x:Key="PathToFileNameConverter"/>
         <converters:AutoDetectLanguageConverter x:Key="AutoDetectLanguageConverter"/>
+        <converters:AudioTrackEqualsMultiConverter x:Key="AudioTrackEqualsMultiConverter"/>
 
         <!-- MenuItem 基础样式 -->
         <Style x:Key="MenuItemStyle" TargetType="MenuItem">
@@ -155,6 +156,30 @@
                 <MenuItem.Icon>
                     <TextBlock Text="⛶" FontSize="14"/>
                 </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="音轨切换" Style="{StaticResource MenuItemStyle}">
+                <MenuItem.ItemsSource>
+                    <Binding Path="AudioTracks" />
+                </MenuItem.ItemsSource>
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="{Binding Name}" />
+                        <Setter Property="Command" 
+                        Value="{Binding DataContext.ChangeAudioTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        <Setter Property="CommandParameter" Value="{Binding}" />
+                        <Setter Property="IsCheckable" Value="True" />
+                        <Setter Property="IsChecked">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource AudioTrackEqualsMultiConverter}">
+                                    <Binding Path="SelectedAudioTrack" 
+                                     RelativeSource="{RelativeSource AncestorType=UserControl}" 
+                                     Mode="OneWay"/>
+                                    <Binding Mode="OneWay"/>
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </MenuItem.ItemContainerStyle>
             </MenuItem>
         </MenuItem>
 

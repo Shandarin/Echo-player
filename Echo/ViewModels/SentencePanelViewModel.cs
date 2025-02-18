@@ -68,12 +68,24 @@ namespace Echo.ViewModels
             //SourceLanguage = Properties.Settings.Default.LearningLanguage;
             //TargetLanguage = Properties.Settings.Default.YourLanguage;
 
-            //Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
-
              MainWindowVM = Application.Current.MainWindow.DataContext as MainWindowViewModel;
             //SourceLanguage = MainWindow.your
             //TargetLanguage = Properties.Settings.Default.YourLanguage;
             _collectionName = Path.GetFileName(MainWindowVM.VideoFilePath);
+
+            // 订阅设置变更事件，监听语言变化
+            Properties.Settings.Default.PropertyChanged += Settings_PropertyChanged;
+        }
+
+        private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // 当学习语言或目标语言变更时，重新查询句子的状态与翻译
+            if (e.PropertyName == nameof(Properties.Settings.Default.LearningLanguage) ||
+                e.PropertyName == nameof(Properties.Settings.Default.YourLanguage))
+            {
+                // 这里可以使用当前界面上显示的句子文本重新查询
+                _ = SentenceTranslateAsync(_sentence);
+            }
         }
 
 
@@ -118,6 +130,7 @@ namespace Echo.ViewModels
 
         public async Task SentenceTranslateAsync(string text)
         {
+            _sentence = text;
             var SourceLanguage = MainWindowVM.LearningLanguage;
             var TargetLanguage = MainWindowVM.YourLanguage;
 

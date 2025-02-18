@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Echo.Models;
 using Echo.Properties;
 using Echo.Services;
 using Echo.Views;
@@ -8,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 
 namespace Echo.ViewModels
 {
@@ -84,6 +86,12 @@ namespace Echo.ViewModels
 
         [ObservableProperty]
         private bool _isUseEchoAPI;
+
+        [ObservableProperty]
+        private ObservableCollection<AudioTrackInfo> _audioTracks = new();
+
+        [ObservableProperty]
+        private AudioTrackInfo _selectedAudioTrack;
 
         private readonly UpdateService _updateService = new("https://echo-player.com/updates/update.xml");
 
@@ -308,6 +316,13 @@ namespace Echo.ViewModels
            _updateService.CheckForUpdates();
         }
 
+        [RelayCommand]
+        private void ChangeAudioTrack(AudioTrackInfo track)
+        {
+            SelectedAudioTrack = track;
+            OnAudioTrackChanged?.Invoke(this, track);
+        }
+
         public void UpdateSubtitle(ObservableCollection<string> ES,bool HasES)
         {
             //HasEmbeddedSubtitles = HasES;
@@ -318,6 +333,14 @@ namespace Echo.ViewModels
         public void SaveSettings()
         {
         }
+
+        public void UpdateAudioTracks(ObservableCollection<AudioTrackInfo> Tracks)
+        {
+            AudioTracks = Tracks;
+            SelectedAudioTrack = Tracks[0];
+        }
+
+
 
         partial void OnIsMouseHoverEnabledChanged(bool value)
         {
@@ -390,6 +413,8 @@ namespace Echo.ViewModels
         }
 
 
+
+
         // Events
         public event EventHandler<string> OnFileSelected;
         public event EventHandler OnScreenshotRequested;
@@ -415,6 +440,8 @@ namespace Echo.ViewModels
         public event EventHandler<bool> IsWordQueryEnabledChanged;
 
         public event EventHandler<string> OnLearningLanguageChanged;
+
+        public event EventHandler<AudioTrackInfo> OnAudioTrackChanged;
 
         // Additional commands can be added for other menu items
     }
