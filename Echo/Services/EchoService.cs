@@ -42,8 +42,7 @@ namespace Echo.Services
                 sourcelanguagecode = sourcelanguagecode,
                 targetlanguagecode = targetlanguagecode
             };
-            Debug.WriteLine($"payload {payload.sourcelanguagecode}");
-            Debug.WriteLine($"payload {payload.targetlanguagecode}");
+
 
             string result = await PostRequestAsync(endpoint, payload);
 

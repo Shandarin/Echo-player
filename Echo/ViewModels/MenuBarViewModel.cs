@@ -119,13 +119,27 @@ namespace Echo.ViewModels
         }
 
 
-        partial void OnDetectedLanguageChanged(string value)
+        //partial void OnDetectedLanguageChanged(string value)
+        //{
+        //    if (SelectedLearningLanguage == "Auto")
+        //    {
+        //        OnLearningLanguageChanged?.Invoke(this, value);
+        //    }
+        //}
+
+        partial void OnSelectedLearningLanguageChanged(string value)
         {
-            if (SelectedLearningLanguage == "Auto")
+            if (value == "Auto")
+            {
+                OnLearningLanguageChanged?.Invoke(this, DetectedLanguage);
+            }
+            else
             {
                 OnLearningLanguageChanged?.Invoke(this, value);
             }
         }
+
+
 
         // File Menu Commands
         [RelayCommand]

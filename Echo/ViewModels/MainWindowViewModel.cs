@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Echo.Models;
+using LanguageDetection.Models;
 
 namespace Echo.ViewModels
 {
@@ -446,7 +447,12 @@ namespace Echo.ViewModels
 
         private void HandleLearningLanguageChanged(object? sender, string language)
         {
+            if(language == "Auto")
+            {
+                _learningLanguage = _subtitleHandler.Language;
+            } 
             _learningLanguage = language;
+            Debug.WriteLine($"_learningLanguage {_learningLanguage}");
         }
 
         private void HandleSubtitleTrackSelected(object? sender, string track)
@@ -1179,28 +1185,27 @@ namespace Echo.ViewModels
 
         private void UpdateAudioTracks()
         {
-            AudioTracks.Clear();
-            // 尝试获取音轨列表（LibVLCSharp 内部通过 TrackDescriptions 提供）
-            var trackDescriptions = _mediaPlayer.AudioTrackDescription;
-            if (trackDescriptions != null)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                foreach (var desc in trackDescriptions)
+                AudioTracks.Clear();
+                var trackDescriptions = _mediaPlayer.AudioTrackDescription;
+                if (trackDescriptions != null)
                 {
-                    Debug.WriteLine($"desc {desc.Id} {desc.Name}");
-                    // 可选：如果需要跳过 id 为 -1 的项（一般代表禁音/无效），则过滤之
-                    if (desc.Id != -1)
+                    foreach (var desc in trackDescriptions)
                     {
-                        AudioTracks.Add(new AudioTrackInfo(desc.Id, desc.Name));
+                        Debug.WriteLine($"desc {desc.Id} {desc.Name}");
+                        if (desc.Id != -1)
+                        {
+                            AudioTracks.Add(new AudioTrackInfo(desc.Id, desc.Name));
+                        }
+                    }
+                    if (AudioTracks.Any())
+                    {
+                        SelectedAudioTrack = AudioTracks.First();
                     }
                 }
-                if (AudioTracks.Any())
-                {
-                    // 默认选中第一个音轨
-                    SelectedAudioTrack = AudioTracks.First();
-                }
-
-            }
-            menuBarVM.UpdateAudioTracks(AudioTracks);
+                menuBarVM.UpdateAudioTracks(AudioTracks);
+            });
         }
 
         private void HandleAudioTrackChanged(object sender, AudioTrackInfo track)

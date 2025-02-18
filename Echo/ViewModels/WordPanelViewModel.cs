@@ -132,6 +132,8 @@ namespace Echo.ViewModels
                 var sourceLang = MainWindowVM.LearningLanguage;
                 var targetLang = MainWindowVM.YourLanguage;
 
+                Debug.WriteLine($"sourceLang {sourceLang} targetLang {targetLang}");
+
                 var subtitleItem = MainWindowVM.CurrentSubtitleItem;//先获取当前字幕时间，以免延迟导致时间不准确
 
                 IsLoading = true;
