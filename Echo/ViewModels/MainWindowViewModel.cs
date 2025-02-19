@@ -465,12 +465,17 @@ namespace Echo.ViewModels
         {
             SubtitleDisplayMode = mode;
 
-            if (SubtitleDisplayMode == "Always")
+            if (SubtitleDisplayMode == "Always" || SubtitleDisplayMode == "Hover")
             {
                 SetSubtitleBackground();
                 ShowSubtitle();
             }
-            else if (SubtitleDisplayMode == "Hover" || SubtitleDisplayMode == "Hide")
+            else if (SubtitleDisplayMode == "Hover")
+            {
+                SetSubtitleBackground();
+                HideTextBlocks();
+            }
+            else if ( SubtitleDisplayMode == "Hide")
             {
                 HideSubtitle();
             }
@@ -500,7 +505,12 @@ namespace Echo.ViewModels
                 SetSubtitleBackground();
                 ShowSubtitle();
             }
-            else
+            else if(SubtitleDisplayMode == "Hover")
+            {
+                SetSubtitleBackground();
+                HideTextBlocks();
+            }
+            else if (SubtitleDisplayMode == "Hide")
             {
                 HideSubtitle();
             }
@@ -512,6 +522,7 @@ namespace Echo.ViewModels
         // 修改后的 UpdateSubtitleText 方法
         private async void UpdateSubtitleText(string newText, string prevText)
         {
+            
             if (SubtitleDisplayMode == "Hide")
             {
                 // Hide 模式下：清空字幕并隐藏所有 textblock
@@ -528,6 +539,7 @@ namespace Echo.ViewModels
                 PreviousSubtitleText = prevText;
                 _wordClickHandler.SetText(newText);
                 _previousWordClickHandler.SetText(prevText);
+;
             }
             else if (SubtitleDisplayMode == "Always")
             {
@@ -539,7 +551,10 @@ namespace Echo.ViewModels
                 }
                 else
                 {
-                    HideMainTextBlock();
+                    if (string.IsNullOrEmpty(prevText))//如果主字幕和上一句字幕都为空，则隐藏主字幕textblock，防止上一句字幕显示在主字幕textblock上
+                    {
+                        HideMainTextBlock();
+                    }
                 }
 
                 PreviousSubtitleText = prevText;
@@ -707,7 +722,8 @@ namespace Echo.ViewModels
                 {
                     _subtitleTextBlock.Dispatcher.Invoke(() =>
                     {
-                        _subtitleTextBlock.Visibility = Visibility.Visible;
+                        //ShowTextBlock(true);
+                        ShowSubtitle();
                     });
                 }
                 // 上一句字幕 textblock：有内容则显示
@@ -1000,6 +1016,7 @@ namespace Echo.ViewModels
         }
 
 
+
         private void ShowTextBlock(bool isMain = true)
         {
             if (!_subtitleHandler.IsAnySubtitle())
@@ -1021,6 +1038,13 @@ namespace Echo.ViewModels
                 });
             }
         }
+
+        private void ShowTextBlocks()
+        {
+            ShowTextBlock(true);
+            ShowTextBlock(false);
+        }
+
 
         private void SetSubtitleBackground()
         {
@@ -1119,35 +1143,46 @@ namespace Echo.ViewModels
                     {
                         if (IsBackwardBySentence)
                         {
-                            long targetTime = _subtitleHandler.GetCompleteSentenceStartTime(false);
-                            MediaPlayer.Time = targetTime;
+                            // 获取当前字幕起始时间
+                            long currentStart = _subtitleHandler.GetCurrentSubtitleStartTime();
+                            // 如果播放时间距当前字幕起始时间不超过 0.3 秒，则尝试跳到上一条字幕的起始时间
+                            if (MediaPlayer.Time - currentStart <= 300)
+                            {
+                                long prevStart = _subtitleHandler.GetPreviousSubtitleStartTime();
+                                MediaPlayer.Time = prevStart;
+                            }
+                            else
+                            {
+                                MediaPlayer.Time = currentStart;
+                            }
                         }
                         else
                         {
-                            long newTime = MediaPlayer.Time - BackwardTime * 1000; // 10 seconds in milliseconds
-                            if (newTime < 0) newTime = 0;
+                            long newTime = MediaPlayer.Time - BackwardTime * 1000; // 例如 10 秒钟后
+                            if (newTime < 0)
+                                newTime = 0;
                             MediaPlayer.Time = newTime;
                         }
-
                     }
                     break;
 
                 case Key.Right:
                     // Skip forward
+                    // 向前跳转：跳转到下一句的开始
                     if (MediaPlayer?.Media != null)
                     {
                         if (IsForwardBySentence)
                         {
-                            long targetTime = _subtitleHandler.GetCompleteSentenceStartTime(true);
-                            MediaPlayer.Time = targetTime;
+                            long nextStart = _subtitleHandler.GetNextSubtitleStartTime();
+                            MediaPlayer.Time = nextStart;
                         }
                         else
                         {
                             long newTime = MediaPlayer.Time + ForwardTime * 1000;
-                            if (newTime > MediaPlayer.Length) newTime = MediaPlayer.Length;
+                            if (newTime > MediaPlayer.Length)
+                                newTime = MediaPlayer.Length;
                             MediaPlayer.Time = newTime;
                         }
-                        //Debug.WriteLine($"MediaPlayer.Time {ForwardTime}");
                     }
                     break;
 

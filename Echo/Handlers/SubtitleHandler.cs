@@ -400,77 +400,146 @@ namespace Echo.Handlers
             return sentences;
         }
 
-        public Tuple<int, int> GetCompleteSentenceRange(bool usePrevious = false)
+        public Tuple<int, int> GetCompleteSentenceRange()
         {
             if (CurrentSubtitleItem == null)
                 return new Tuple<int, int>(-1, -1);
+            Debug.WriteLine($"CurrentSubtitleItem.StartTime: {CurrentSubtitleItem.StartTime}");
+            Debug.WriteLine($"CurrentSubtitleItem.Line: {string.Join("\\", CurrentSubtitleItem.Lines)}");
+            Debug.WriteLine($"CurrentSubtitleItem.EndTime: {CurrentSubtitleItem.EndTime}");
 
-            int baseIndex = _subtitles.IndexOf(CurrentSubtitleItem);
-            if (usePrevious && baseIndex > 0)
+            int currentIndex = _subtitles.IndexOf(CurrentSubtitleItem);
+
+            // 获取当前字幕文本及状态
+            string currentText = GetSubtitleItemText(_subtitles[currentIndex]).Trim();
+            bool currentContainsTerminator = currentText.IndexOfAny(sentenceTerminators) != -1;
+            bool currentEndsWithTerminator = EndsWithSentenceTerminator(currentText);
+
+            // 确定起始字幕索引
+            int startIndex = currentIndex;
+            if (currentIndex > 0)
             {
-                baseIndex--;
-            }
-
-            // 定义句子终止符（省略号不计入）
-            char[] sentenceTerminators = new char[] { '.', '。', '?', '？', '!', '！' };
-
-            // 向上合并：查找能合并进入当前完整句的最早字幕项
-            int upwardIndex = baseIndex;
-            while (upwardIndex > 0)
-            {
-                string prevText = GetSubtitleItemText(_subtitles[upwardIndex - 1]).Trim();
-                // 如果前一条字幕以终止符结尾，则认为它已经独立为一个完整句，不合并
+                string prevText = GetSubtitleItemText(_subtitles[currentIndex - 1]).Trim();
+                // 如果上一句以终止符结尾，则当前句起始点为当前字幕的起始点
                 if (EndsWithSentenceTerminator(prevText))
                 {
-                    break;
+                    startIndex = currentIndex;
                 }
-                // 如果前一条字幕中含有终止符（但不在末尾），则也不合并（只合并整条无终止符的字幕）
+                // 否则如果上一句中包含终止符（但不在末尾），则起始点为上一条字幕的开始
                 else if (prevText.IndexOfAny(sentenceTerminators) >= 0)
                 {
-                    break;
+                    startIndex = currentIndex - 1;
                 }
                 else
                 {
-                    upwardIndex--;
+                    startIndex = currentIndex;
+                }
+            }
+            // 如果当前句中间含有终止符（不在句尾），则起始点为当前字幕的开始
+            if (currentContainsTerminator && !currentEndsWithTerminator)
+            {
+                startIndex = currentIndex;
+            }
+
+            // 确定结束字幕索引
+            int endIndex = currentIndex;
+            // 如果当前字幕中不包含任何终止符，则向后查找第一条包含终止符的字幕（不论出现在中间或末尾）
+            if (currentText.IndexOfAny(sentenceTerminators) == -1)
+            {
+                for (int i = currentIndex + 1; i < _subtitles.Count; i++)
+                {
+                    string nextText = GetSubtitleItemText(_subtitles[i]).Trim();
+                    if (nextText.IndexOfAny(sentenceTerminators) != -1)
+                    {
+                        endIndex = i;
+                        break;
+                    }
+                    else
+                    {
+                        endIndex = i;
+                    }
+                }
+            }
+            else
+            {
+                endIndex = currentIndex;
+            }
+
+            // 限制合并后的句子长度不超过 MAX_SENTENCE_LENGTH
+            StringBuilder sb = new StringBuilder();
+            int adjustedEndIndex = endIndex;
+            for (int i = startIndex; i <= endIndex; i++)
+            {
+                if (i > startIndex)
+                    sb.Append(" ");
+                sb.Append(GetSubtitleItemText(_subtitles[i]).Trim());
+            }
+            // 如果超出最大长度，则逐步缩短结束边界
+            while (sb.Length > MAX_SENTENCE_LENGTH && adjustedEndIndex > startIndex)
+            {
+                adjustedEndIndex--;
+                sb.Clear();
+                for (int i = startIndex; i <= adjustedEndIndex; i++)
+                {
+                    if (i > startIndex)
+                        sb.Append(" ");
+                    sb.Append(GetSubtitleItemText(_subtitles[i]).Trim());
                 }
             }
 
-            // 向后合并：查找当前完整句结束处
-            int downwardIndex = baseIndex;
-            while (downwardIndex < _subtitles.Count - 1)
-            {
-                string nextText = GetSubtitleItemText(_subtitles[downwardIndex + 1]).Trim();
-                // 如果下一条字幕中存在终止符，则认为当前完整句在此结束
-                if (nextText.IndexOfAny(sentenceTerminators) >= 0)
-                {
-                    break;
-                }
-                else
-                {
-                    downwardIndex++;
-                }
-            }
-            return new Tuple<int, int>(upwardIndex, downwardIndex);
+            return new Tuple<int, int>(startIndex, adjustedEndIndex);
         }
 
-        public long GetCompleteSentenceStartTime(bool usePrevious = false)
+        public long GetCompleteSentenceStartTime()
         {
-            var range = GetCompleteSentenceRange(usePrevious);
+            var range = GetCompleteSentenceRange();
             if (range.Item1 >= 0)
                 return _subtitles[range.Item1].StartTime;
             return CurrentSubtitleItem != null ? CurrentSubtitleItem.StartTime : 0;
         }
 
-        public long GetCompleteSentenceForwardTime(bool usePrevious = false)
+        public long GetCompleteSentenceForwardTime()
         {
-            var range = GetCompleteSentenceRange(usePrevious);
-            if (range.Item2 < _subtitles.Count - 1)
-                return _subtitles[range.Item2 + 1].StartTime;
+            var range = GetCompleteSentenceRange();
+            if (range.Item1 < 0)
+                return 0;
+
+            // 获取当前完整句子的终止时间
+            long sentenceEndTime = _subtitles[range.Item2].EndTime;
+
+            // 查找第一条开始时间大于当前句子终止时间的字幕
+            var nextSubtitle = _subtitles.FirstOrDefault(sub => sub.StartTime > sentenceEndTime);
+
+            if (nextSubtitle != null)
+                return nextSubtitle.StartTime;
             else
-                return _subtitles[range.Item2].StartTime;
+                return sentenceEndTime + 200;
         }
 
+        public long GetCurrentSubtitleStartTime()
+        {
+            return CurrentSubtitleItem != null ? CurrentSubtitleItem.StartTime : _currentTime;
+        }
 
+        public long GetPreviousSubtitleStartTime()
+        {
+            if (CurrentSubtitleItem == null) return _currentTime;
+            int index = _subtitles.IndexOf(CurrentSubtitleItem);
+            if (index > 0)
+                return _subtitles[index - 1].StartTime;
+            else
+                return CurrentSubtitleItem.StartTime;
+        }
+
+        public long GetNextSubtitleStartTime()
+        {
+            if (CurrentSubtitleItem == null) return _currentTime;
+            int index = _subtitles.IndexOf(CurrentSubtitleItem);
+            if (index < _subtitles.Count - 1)
+                return _subtitles[index + 1].StartTime;
+            else
+                return CurrentSubtitleItem.StartTime;
+        }
 
         public void Dispose()
         {
